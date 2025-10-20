@@ -597,13 +597,26 @@ def reset_password(token):
 @app.route('/googleytR3N45PwqlIrLfAySGxBq54hgHbj6GCP2Hp_SgoK6w.html')
 def adsense_verification():
     """Serve AdSense verification file at root level"""
-    return send_from_directory('.', 'googleytR3N45PwqlIrLfAySGxBq54hgHbj6GCP2Hp_SgoK6w.html')
+    try:
+        # Use absolute path to ensure file is found in deployment
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return send_from_directory(current_dir, 'googleytR3N45PwqlIrLfAySGxBq54hgHbj6GCP2Hp_SgoK6w.html', mimetype='text/html')
+    except Exception as e:
+        app.logger.error(f'Error serving AdSense verification file: {str(e)}')
+        return "File not found", 404
 
 # AdSense Ads.txt Route
 @app.route('/ads.txt')
 def adsense_ads_txt():
     """Serve AdSense ads.txt file at root level"""
-    return send_from_directory('.', 'ads.txt')
+    try:
+        # Use absolute path to ensure file is found in deployment
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        ads_txt_path = os.path.join(current_dir, 'ads.txt')
+        return send_from_directory(current_dir, 'ads.txt', mimetype='text/plain')
+    except Exception as e:
+        app.logger.error(f'Error serving ads.txt: {str(e)}')
+        return "File not found", 404
 
 # Dashboard
 @app.route('/dashboard')
