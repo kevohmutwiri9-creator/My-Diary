@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_mail import Mail
+from flask_mail import Mail, Message
 from datetime import datetime, timezone, timedelta
 import os
 import json
@@ -14,6 +14,7 @@ import logging
 import re
 from logging.handlers import RotatingFileHandler
 import google.generativeai as genai
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
@@ -557,36 +558,39 @@ def save_theme():
     except Exception as e:
         app.logger.error(f'Error saving theme preference for user {current_user.username}: {str(e)}')
         return jsonify({'error': 'Failed to save theme preference'}), 500
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
     """Handle password reset form."""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-        
+
     user = User.verify_reset_token(token)
     if not user:
         flash('That is an invalid or expired token', 'warning')
         return redirect(url_for('forgot_password'))
-        
+
     if request.method == 'POST':
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        
+
         if password != confirm_password:
             flash('Passwords do not match!', 'danger')
             return redirect(url_for('reset_password', token=token))
-            
+
         if not validate_password(password):
             flash('Password must be at least 8 characters long and include at least one letter and one number', 'danger')
             return redirect(url_for('reset_password', token=token))
-            
+
         # Update password
         user.password = bcrypt.generate_password_hash(password).decode('utf-8')
         user.reset_token = None
         user.reset_token_expires = None
         db.session.commit()
-        
+
         flash('Your password has been updated! You can now log in.', 'success')
         return redirect(url_for('login'))
-        
+
     return render_template('reset_password.html', token=token)
 
 # AdSense Verification Route
