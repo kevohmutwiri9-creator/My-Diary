@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}New Entry - My Diary{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">
+                        {% if template == 'gratitude_journal' %}
+                            Gratitude Journal
+                        {% elif template == 'daily_reflection' %}
+                            Daily Reflection
+                        {% elif template == 'goal_setting' %}
+                            Goal Setting
+                        {% elif template == 'mood_check_in' %}
+                            Mood Check-in
+                        {% elif template == 'creative_writing' %}
+                            Creative Writing
+                        {% elif template == 'learning_growth' %}
+                            Learning & Growth
+                        {% elif template == 'dream_journal' %}
+                            Dream Journal
+                        {% elif template == 'quick_notes' %}
+                            Quick Notes
+                        {% else %}
+                            Blank Entry
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content</label>
+                            <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="mood" class="form-label">Mood (optional)</label>
+                            <select class="form-select" id="mood" name="mood">
+                                <option value="">Select mood...</option>
+                                <option value="😊 Happy">😊 Happy</option>
+                                <option value="😢 Sad">😢 Sad</option>
+                                <option value="😡 Angry">😡 Angry</option>
+                                <option value="😴 Tired">😴 Tired</option>
+                                <option value="😃 Excited">😃 Excited</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Entry</button>
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
