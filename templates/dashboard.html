@@ -2,966 +2,437 @@
 
 {% block title %}Dashboard - My Diary{% endblock %}
 
-{% block content %}
-<div class="dashboard">
-    <div class="welcome-section">
-        <h1><i class="fas fa-home"></i> Welcome back, {{ current_user.username }}!</h1>
-        <p class="welcome-subtitle">Here are your recent diary entries</p>
-
-        {% set streak_info = current_user.get_streak_info() %}
-        <div class="streak-banner {{ streak_info.status }}">
-            <div class="streak-icon">
-                <i class="fas fa-fire"></i>
-            </div>
-            <div class="streak-content">
-                <div class="streak-count">{{ streak_info.current }} day streak</div>
-                <div class="streak-message">{{ streak_info.message }}</div>
-            </div>
-            {% if streak_info.longest and streak_info.longest > 0 %}
-                <div class="streak-badge">
-                    <i class="fas fa-trophy"></i>
-                    Best: {{ streak_info.longest }} days
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Statistics Overview Cards -->
-    <div class="stats-overview">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" data-target="{{ entries|length }}">0</div>
-                    <div class="stat-label">Total Entries</div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-file-alt"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" data-target="{{ entries|sum(attribute='word_count') if entries else 0 }}">0</div>
-                    <div class="stat-label">Total Words</div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" data-target="{{ streak_info.current if streak_info.current else 0 }}">0</div>
-                    <div class="stat-label">Current Streak</div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-trophy"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number" data-target="{{ streak_info.longest if streak_info.longest else 0 }}">0</div>
-                    <div class="stat-label">Best Streak</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- AdSense Dashboard Ad -->
-    <div style="margin: 40px 0; text-align: center;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-2396098605485959"
-             data-ad-slot="YOUR_AD_SLOT_ID"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-
-    <div class="quick-actions">
-        <a href="{{ url_for('write') }}" class="btn">
-            <i class="fas fa-pen"></i> Write New Entry
-        </a>
-        <a href="{{ url_for('search') }}" class="btn btn-secondary">
-            <i class="fas fa-search"></i> Search Entries
-        </a>
-    </div>
-
-    {% if entries %}
-        <div class="entries-section">
-            <h2><i class="fas fa-book"></i> Your Entries</h2>
-
-            <div class="entries-grid">
-                {% for entry in entries %}
-                    <div class="entry-card {% if entry.is_favorite %}favorite-entry{% endif %}" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
-                        <div class="entry-header">
-                            <div class="entry-date-time">
-                                <span class="entry-date">
-                                    <i class="fas fa-calendar"></i>
-                                    {{ entry.timestamp.strftime('%B %d, %Y') if entry.timestamp else 'No date' }}
-                                </span>
-                                <span class="entry-time">
-                                    <i class="fas fa-clock"></i>
-                                    {{ entry.timestamp.strftime('%I:%M %p') if entry.timestamp else '' }}
-                                </span>
-                            </div>
-                            <button class="favorite-btn" onclick="toggleFavorite({{ entry.id }}, this)" title="{% if entry.is_favorite %}Unpin{% else %}Pin{% endif %} entry" aria-label="{% if entry.is_favorite %}Unpin{% else %}Pin{% endif %} entry">
-                                <i class="{% if entry.is_favorite %}fas{% else %}far{% endif %} fa-star"></i>
-                            </button>
-                        </div>
-
-                        <div class="entry-preview">
-                            {{ entry.content[:150] }}{% if entry.content|length > 150 %}...{% endif %}
-                        </div>
-
-                        <div class="entry-actions">
-                            <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="btn btn-small">
-                                <i class="fas fa-eye"></i> View
-                            </a>
-                            <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="btn btn-small">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-
-            {% if pagination.pages > 1 %}
-                <div class="pagination">
-                    {% if pagination.has_prev %}
-                        <a href="{{ url_for('dashboard', page=pagination.prev_num) }}" class="btn btn-small">
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </a>
-                    {% endif %}
-
-                    <span class="page-info">
-                        Page {{ pagination.page }} of {{ pagination.pages }}
-                    </span>
-
-                    {% if pagination.has_next %}
-                        <a href="{{ url_for('dashboard', page=pagination.next_num) }}" class="btn btn-small">
-                            Next <i class="fas fa-chevron-right"></i>
-                        </a>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-    {% else %}
-        <div class="no-entries">
-            <i class="fas fa-book-open"></i>
-            <h3>No entries yet</h3>
-            <p>Start your diary journey by writing your first entry!</p>
-            <a href="{{ url_for('write') }}" class="btn">
-                <i class="fas fa-pen"></i> Write Your First Entry
-            </a>
-        </div>
-    {% endif %}
-</div>
-
-<!-- Sidebar Ad Placement -->
-<div class="ad-container" style="margin: 40px 0; text-align: center;">
-    <ins class="adsbygoogle ad-sidebar"
-         style="display:block"
-         data-ad-client="ca-pub-2396098605485959"
-         data-ad-slot="YOUR_SIDEBAR_SLOT_ID"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</div>
-
-{% endblock %}
-
-{% block extra_css %}
+{% block extra_head %}
 <style>
-.dashboard {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px 0;
-}
-
-/* Enhanced Welcome Section */
-.welcome-section {
-    text-align: center;
-    margin-bottom: 50px;
-    position: relative;
-}
-
-.welcome-section::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: pulse-glow 4s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-    0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-    50% { opacity: 0.6; transform: translateX(-50%) scale(1.2); }
-}
-
-.welcome-section h1 {
-    color: #333;
-    margin-bottom: 10px;
-    font-size: 2.5rem;
-    font-weight: 700;
-    position: relative;
-    z-index: 2;
-}
-
-.dark-mode .welcome-section h1 {
-    color: #ecf0f1;
-}
-
-.welcome-subtitle {
-    color: #666;
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    position: relative;
-    z-index: 2;
-}
-
-.dark-mode .welcome-subtitle {
-    color: #bdc3c7;
-}
-
-/* Enhanced Statistics Overview */
-.stats-overview {
-    margin-bottom: 50px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 20px;
-    padding: 30px 25px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-    border-color: rgba(102, 126, 234, 0.3);
-}
-
-.dark-mode .stat-card {
-    background: rgba(44, 62, 80, 0.9);
-    border-color: rgba(52, 152, 219, 0.3);
-}
-
-.dark-mode .stat-card::before {
-    background: linear-gradient(90deg, #3498db, #9b59b6);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.stat-content {
-    flex: 1;
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #333;
-    line-height: 1;
-    margin-bottom: 5px;
-}
-
-.dark-mode .stat-number {
-    color: #ecf0f1;
-}
-
-.stat-label {
-    color: #666;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.dark-mode .stat-label {
-    color: #bdc3c7;
-}
-
-/* Enhanced Streak Banner */
-.streak-banner {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    padding: 30px 35px;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-    border-radius: 25px;
-    margin: 30px 0;
-    color: white;
-    box-shadow: 0 10px 40px rgba(255, 107, 107, 0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.streak-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
-    animation: shimmer 3s infinite;
-}
-
-.streak-banner:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 50px rgba(255, 107, 107, 0.4);
-}
-
-.streak-banner.no_entries {
-    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-}
-
-.streak-banner.can_extend {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-}
-
-.streak-banner.active_today {
-    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-}
-
-.streak-banner.broken {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-}
-
-.streak-icon {
-    font-size: 3.5rem;
-    opacity: 0.9;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
-    animation: float 2s ease-in-out infinite;
-    z-index: 2;
-    position: relative;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-}
-
-.streak-content {
-    flex: 1;
-    z-index: 2;
-    position: relative;
-}
-
-.streak-count {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 8px;
-    text-shadow: 0 3px 6px rgba(0,0,0,0.3);
-}
-
-.streak-message {
-    font-size: 1.2rem;
-    opacity: 0.95;
-    line-height: 1.4;
-}
-
-.streak-badge {
-    background: rgba(255, 255, 255, 0.25);
-    padding: 15px 25px;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    z-index: 2;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.streak-badge:hover {
-    background: rgba(255, 255, 255, 0.35);
-    transform: scale(1.05);
-}
-
-/* Enhanced Quick Actions */
-.quick-actions {
-    display: flex;
-    gap: 25px;
-    justify-content: center;
-    margin-bottom: 60px;
-    flex-wrap: wrap;
-}
-
-/* Enhanced Entries Section */
-.entries-section h2 {
-    margin-bottom: 40px;
-    color: #333;
-    text-align: center;
-    font-size: 2.2rem;
-    font-weight: 700;
-    position: relative;
-}
-
-.dark-mode .entries-section h2 {
-    color: #ecf0f1;
-}
-
-.entries-section h2::after {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    border-radius: 2px;
-    animation: underlineGrow 0.8s ease-out;
-}
-
-@keyframes underlineGrow {
-    from { width: 0; }
-    to { width: 80px; }
-}
-
-.dark-mode .entries-section h2::after {
-    background: linear-gradient(90deg, #3498db, #9b59b6);
-}
-
-/* Enhanced Entry Cards */
-.entries-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 35px;
-    margin-bottom: 60px;
-}
-
-.entry-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 25px;
-    padding: 35px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
-}
-
-.entry-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    transition: height 0.3s ease;
-}
-
-.entry-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    border-color: rgba(102, 126, 234, 0.4);
-}
-
-.entry-card:hover::before {
-    height: 8px;
-}
-
-.dark-mode .entry-card {
-    background: rgba(44, 62, 80, 0.9);
-    border-color: rgba(52, 152, 219, 0.3);
-}
-
-.dark-mode .entry-card::before {
-    background: linear-gradient(90deg, #3498db, #9b59b6);
-}
-
-.entry-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark-mode .entry-header {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-.entry-date-time {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.entry-date, .entry-time {
-    font-size: 1rem;
-    color: #666;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 15px;
-    background: rgba(102, 126, 234, 0.05);
-    border-radius: 20px;
-    transition: all 0.3s ease;
-}
-
-.entry-date:hover, .entry-time:hover {
-    background: rgba(102, 126, 234, 0.1);
-    transform: translateX(5px);
-}
-
-.dark-mode .entry-date, .dark-mode .entry-time {
-    color: #bdc3c7;
-    background: rgba(52, 152, 219, 0.05);
-}
-
-.dark-mode .entry-date:hover, .dark-mode .entry-time:hover {
-    background: rgba(52, 152, 219, 0.1);
-}
-
-.favorite-btn {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #f39c12;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 10px;
-    border-radius: 50%;
-    position: relative;
-}
-
-.favorite-btn:hover {
-    transform: scale(1.3) rotate(15deg);
-    background: rgba(243, 156, 18, 0.1);
-}
-
-.favorite-btn .fa-star {
-    color: #f39c12;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-    transition: all 0.3s ease;
-}
-
-.favorite-btn:hover .fa-star {
-    color: #e67e22;
-    filter: drop-shadow(0 3px 6px rgba(243, 156, 18, 0.4));
-}
-
-.favorite-entry {
-    border: 2px solid #f39c12;
-    box-shadow: 0 10px 40px rgba(243, 156, 18, 0.2);
-}
-
-.favorite-entry::before {
-    background: linear-gradient(90deg, #f39c12, #e67e22);
-    height: 8px;
-}
-
-.dark-mode .favorite-entry {
-    border-color: #f39c12;
-    box-shadow: 0 10px 40px rgba(243, 156, 18, 0.3);
-}
-
-.entry-preview {
-    line-height: 1.8;
-    color: #444;
-    margin-bottom: 30px;
-    min-height: 80px;
-    font-size: 1.05rem;
-    position: relative;
-}
-
-.entry-preview::first-letter {
-    float: left;
-    font-size: 3rem;
-    line-height: 2rem;
-    margin-right: 10px;
-    margin-top: 5px;
-    color: #667eea;
-    font-weight: 700;
-}
-
-.dark-mode .entry-preview {
-    color: #ecf0f1;
-}
-
-.entry-actions {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-}
-
-/* Enhanced Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-    margin-top: 60px;
-    padding: 25px;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-}
-
-.dark-mode .pagination {
-    background: rgba(44, 62, 80, 0.5);
-}
-
-.page-info {
-    color: #666;
-    font-weight: 600;
-    font-size: 1.1rem;
-    padding: 10px 20px;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 20px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-}
-
-.dark-mode .page-info {
-    color: #bdc3c7;
-    background: rgba(52, 152, 219, 0.1);
-    border-color: rgba(52, 152, 219, 0.2);
-}
-
-/* Enhanced No Entries State */
-.no-entries {
-    text-align: center;
-    padding: 120px 40px;
-    color: #666;
-    position: relative;
-}
-
-.no-entries::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: pulse-glow 4s ease-in-out infinite;
-}
-
-.no-entries i {
-    font-size: 6rem;
-    margin-bottom: 30px;
-    color: rgba(102, 126, 234, 0.3);
-    animation: float-icon 3s ease-in-out infinite;
-    position: relative;
-    z-index: 2;
-}
-
-@keyframes float-icon {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(5deg); }
-}
-
-.no-entries h3 {
-    margin-bottom: 25px;
-    color: #333;
-    font-size: 2rem;
-    font-weight: 700;
-    position: relative;
-    z-index: 2;
-}
-
-.dark-mode .no-entries {
-    color: #bdc3c7;
-}
-
-.dark-mode .no-entries h3 {
-    color: #ecf0f1;
-}
-
-.no-entries p {
-    margin-bottom: 40px;
-    font-size: 1.3rem;
-    opacity: 0.8;
-    position: relative;
-    z-index: 2;
-}
-
-/* Enhanced Responsive Design */
-@media (max-width: 768px) {
-    .entries-grid {
-        grid-template-columns: 1fr;
-        gap: 30px;
+    .entry-preview {
+        max-height: 150px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1rem;
     }
-
-    .entry-header {
-        flex-direction: column;
-        gap: 20px;
-        align-items: flex-start;
+    .entry-preview::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 100%);
+        pointer-events: none;
     }
-
-    .quick-actions {
+    .entry-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 1.5rem;
+        height: 100%;
+        display: flex;
         flex-direction: column;
+    }
+    .entry-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    .entry-date {
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+    .mood-badge {
+        background-color: #e9ecef;
+        padding: 0.25em 0.5em;
+        border-radius: 1em;
+        font-size: 0.8em;
+        display: inline-flex;
         align-items: center;
-        gap: 20px;
+        gap: 0.3em;
     }
-
-    .pagination {
-        flex-direction: column;
-        gap: 25px;
-    }
-
-    .streak-banner {
-        flex-direction: column;
-        text-align: center;
-        gap: 25px;
-        padding: 30px;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-    }
-
-    .stat-card {
-        padding: 25px 20px;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .dashboard {
-        padding: 15px 0;
-    }
-
-    .welcome-section h1 {
-        font-size: 2rem;
-    }
-
-    .entries-grid {
-        gap: 25px;
-    }
-
-    .entry-card {
-        padding: 25px;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-
-    .stat-card {
-        padding: 20px 15px;
-    }
-
-    .stat-number {
-        font-size: 1.8rem;
-    }
-
     .no-entries {
-        padding: 80px 20px;
+        padding: 3rem 0;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        margin: 2rem 0;
     }
-
-    .no-entries i {
-        font-size: 4rem;
+    .entry-actions {
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        display: flex;
+        gap: 0.5rem;
     }
-
-    .no-entries h3 {
-        font-size: 1.5rem;
+    .entry-content-preview {
+        color: #495057;
+        line-height: 1.6;
     }
-}
-
-/* Accessibility Enhancements */
-@media (prefers-reduced-motion: reduce) {
-    .entry-card, .stat-card, .streak-banner, .floating-bot-icon {
-        transition: none;
-        animation: none;
+    .entry-content-preview p:last-child {
+        margin-bottom: 0;
     }
-
-    .entry-card:hover, .stat-card:hover {
-        transform: none;
+    .entry-content-preview h1,
+    .entry-content-preview h2,
+    .entry-content-preview h3,
+    .entry-content-preview h4,
+    .entry-content-preview h5,
+    .entry-content-preview h6 {
+        font-size: 1.1em;
+        margin: 0.5em 0;
     }
-}
-
-/* High contrast support */
-@media (prefers-contrast: high) {
-    .entry-card, .stat-card, .streak-banner {
-        border-width: 2px;
+    .entry-content-preview img {
+        max-width: 100%;
+        height: auto;
     }
-
-    .nav a, .btn {
-        border: 2px solid currentColor;
+    .search-form {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
     }
-}
-
-/* Print styles */
-@media print {
-    .stats-overview, .quick-actions, .pagination {
-        display: none;
+    .search-input-group {
+        max-width: 400px;
     }
-
-    .entry-card {
-        break-inside: avoid;
-        box-shadow: none;
-        border: 1px solid #ccc;
+    .pagination {
+        margin-bottom: 0;
     }
-}
+    .page-link {
+        color: var(--bs-body-color);
+    }
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .stats-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        height: 100%;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    .stats-icon {
+        margin-bottom: 0.5rem;
+        opacity: 0.8;
+    }
+    .entries-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+    .mood-filter-buttons {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .mood-filter-buttons .btn {
+        border-radius: 20px !important;
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
 </style>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-// Animate statistics counters on scroll
-function animateCounters() {
-    const counters = document.querySelectorAll('.stat-number');
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 2rem;">
+        <h1>Dashboard</h1>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="newEntryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-circle"></i> Write New Entry
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="newEntryDropdown">
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry') }}">
+                        <i class="bi bi-pencil"></i> Blank Entry
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='gratitude_journal') }}">
+                        <i class="bi bi-heart"></i> Gratitude Journal
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='daily_reflection') }}">
+                        <i class="bi bi-lightbulb"></i> Daily Reflection
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='goal_setting') }}">
+                        <i class="bi bi-bullseye"></i> Goal Setting
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='mood_check_in') }}">
+                        <i class="bi bi-emoji-smile"></i> Mood Check-in
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='creative_writing') }}">
+                        <i class="bi bi-brush"></i> Creative Writing
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='learning_growth') }}">
+                        <i class="bi bi-book"></i> Learning & Growth
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='dream_journal') }}">
+                        <i class="bi bi-moon-stars"></i> Dream Journal
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='quick_notes') }}">
+                        <i class="bi bi-lightning"></i> Quick Notes
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry') }}#template-section">
+                        <i class="bi bi-grid"></i> Browse All Templates
+                    </a></li>
+                </ul>
+            </div>
+            <a href="{{ url_for('main.calendar') }}" class="btn btn-outline-info">
+                <i class="bi bi-calendar"></i> Calendar View
+            </a>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download"></i> Export
+                    {% if search_query or mood_filter %}
+                        <span class="badge bg-primary ms-1">{{ entries.total }}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries_json', search=search_query, mood=mood_filter) }}">
+                        <i class="bi bi-filetype-json"></i> Export as JSON
+                        {% if search_query or mood_filter %}
+                            <small class="text-muted d-block">({{ entries.total }} filtered entries)</small>
+                        {% endif %}
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries_markdown', search=search_query, mood=mood_filter) }}">
+                        <i class="bi bi-markdown"></i> Export as Markdown
+                        {% if search_query or mood_filter %}
+                            <small class="text-muted d-block">({{ entries.total }} filtered entries)</small>
+                        {% endif %}
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-    counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-target'));
-        const increment = target / 100;
-        let current = 0;
+    <!-- Search Form -->
+    <div class="search-form">
+        <form method="GET" action="{{ url_for('main.dashboard') }}" class="d-flex align-items-center">
+            <div class="input-group search-input-group">
+                <input type="text" class="form-control" name="search"
+                       placeholder="Search your entries..." value="{{ search_query or '' }}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+            {% if search_query %}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-danger ms-2">
+                    <i class="bi bi-x"></i> Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
 
-        const updateCounter = () => {
-            current += increment;
-            if (current < target) {
-                counter.textContent = Math.ceil(current);
-                requestAnimationFrame(updateCounter);
-            } else {
-                counter.textContent = target;
-            }
-        };
+    {% if search_query %}
+        <div class="mb-3">
+            <p class="text-muted">
+                {% if entries.items %}
+                    Found {{ entries.total }} entries matching "{{ search_query }}"
+                    {% if mood_filter %}
+                        with mood "{{ mood_filter }}"
+                    {% endif %}
+                {% else %}
+                    No entries found matching "{{ search_query }}"
+                    {% if mood_filter %}
+                        with mood "{{ mood_filter }}"
+                    {% endif %}
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
 
-        // Start animation when element is in view
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    updateCounter();
-                    observer.unobserve(entry.target);
-                }
-            });
-        });
+    <!-- Dashboard Stats -->
+    {% if not search_query %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100">
+                <div class="card-body">
+                    <div class="stats-icon" style="font-size: 2rem; color: #0d6efd;">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <h3 class="card-title">{{ stats.total_entries }}</h3>
+                    <p class="card-text text-muted">Total Entries</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100">
+                <div class="card-body">
+                    <div class="stats-icon" style="font-size: 2rem; color: #198754;">
+                        <i class="bi bi-calendar-plus"></i>
+                    </div>
+                    <h3 class="card-title">{{ stats.entries_this_month }}</h3>
+                    <p class="card-text text-muted">This Month</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100">
+                <div class="card-body">
+                    <div class="stats-icon" style="font-size: 2rem; color: #fd7e14;">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3 class="card-title">{{ stats.recent_entries }}</h3>
+                    <p class="card-text text-muted">This Week</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100">
+                <div class="card-body">
+                    <div class="stats-icon" style="font-size: 2rem; color: #dc3545;">
+                        <i class="bi bi-emoji-smile"></i>
+                    </div>
+                    <h3 class="card-title">
+                        {% if stats.most_common_mood %}
+                            {{ stats.most_common_mood }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </h3>
+                    <p class="card-text text-muted">Top Mood</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-        observer.observe(counter);
-    });
-}
+    <!-- Mood Filter Buttons -->
+    {% if not search_query and stats.total_entries > 0 %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <h6 class="card-title mb-0 me-3">Filter by Mood:</h6>
+                <div class="btn-group mood-filter-buttons" role="group">
+                    <a href="{{ url_for('main.dashboard') }}"
+                       class="btn btn-sm {{ 'btn-primary' if not mood_filter else 'btn-outline-primary' }}">
+                        All
+                    </a>
+                    <a href="{{ url_for('main.dashboard', mood='😊 Happy') }}"
+                       class="btn btn-sm {{ 'btn-success' if mood_filter == '😊 Happy' else 'btn-outline-success' }}">
+                        😊 Happy
+                    </a>
+                    <a href="{{ url_for('main.dashboard', mood='😢 Sad') }}"
+                       class="btn btn-sm {{ 'btn-info' if mood_filter == '😢 Sad' else 'btn-outline-info' }}">
+                        😢 Sad
+                    </a>
+                    <a href="{{ url_for('main.dashboard', mood='😡 Angry') }}"
+                       class="btn btn-sm {{ 'btn-warning' if mood_filter == '😡 Angry' else 'btn-outline-warning' }}">
+                        😡 Angry
+                    </a>
+                    <a href="{{ url_for('main.dashboard', mood='😴 Tired') }}"
+                       class="btn btn-sm {{ 'btn-secondary' if mood_filter == '😴 Tired' else 'btn-outline-secondary' }}">
+                        😴 Tired
+                    </a>
+                    <a href="{{ url_for('main.dashboard', mood='😃 Excited') }}"
+                       class="btn btn-sm {{ 'btn-danger' if mood_filter == '😃 Excited' else 'btn-outline-danger' }}">
+                        😃 Excited
+                    </a>
+                </div>
+                {% if mood_filter %}
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-sm btn-outline-danger ms-2">
+                        <i class="bi bi-x"></i> Clear Filter
+                    </a>
+                {% endif %}
+                {% if search_query and mood_filter %}
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-sm btn-outline-secondary ms-2">
+                        <i class="bi bi-x-circle"></i> Clear All
+                    </a>
+                {% endif %}
+            </div>
+            {% if mood_filter %}
+                <p class="text-muted mb-0">
+                    Showing entries with mood: <strong>{{ mood_filter }}</strong>
+                    {% if entries.items %}
+                        ({{ entries.total }} found)
+                    {% endif %}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
-// Initialize animations when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    animateCounters();
-});
+    {% if entries %}
+        <div class="entries-grid">
+            {% for entry in entries %}
+                <div class="entry-card">
+                    <div class="entry-header">
+                        <div class="entry-title">{{ entry.title or 'Untitled' }}</div>
+                        <div class="entry-date">{{ entry.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                        {% if entry.mood %}
+                            <div class="mood-badge">{{ entry.mood }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="entry-preview">
+                        <div class="entry-content-preview">
+                            {{ (entry.content[:300] + ('...' if entry.content|length > 300 else '')) | markdown_to_html | safe }}
+                        </div>
+                    </div>
+                    <div class="entry-actions">
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('main.view_entry', entry_id=entry.id) }}" class="btn btn-secondary btn-sm">View</a>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('main.export_entry_json', entry_id=entry.id) }}">
+                                        <i class="bi bi-filetype-json"></i> Export as JSON
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ url_for('main.delete_entry', entry_id=entry.id) }}" style="display: inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this entry?')">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 
-function toggleFavorite(entryId, button) {
-    const icon = button.querySelector('i');
-    const card = button.closest('.entry-card');
+        <!-- Pagination -->
+        {% if entries.pages > 1 %}
+        <nav aria-label="Entries pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if entries.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.dashboard', page=entries.prev_num, search=search_query, mood=mood_filter) }}">Previous</a>
+                    </li>
+                {% endif %}
 
-    // Get CSRF token from meta tag or form
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                  document.querySelector('input[name="csrf_token"]')?.value;
+                {% for page_num in entries.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == entries.page else '' }}">
+                            <a class="page-link" href="{{ url_for('main.dashboard', page=page_num, search=search_query, mood=mood_filter) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
 
-    fetch(`/toggle_favorite/${entryId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'X-CSRFToken': token })
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Toggle star icon with animation
-            if (data.is_favorite) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                card.classList.add('favorite-entry');
-                button.title = 'Unpin entry';
+                {% if entries.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.dashboard', page=entries.next_num, search=search_query, mood=mood_filter) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
 
-                // Add celebration animation
-                card.style.animation = 'celebrate 0.6s ease-out';
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                card.classList.remove('favorite-entry');
-                button.title = 'Pin entry';
-            }
-
-            // Show success message (optional)
-            console.log(data.message);
-        } else {
-            alert(data.message || 'Failed to update favorite status');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-    });
-}
-
-// Add celebration animation keyframes
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes celebrate {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-`;
-document.head.appendChild(style);
-</script>
+    {% else %}
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 3rem;">
+                {% if search_query %}
+                    <h3>No entries found</h3>
+                    <p>Your search for "{{ search_query }}" didn't return any results.</p>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn">Show All Entries</a>
+                {% elif mood_filter %}
+                    <h3>No entries found</h3>
+                    <p>No entries found with mood "{{ mood_filter }}".</p>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn">Show All Entries</a>
+                {% else %}
+                    <h3>No entries yet</h3>
+                    <p>Start writing your first diary entry!</p>
+                    <a href="{{ url_for('main.new_entry') }}" class="btn">Write Your First Entry</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
-
