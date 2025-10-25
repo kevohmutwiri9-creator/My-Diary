@@ -107,45 +107,28 @@ def dashboard():
         flash('An error occurred while loading the dashboard.', 'danger')
         return redirect(url_for('main.index'))
 
-@main_bp.route('/entry/new', methods=['GET', 'POST'])
+@main_bp.route('/entry/new')
 @login_required
 def new_entry():
     """Create a new diary entry."""
     try:
-        # Handle template selection
-        template_id = request.args.get('template')
+        template_type = request.args.get('template', 'blank')
         selected_template = None
 
-        if request.method == 'GET' and template_id:
-            from app.models.template import EntryTemplate
+        # Default templates
+        default_templates = {
+            'gratitude_journal': {'name': 'Gratitude Journal', 'description': 'What are you grateful for today?', 'category': 'Reflection', 'icon': 'bi-heart', 'template_content': 'Today I am grateful for...'},
+            'daily_reflection': {'name': 'Daily Reflection', 'description': 'Reflect on your day', 'category': 'Reflection', 'icon': 'bi-lightbulb', 'template_content': 'Today was...'},
+            'goal_setting': {'name': 'Goal Setting', 'description': 'Set your goals', 'category': 'Productivity', 'icon': 'bi-bullseye', 'template_content': 'My goals for today are...'},
+            'mood_check_in': {'name': 'Mood Check-in', 'description': 'How are you feeling?', 'category': 'Wellness', 'icon': 'bi-emoji-smile', 'template_content': 'I am feeling...'},
+            'creative_writing': {'name': 'Creative Writing', 'description': 'Let your creativity flow', 'category': 'Creative', 'icon': 'bi-brush', 'template_content': 'Once upon a time...'},
+            'learning_growth': {'name': 'Learning & Growth', 'description': 'What did you learn?', 'category': 'Growth', 'icon': 'bi-book', 'template_content': 'Today I learned...'},
+            'dream_journal': {'name': 'Dream Journal', 'description': 'Record your dreams', 'category': 'Personal', 'icon': 'bi-moon-stars', 'template_content': 'Last night I dreamed...'},
+            'quick_notes': {'name': 'Quick Notes', 'description': 'Quick thoughts', 'category': 'Notes', 'icon': 'bi-lightning', 'template_content': 'Note to self...'}
+        }
 
-            # Try to find custom template first
-            template = EntryTemplate.query.filter_by(id=template_id, user_id=current_user.id).first()
-            if template:
-                selected_template = {
-                    'id': template.id,
-                    'name': template.name,
-                    'description': template.description,
-                    'category': template.category,
-                    'icon': template.icon,
-                    'template_content': template.template_content
-                }
-            else:
-                # Check default templates
-                default_templates = EntryTemplate.get_default_templates()
-                for default_template in default_templates:
-                    # Match template names with URL parameter
-                    template_url_param = template_id.lower().replace('_', ' ')
-                    if default_template['name'].lower() == template_url_param:
-                        selected_template = {
-                            'id': None,
-                            'name': default_template['name'],
-                            'description': default_template['description'],
-                            'category': default_template['category'],
-                            'icon': default_template['icon'],
-                            'template_content': default_template['template_content']
-                        }
-                        break
+        if template_type in default_templates:
+            selected_template = default_templates[template_type]
 
         if request.method == 'POST':
             title = request.form.get('title', '').strip()
@@ -155,7 +138,7 @@ def new_entry():
             
             if not content:
                 flash('Content is required.', 'danger')
-                return render_template('write.html', title=title, content=content, mood=mood, is_private=is_private, selected_template=selected_template)
+                return render_template('new_entry.html', template=template_type, selected_template=selected_template)
             
             # Create new entry
             entry = Entry(
@@ -173,12 +156,11 @@ def new_entry():
             flash('Your diary entry has been saved!', 'success')
             return redirect(url_for('main.view_entry', entry_id=entry.id))
         
-        # GET request - show empty form
-        return render_template('write.html', selected_template=selected_template)
-        
+        return render_template('new_entry.html', template=template_type, selected_template=selected_template)
+
     except Exception as e:
-        current_app.logger.error(f'Error in new entry route: {str(e)}', exc_info=True)
-        flash('An error occurred while creating a new entry.', 'danger')
+        current_app.logger.error(f'Error in new_entry route: {str(e)}', exc_info=True)
+        flash('An error occurred while loading the form.', 'danger')
         return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/entry/<int:entry_id>')

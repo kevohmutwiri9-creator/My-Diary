@@ -38,8 +38,18 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="content" class="form-label">Content</label>
-                            <textarea class="form-control" id="content" name="content" rows="10" required></textarea>
+                            <label for="content" class="form-label">
+                                {% if selected_template %}
+                                    {{ selected_template.description }}
+                                {% else %}
+                                    Content
+                                {% endif %}
+                            </label>
+                            <textarea class="form-control" id="content" name="content" rows="10" required>
+                                {% if selected_template %}
+                                    {{ selected_template.template_content }}
+                                {% endif %}
+                            </textarea>
                         </div>
 
                         <div class="mb-3">

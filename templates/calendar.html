@@ -231,14 +231,14 @@
                 </p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ url_for('main.calendar', year=prev_year, month=prev_month) }}"
+                <a href="{{ url_for('main.calendar_view', year=prev_year, month=prev_month) }}"
                    class="btn btn-outline-light">
                     <i class="bi bi-chevron-left"></i> Previous
                 </a>
-                <a href="{{ url_for('main.calendar') }}" class="btn btn-outline-light">
+                <a href="{{ url_for('main.calendar_view') }}" class="btn btn-outline-light">
                     <i class="bi bi-calendar"></i> Today
                 </a>
-                <a href="{{ url_for('main.calendar', year=next_year, month=next_month) }}"
+                <a href="{{ url_for('main.calendar_view', year=next_year, month=next_month) }}"
                    class="btn btn-outline-light">
                     Next <i class="bi bi-chevron-right"></i>
                 </a>
