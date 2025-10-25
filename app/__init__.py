@@ -75,5 +75,4 @@ def create_app(config_class=Config):
 
     return app
 
-# Import models after db initialization to avoid circular imports
-from app.models import user, entry, template
+app = create_app()
