@@ -32,9 +32,14 @@ def create_app(config_class=Config):
     """Application factory function."""
     # Point to static and template folders at project root
     import os
+    # Get the absolute path to the project root directory
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    static_path = os.path.join(basedir, 'static')
+    
+    # Create Flask app with explicit paths
     app = Flask(__name__, 
-                static_folder=os.path.join(basedir, 'static'),
+                static_folder=static_path,
+                static_url_path='/static',
                 template_folder='templates')
     app.config.from_object(config_class)
 
