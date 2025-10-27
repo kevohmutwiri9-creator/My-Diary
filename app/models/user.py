@@ -1,5 +1,7 @@
 import re
-from datetime import datetime
+import hmac
+import hashlib
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 from flask_login import UserMixin
@@ -61,19 +63,46 @@ class User(UserMixin, db.Model):
         """Check if the provided password matches the stored hash."""
         if self.account_locked_until and self.account_locked_until > datetime.utcnow():
             return False
-            
-        is_correct = check_password_hash(self.password_hash, password)
-        
+
+        is_correct = False
+        legacy_hash = False
+
+        try:
+            is_correct = check_password_hash(self.password_hash, password)
+        except ValueError:
+            is_correct = self._check_legacy_password_hash(password)
+            legacy_hash = is_correct
+
         if is_correct:
             self.failed_login_attempts = 0
             self.account_locked_until = None
+
+            # Seamlessly upgrade legacy hashes to the stronger default
+            if legacy_hash:
+                self.set_password(password)
+                db.session.commit()
         else:
             self.failed_login_attempts += 1
             if self.failed_login_attempts >= 5:  # Lock after 5 failed attempts
                 self.account_locked_until = datetime.utcnow() + timedelta(minutes=15)
             db.session.commit()
-            
+
         return is_correct
+
+    def _check_legacy_password_hash(self, password):
+        """Support legacy Werkzeug 'sha256' hashes for existing users."""
+        stored_hash = self.password_hash or ''
+
+        if not stored_hash.startswith('sha256$'):
+            return False
+
+        try:
+            _, salt, hash_value = stored_hash.split('$', 2)
+        except ValueError:
+            return False
+
+        candidate = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
+        return hmac.compare_digest(candidate, hash_value)
     
     def is_account_locked(self):
         """Check if the account is currently locked."""

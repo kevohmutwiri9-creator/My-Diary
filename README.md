@@ -125,6 +125,27 @@ for model in genai.list_models():
 
 Update the `model_candidates` list in `app/routes/assistant.py` accordingly.
 
+## 🔒 Password Reset Email Setup
+
+The "Forgot password" flow relies on SMTP credentials and signed reset tokens.
+
+1. Set these variables in `.env` (Render → Environment tab in production):
+   ```ini
+   MAIL_SERVER=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USE_TLS=True
+   MAIL_USERNAME=your-email@gmail.com
+   MAIL_PASSWORD=your-app-password
+   MAIL_DEFAULT_SENDER=My Diary <your-email@gmail.com>
+   PASSWORD_RESET_SALT=change-me
+   PASSWORD_RESET_TOKEN_MAX_AGE=3600  # seconds
+   ```
+   For Gmail, create an App Password under security settings.
+2. Install dependencies via `pip install -r requirements.txt` (includes `Flask-Mail`).
+3. Restart the server so credentials load, then use **Forgot your password?** on the login screen.
+
+Emails render using `app/templates/emails/reset_password.(txt|html)`.
+
 ## 🛠️ Project Structure
 
 ```

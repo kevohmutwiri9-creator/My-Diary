@@ -170,6 +170,11 @@ def new_entry():
         flash('An error occurred while loading the form.', 'danger')
         return redirect(url_for('main.dashboard'))
 
+@main_bp.route('/ads.txt')
+def ads_txt():
+    """Serve ads.txt from the static directory for AdSense verification."""
+    return current_app.send_static_file('ads.txt')
+
 @main_bp.route('/entry/<int:entry_id>')
 @login_required
 def view_entry(entry_id):

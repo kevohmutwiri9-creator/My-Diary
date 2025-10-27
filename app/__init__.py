@@ -8,6 +8,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_caching import Cache
 from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail
 from flask_talisman import Talisman
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -27,6 +28,7 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
 login_manager.refresh_view = 'auth.login'
 login_manager.needs_refresh_message = "Session timed out, please re-login to continue."
+mail = Mail()
 
 def create_app(config_class=Config):
     """Application factory function."""
@@ -72,6 +74,7 @@ def create_app(config_class=Config):
         content_security_policy_nonce_in=['script-src']
     )
     login_manager.init_app(app)
+    mail.init_app(app)
     
     # Initialize rate limiter
     def get_identifier():
@@ -135,6 +138,12 @@ def create_app(config_class=Config):
 
     from app.routes.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from app.routes.assistant import assistant_bp
+    app.register_blueprint(assistant_bp, url_prefix='/assistant')
+
+    # Configure Gemini API key
+    app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')
 
     # Create tables
     with app.app_context():
