@@ -30,7 +30,12 @@ login_manager.needs_refresh_message = "Session timed out, please re-login to con
 
 def create_app(config_class=Config):
     """Application factory function."""
-    app = Flask(__name__)
+    # Point to static and template folders at project root
+    import os
+    basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    app = Flask(__name__, 
+                static_folder=os.path.join(basedir, 'static'),
+                template_folder='templates')
     app.config.from_object(config_class)
 
     # Initialize extensions with app
