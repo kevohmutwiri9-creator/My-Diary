@@ -125,13 +125,14 @@
                         {% endif %}
                     </span>
                 </div>
-                {% if entry.mood %}
+                {% if entry and entry.mood %}
                     <span class="mood-badge">{{ entry.mood }}</span>
                 {% endif %}
             </div>
             <div class="card-body">
                 <div class="card-body entry-content">
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="title" class="form-label">Title (optional)</label>
                         <input type="text" class="form-control" id="title" name="title" 

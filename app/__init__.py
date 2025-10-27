@@ -48,7 +48,29 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     cache.init_app(app)
     csrf.init_app(app)
-    talisman.init_app(app)
+    # Configure Content Security Policy for production to allow required CDNs
+    csp = {
+        'default-src': ["'self'"],
+        'script-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdn.jsdelivr.net',
+            'https://pagead2.googlesyndication.com'
+        ],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdn.jsdelivr.net'
+        ],
+        'img-src': ["'self'", 'data:', 'https:'],
+        'font-src': ["'self'", 'https://cdn.jsdelivr.net'],
+        'frame-src': ['https://www.google.com']
+    }
+    talisman.init_app(
+        app,
+        content_security_policy=csp,
+        content_security_policy_nonce_in=['script-src']
+    )
     login_manager.init_app(app)
     
     # Initialize rate limiter
