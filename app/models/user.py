@@ -26,9 +26,15 @@ class User(UserMixin, db.Model):
     entries = db.relationship('Entry', backref='author', lazy='dynamic', cascade='all, delete-orphan')
     
     def __init__(self, **kwargs):
+        password = kwargs.pop('password', None)
+        email = kwargs.get('email')
+        if email:
+            kwargs['email'] = email.lower()
+
         super(User, self).__init__(**kwargs)
-        if 'password' in kwargs:
-            self.set_password(kwargs['password'])
+
+        if password:
+            self.set_password(password)
     
     def __repr__(self):
         return f'<User {self.username}>'
