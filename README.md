@@ -4,13 +4,35 @@ A secure and feature-rich personal diary application built with Flask. Write, ed
 
 ## ✨ Features
 
-- **User Authentication**: Secure registration and login system
-- **Rich Text Entries**: Write in markdown with live preview
-- **Privacy Controls**: Mark entries as private or public
-- **Mood Tracking**: Tag your entries with your current mood
-- **Responsive Design**: Works on desktop and mobile devices
-- **Search & Filter**: Find entries by date, mood, or keywords
-- **Export**: Download your entries in various formats (coming soon)
+### 🔐 Security Features
+- **Strong Password Policy**: Enforced 12+ character passwords with mixed case, numbers, and special characters
+- **Account Security**: Failed login attempt tracking with automatic account lockout
+- **Rate Limiting**: Protection against brute-force attacks (200 requests/day, 50/hour per user)
+- **CSRF Protection**: Cross-Site Request Forgery prevention on all forms
+- **Security Headers**: Comprehensive HTTP security headers (CSP, HSTS, XSS protection)
+- **Session Security**: Secure, HTTP-only cookies with automatic timeout
+
+### 📝 Diary Features
+- **User Authentication**: Secure registration and login system with email verification
+- **Rich Text Entries**: Write in markdown with live preview and syntax highlighting
+- **Privacy Controls**: Mark entries as private or public with granular visibility settings
+- **Mood Tracking**: Tag your entries with your current mood for emotional insights
+- **Word Count**: Automatic word counting for each entry
+- **Advanced Search**: Find entries by title, content, mood, or date range
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+
+### ⚡ Performance & UX
+- **Database Optimization**: Strategic indexes for fast queries and searches
+- **Caching**: Intelligent caching for improved response times
+- **Dark/Light Theme**: System-aware theme switching with user preference persistence
+- **Real-time Updates**: Live markdown preview and instant feedback
+- **Export Ready**: Built-in support for future export functionality
+
+### 🛠️ Developer Features
+- **Modern Architecture**: Flask application factory pattern with blueprint organization
+- **Comprehensive Logging**: Detailed logging with rotation and multiple levels
+- **Environment Configuration**: Flexible configuration for development, testing, and production
+- **Database Migrations**: Safe schema updates with Flask-Migrate
 
 ## 🚀 Getting Started
 
@@ -91,14 +113,54 @@ my-diary/
 
 ## 🔧 Configuration
 
-Available configuration options in `.env`:
+### Environment Variables
 
-```
+Create a `.env` file in the project root:
+
+```bash
+# Application
 FLASK_APP=wsgi.py
 FLASK_ENV=development
-SECRET_KEY=your-secret-key
-DATABASE_URL=sqlite:///diary.db
+SECRET_KEY=your-super-secret-key-here
+
+# Database
+DATABASE_URL=sqlite:///app.db
+
+# Security
+SESSION_COOKIE_SECURE=false  # Set to true in production with HTTPS
+SESSION_COOKIE_HTTPONLY=true
+SESSION_COOKIE_SAMESITE=Lax
+
+# Rate Limiting
+RATELIMIT_STORAGE_URL=memory://  # Use Redis in production: redis://localhost:6379
+
+# Email (for future features)
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=true
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
 ```
+
+### Security Configuration
+
+The application includes comprehensive security features:
+
+- **Password Policy**: 12+ characters, mixed case, numbers, special characters
+- **Account Lockout**: 5 failed attempts trigger 15-minute lockout
+- **Rate Limiting**: 200 requests/day, 50 requests/hour per user
+- **Session Management**: 30-minute automatic timeout
+- **CSRF Protection**: All forms protected against cross-site request forgery
+
+### Production Deployment
+
+For production deployment:
+
+1. Set `FLASK_ENV=production`
+2. Use a production WSGI server (Gunicorn)
+3. Enable HTTPS and set `SESSION_COOKIE_SECURE=true`
+4. Configure proper logging and monitoring
+5. Set up database backups
 
 ## 🤝 Contributing
 
@@ -123,15 +185,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Usage
 
-1. **Register** a new account or **login** if you already have one
-2. **Write** new diary entries from the dashboard
-3. **View** your entries and track your thoughts over time
-4. **Delete** entries you no longer want to keep
+1. **Secure Registration**: Create an account with a strong password (12+ characters, mixed case, numbers, special characters)
+2. **Safe Login**: The system tracks failed login attempts and temporarily locks accounts after 5 failed tries
+3. **Write Entries**: Create rich markdown entries with mood tracking and privacy controls
+4. **Search & Filter**: Use advanced search to find entries by content, mood, or date
+5. **Theme Support**: Switch between light and dark themes (follows system preference)
+6. **Manage Account**: Update your profile and change passwords securely
 
-## Database
+### Security Best Practices
 
-The application uses SQLite by default. The database file `diary.db` will be created automatically in the project directory.
+- Use strong, unique passwords for your diary account
+- Enable two-factor authentication when available
+- Regularly update your password
+- Be cautious with public entries
+- Log out when using shared computers
 
-## Security Note
+### Performance Tips
 
-Remember to change the `SECRET_KEY` in the app configuration before using in production!
+- The application includes automatic caching for improved performance
+- Database queries are optimized with strategic indexes
+- Static assets are preloaded for faster page loads
+- Rate limiting protects against abuse while maintaining usability

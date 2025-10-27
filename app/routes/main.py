@@ -107,7 +107,7 @@ def dashboard():
         flash('An error occurred while loading the dashboard.', 'danger')
         return redirect(url_for('main.index'))
 
-@main_bp.route('/entry/new')
+@main_bp.route('/entry/new', methods=['GET', 'POST'])
 @login_required
 def new_entry():
     """Create a new diary entry."""
@@ -138,7 +138,10 @@ def new_entry():
             
             if not content:
                 flash('Content is required.', 'danger')
-                return render_template('new_entry.html', template=template_type, selected_template=selected_template)
+                return render_template('entry.html', 
+                                   template=template_type, 
+                                   selected_template=selected_template,
+                                   now=datetime.utcnow())
             
             # Create new entry
             entry = Entry(
@@ -156,7 +159,11 @@ def new_entry():
             flash('Your diary entry has been saved!', 'success')
             return redirect(url_for('main.view_entry', entry_id=entry.id))
         
-        return render_template('new_entry.html', template=template_type, selected_template=selected_template)
+        # For GET requests, render the form with current time
+        return render_template('entry.html', 
+                           template=template_type, 
+                           selected_template=selected_template,
+                           now=datetime.utcnow())
 
     except Exception as e:
         current_app.logger.error(f'Error in new_entry route: {str(e)}', exc_info=True)

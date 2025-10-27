@@ -9,24 +9,10 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="mb-0">
-                        {% if template == 'gratitude_journal' %}
-                            Gratitude Journal
-                        {% elif template == 'daily_reflection' %}
-                            Daily Reflection
-                        {% elif template == 'goal_setting' %}
-                            Goal Setting
-                        {% elif template == 'mood_check_in' %}
-                            Mood Check-in
-                        {% elif template == 'creative_writing' %}
-                            Creative Writing
-                        {% elif template == 'learning_growth' %}
-                            Learning & Growth
-                        {% elif template == 'dream_journal' %}
-                            Dream Journal
-                        {% elif template == 'quick_notes' %}
-                            Quick Notes
+                        {% if selected_template %}
+                            {{ selected_template.name }}
                         {% else %}
-                            Blank Entry
+                            New Entry
                         {% endif %}
                     </h2>
                 </div>
@@ -36,7 +22,6 @@
                             <label for="title" class="form-label">Title</label>
                             <input type="text" class="form-control" id="title" name="title" required>
                         </div>
-
                         <div class="mb-3">
                             <label for="content" class="form-label">
                                 {% if selected_template %}
@@ -51,7 +36,6 @@
                                 {% endif %}
                             </textarea>
                         </div>
-
                         <div class="mb-3">
                             <label for="mood" class="form-label">Mood (optional)</label>
                             <select class="form-select" id="mood" name="mood">
@@ -63,7 +47,6 @@
                                 <option value="😃 Excited">😃 Excited</option>
                             </select>
                         </div>
-
                         <button type="submit" class="btn btn-primary">Save Entry</button>
                         <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancel</a>
                     </form>

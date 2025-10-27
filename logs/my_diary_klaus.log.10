@@ -1,0 +1,102 @@
+2025-10-26 09:38:38,307 INFO: Application startup [in C:\Users\kevoh\Documents\My diary\app\__init__.py:93]
+2025-10-26 09:38:38,309 INFO: My Diary startup [in C:\Users\kevoh\Documents\My diary\app\__init__.py:94]
+2025-10-26 09:38:41,299 INFO: Application startup [in C:\Users\kevoh\Documents\My diary\app\__init__.py:93]
+2025-10-26 09:38:41,299 INFO: My Diary startup [in C:\Users\kevoh\Documents\My diary\app\__init__.py:94]
+2025-10-26 09:38:48,622 INFO: Request: GET http://127.0.0.1:5000/ [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,624 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,627 INFO: Rendering index page [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:26]
+2025-10-26 09:38:48,628 INFO: User kevohmutwiri35@gmail.com is authenticated, redirecting to dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:28]
+2025-10-26 09:38:48,644 INFO: Request: GET http://127.0.0.1:5000/dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,645 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,646 INFO: Rendering dashboard for user: kevohmutwiri35@gmail.com [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:37]
+2025-10-26 09:38:48,676 ERROR: Error in dashboard route: dashboard.html [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:106]
+Traceback (most recent call last):
+  File "C:\Users\kevoh\Documents\My diary\app\routes\main.py", line 103, in dashboard
+    return render_template('dashboard.html', entries=entries, search_query=search_query, mood_filter=mood_filter, stats=stats)
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: dashboard.html
+2025-10-26 09:38:48,743 INFO: Request: GET http://127.0.0.1:5000/ [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,745 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,745 INFO: Rendering index page [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:26]
+2025-10-26 09:38:48,746 INFO: User kevohmutwiri35@gmail.com is authenticated, redirecting to dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:28]
+2025-10-26 09:38:48,765 INFO: Request: GET http://127.0.0.1:5000/dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,767 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,768 INFO: Rendering dashboard for user: kevohmutwiri35@gmail.com [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:37]
+2025-10-26 09:38:48,784 ERROR: Error in dashboard route: dashboard.html [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:106]
+Traceback (most recent call last):
+  File "C:\Users\kevoh\Documents\My diary\app\routes\main.py", line 103, in dashboard
+    return render_template('dashboard.html', entries=entries, search_query=search_query, mood_filter=mood_filter, stats=stats)
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: dashboard.html
+2025-10-26 09:38:48,829 INFO: Request: GET http://127.0.0.1:5000/ [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,831 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,832 INFO: Rendering index page [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:26]
+2025-10-26 09:38:48,833 INFO: User kevohmutwiri35@gmail.com is authenticated, redirecting to dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:28]
+2025-10-26 09:38:48,850 INFO: Request: GET http://127.0.0.1:5000/dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,854 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,855 INFO: Rendering dashboard for user: kevohmutwiri35@gmail.com [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:37]
+2025-10-26 09:38:48,868 ERROR: Error in dashboard route: dashboard.html [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:106]
+Traceback (most recent call last):
+  File "C:\Users\kevoh\Documents\My diary\app\routes\main.py", line 103, in dashboard
+    return render_template('dashboard.html', entries=entries, search_query=search_query, mood_filter=mood_filter, stats=stats)
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\kevoh\AppData\Roaming\Python\Python313\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: dashboard.html
+2025-10-26 09:38:48,929 INFO: Request: GET http://127.0.0.1:5000/ [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,930 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,931 INFO: Rendering index page [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:26]
+2025-10-26 09:38:48,932 INFO: User kevohmutwiri35@gmail.com is authenticated, redirecting to dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:28]
+2025-10-26 09:38:48,952 INFO: Request: GET http://127.0.0.1:5000/dashboard [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
+2025-10-26 09:38:48,953 INFO: User: kevohmutwiri35@gmail.com (ID: 1) [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:21]
+2025-10-26 09:38:48,954 INFO: Rendering dashboard for user: kevohmutwiri35@gmail.com [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:37]
+2025-10-26 09:38:49,067 INFO: Request: GET http://127.0.0.1:5000/ [in C:\Users\kevoh\Documents\My diary\app\routes\main.py:19]
