@@ -88,7 +88,7 @@ class User(UserMixin, db.Model):
                 self.set_password(password)
                 db.session.commit()
         else:
-            self.failed_login_attempts += 1
+            self.failed_login_attempts = (self.failed_login_attempts or 0) + 1
             if self.failed_login_attempts >= 5:  # Lock after 5 failed attempts
                 self.account_locked_until = datetime.utcnow() + timedelta(minutes=15)
             db.session.commit()
