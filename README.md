@@ -87,6 +87,44 @@ flask run
 
 Then open your browser and navigate to `http://localhost:5000`.
 
+## 🤖 Gemini Diary Assistant
+
+The floating assistant in the UI uses Google Gemini for contextual answers based on your recent diary entries.
+
+### Requirements
+
+- `google-generativeai` and `python-dotenv` are included in `requirements.txt`.
+- A valid Gemini API key with access to the model family listed below.
+
+### Configuration
+
+1. Add the key to your environment before starting the server (PowerShell example):
+   ```powershell
+   $env:GEMINI_API_KEY = "your-real-key"
+   python run.py
+   ```
+   Or place the value in `.env`:
+   ```ini
+   GEMINI_API_KEY=your-real-key
+   ```
+2. Supported model IDs (update `app/routes/assistant.py` if Google changes availability):
+   - `models/gemini-2.5-flash`
+   - `models/gemini-2.5-pro`
+   - `models/gemini-flash-latest`
+   - `models/gemini-pro-latest`
+
+If none of these models are available to your key, run the helper script in `logs/o.py` or execute the snippet below to discover accessible options:
+
+```python
+import google.generativeai as genai
+genai.configure(api_key="YOUR_KEY")
+for model in genai.list_models():
+    if "generateContent" in model.supported_generation_methods:
+        print(model.name)
+```
+
+Update the `model_candidates` list in `app/routes/assistant.py` accordingly.
+
 ## 🛠️ Project Structure
 
 ```
