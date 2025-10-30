@@ -30,6 +30,12 @@ def index():
         return redirect(url_for('main.dashboard'))
     return render_template('index.html')
 
+
+@main_bp.route('/ads.txt')
+def ads_txt():
+    """Serve ads.txt for AdSense verification."""
+    return current_app.send_static_file('ads.txt')
+
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():

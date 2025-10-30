@@ -99,6 +99,7 @@
         </div>
 
         <form method="POST" id="entryForm" action="{{ url_for('main.new_entry') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group mb-3">
                 <label for="title" class="form-label">Title (optional)</label>
                 <input type="text" class="form-control" id="title" name="title"
@@ -144,7 +145,14 @@
                     </div>
                 </div>
             </div>
-            
+
+            <div class="form-group mb-3">
+                <label for="tags" class="form-label">Tags (comma separated)</label>
+                <input type="text" class="form-control" id="tags" name="tags" placeholder="e.g. gratitude, morning, wins"
+                       value="{{ tags_value or '' }}">
+                <small class="text-muted">Use commas to separate tags. Tags help you filter entries later.</small>
+            </div>
+
             <div class="form-group mb-4">
                 <label for="mood" class="form-label">How are you feeling? (optional)</label>
                 <select class="form-select" id="mood" name="mood">
@@ -159,7 +167,33 @@
                     <option value="😍 Grateful" {{ 'selected' if (selected_template and 'Grateful' in selected_template.name) or request.form.get('mood') == '😍 Grateful' else '' }}>😍 Grateful</option>
                 </select>
             </div>
-            
+
+            <div class="form-group mb-4">
+                <label class="form-label d-flex align-items-center gap-2">
+                    <span>AI Insights</span>
+                    <small class="text-muted">Get quick suggestions based on your entry</small>
+                </label>
+                <div class="card">
+                    <div class="card-body">
+                        <p class="text-muted mb-2">Ask the assistant for inspiration or a summary:</p>
+                        <div class="d-flex flex-column flex-md-row gap-2">
+                            <div class="flex-grow-1">
+                                <textarea class="form-control" id="ai-prompt" rows="2" placeholder="E.g. Give me three takeaways from this entry"></textarea>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-outline-primary" id="ai-summarize-btn">
+                                    <i class="bi bi-magic"></i> Summarize
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="ai-ideas-btn">
+                                    <i class="bi bi-stars"></i> Give Ideas
+                                </button>
+                            </div>
+                        </div>
+                        <div class="alert alert-light border mt-3" id="ai-result" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
                 <button type="submit" class="btn">Save Entry</button>
                 <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Cancel</a>
@@ -180,6 +214,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const templateGrid = document.getElementById('templateGrid');
     const templateLoading = document.getElementById('templateLoading');
     const loadTemplatesBtn = document.getElementById('loadTemplates');
+    const tagsInput = document.getElementById('tags');
+    const aiPrompt = document.getElementById('ai-prompt');
+    const aiResult = document.getElementById('ai-result');
+    const aiSummarizeBtn = document.getElementById('ai-summarize-btn');
+    const aiIdeasBtn = document.getElementById('ai-ideas-btn');
 
     // Word and character counter
     function updateWordCount() {
@@ -200,11 +239,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const title = document.getElementById('title').value;
         const content = textarea.value;
         const mood = document.getElementById('mood').value;
+        const tags = tagsInput.value;
 
         localStorage.setItem('diary_draft', JSON.stringify({
             title: title,
             content: content,
             mood: mood,
+            tags: tags,
             timestamp: Date.now()
         }));
 
@@ -214,6 +255,48 @@ document.addEventListener('DOMContentLoaded', function() {
             saveDraftBtn.innerHTML = '<i class="bi bi-save"></i> Save Draft';
             updateDraftStatus('Draft auto-saved');
         }, 1500);
+    }
+
+    async function runAiHelper(endpoint) {
+        const prompt = aiPrompt.value.trim();
+        const content = textarea.value.trim();
+
+        if (!content) {
+            updateDraftStatus('Add some content before requesting AI help', true);
+            return;
+        }
+
+        try {
+            updateDraftStatus('Generating insight...');
+            aiResult.style.display = 'block';
+            aiResult.className = 'alert alert-light border';
+            aiResult.innerHTML = '<div class="d-flex align-items-center gap-2"><div class="spinner-border spinner-border-sm" role="status"></div><span>Working on it...</span></div>';
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content,
+                    prompt: prompt || null
+                })
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                aiResult.className = 'alert alert-danger';
+                aiResult.textContent = data.error;
+            } else {
+                aiResult.className = 'alert alert-primary';
+                aiResult.innerHTML = data.message.replace(/\n/g, '<br>');
+            }
+            updateDraftStatus('Ready');
+        } catch (error) {
+            aiResult.className = 'alert alert-danger';
+            aiResult.textContent = 'AI request failed. Please try again later.';
+            updateDraftStatus('AI request failed', true);
+        }
     }
 
     // Load templates
