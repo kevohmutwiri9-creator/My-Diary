@@ -153,6 +153,13 @@
                             <option value="😃 Excited" {% if entry and entry.mood == '😃 Excited' %}selected{% endif %}>😃 Excited</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags (comma separated)</label>
+                        <input type="text" class="form-control" id="tags" name="tags"
+                               placeholder="e.g. gratitude, morning, wins"
+                               value="{% if entry and entry.tags %}{{ entry.tags | map(attribute='name') | join(', ') }}{% else %}{{ tags_value or '' }}{% endif %}">
+                        <small class="text-muted">Use commas to separate multiple tags. Tags help you filter entries later.</small>
+                    </div>
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="is_private" name="is_private" 
                                {% if entry and entry.is_private %}checked{% endif %}>

@@ -1,5 +1,6 @@
 from markdown import markdown
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from flask import current_app
 
 # Markdown and HTML sanitization settings
@@ -15,6 +16,15 @@ ALLOWED_ATTRIBUTES = {
     'img': ['src', 'alt', 'title'],
     '*': ['class', 'id', 'style'],
 }
+
+CSS_SANITIZER = CSSSanitizer(
+    allowed_css_properties=[
+        'color', 'background-color', 'font-weight', 'font-style', 'text-decoration',
+        'text-align', 'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+        'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right'
+    ],
+    allowed_svg_properties=[],
+)
 
 def markdown_to_html(content):
     """Convert markdown to safe HTML."""
@@ -34,7 +44,12 @@ def markdown_to_html(content):
             'sane_lists'
         ])
         # Sanitize HTML to prevent XSS
-        clean_html = bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
+        clean_html = bleach.clean(
+            html,
+            tags=ALLOWED_TAGS,
+            attributes=ALLOWED_ATTRIBUTES,
+            css_sanitizer=CSS_SANITIZER
+        )
         return clean_html
     except Exception as e:
         current_app.logger.error(f'Error converting markdown to HTML: {str(e)}', exc_info=True)
