@@ -2,6 +2,7 @@ from datetime import datetime
 from app import db
 from sqlalchemy import desc, text, func
 from sqlalchemy.orm import validates
+from app.models.tag import entry_tags
 
 class Entry(db.Model):
     __tablename__ = 'entries'
@@ -17,6 +18,13 @@ class Entry(db.Model):
     
     # Foreign key to users table
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+
+    tags = db.relationship(
+        'Tag',
+        secondary=entry_tags,
+        back_populates='entries',
+        lazy='joined'
+    )
     
     # Indexes for common query patterns
     __table_args__ = (
@@ -91,5 +99,6 @@ class Entry(db.Model):
             'is_private': self.is_private,
             'mood': self.mood,
             'word_count': self.word_count,
-            'user_id': self.user_id
+            'user_id': self.user_id,
+            'tags': [tag.name for tag in self.tags]
         }

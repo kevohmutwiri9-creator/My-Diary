@@ -21,6 +21,8 @@ class User(UserMixin, db.Model):
     last_password_change = db.Column(db.DateTime, default=datetime.utcnow)
     failed_login_attempts = db.Column(db.Integer, default=0)
     account_locked_until = db.Column(db.DateTime, nullable=True)
+    last_entry_at = db.Column(db.DateTime, nullable=True)
+    streak_count = db.Column(db.Integer, default=0)
     
     # Relationships
     entries = db.relationship('Entry', backref='author', lazy='dynamic', cascade='all, delete-orphan')
@@ -64,6 +66,21 @@ class User(UserMixin, db.Model):
         self.validate_password_strength(password)
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256:600000')
         self.last_password_change = datetime.utcnow()
+
+    def update_streak(self, entry_time=None):
+        from datetime import datetime, timedelta
+        entry_time = entry_time or datetime.utcnow()
+        if self.last_entry_at:
+            days_since_last = (entry_time.date() - self.last_entry_at.date()).days
+            if days_since_last == 0:
+                pass
+            elif days_since_last == 1:
+                self.streak_count = (self.streak_count or 0) + 1
+            else:
+                self.streak_count = 1
+        else:
+            self.streak_count = 1
+        self.last_entry_at = entry_time
     
     def check_password(self, password):
         """Check if the provided password matches the stored hash."""
