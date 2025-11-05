@@ -651,6 +651,31 @@ def api_welcome():
 @login_required
 def calendar_entries_by_date(date):
     """Get entries for a specific date (AJAX endpoint)."""
-    try:
-        from datetime import datetime
+    from datetime import datetime
 
+    try:
+        target_date = datetime.strptime(date, '%Y-%m-%d').date()
+
+        entries = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            db.func.date(Entry.created_at) == target_date
+        ).order_by(Entry.created_at.asc()).all()
+
+        entries_data = [
+            {
+                'id': entry.id,
+                'title': entry.title,
+                'mood': entry.mood,
+                'created_at': entry.created_at.isoformat() if entry.created_at else None,
+                'preview': entry.content[:200] if entry.content else ''
+            }
+            for entry in entries
+        ]
+
+        return jsonify({'success': True, 'entries': entries_data})
+
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+    except Exception as e:
+        current_app.logger.error(f'Error fetching calendar entries: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load entries for the selected date.'}), 500
