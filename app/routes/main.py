@@ -3,7 +3,6 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from app import db
 from app.models.entry import Entry
-from app.models.tag import Tag
 from markdown import markdown
 import bleach
 import logging
@@ -13,6 +12,7 @@ main_bp = Blueprint('main', __name__)
 
 # Import markdown_to_html from utils
 from app.utils.filters import markdown_to_html
+from app.forms import AdSettingsForm
 
 @main_bp.before_request
 def log_request_info():
@@ -29,12 +29,6 @@ def index():
         current_app.logger.info(f'User {current_user.username} is authenticated, redirecting to dashboard')
         return redirect(url_for('main.dashboard'))
     return render_template('index.html')
-
-
-@main_bp.route('/ads.txt')
-def ads_txt():
-    """Serve ads.txt for AdSense verification."""
-    return current_app.send_static_file('ads.txt')
 
 @main_bp.route('/dashboard')
 @login_required
@@ -63,13 +57,8 @@ def dashboard():
             current_app.logger.info(f'Filtering by mood: {mood_filter}')
             query = query.filter(Entry.mood == mood_filter)
 
-        tag_filter = request.args.get('tag', '').strip()
-        if tag_filter:
-            current_app.logger.info(f'Filtering by tag slug: {tag_filter}')
-            query = query.filter(Entry.tags.any(Tag.slug == tag_filter))
-
         # Order by creation date (newest first) and paginate
-        entries = query.order_by(Entry.created_at.desc()) \
+        entries = query.order_by(Entry.created_at.desc())\
                       .paginate(page=page, per_page=10, error_out=False)
 
         # Get dashboard statistics
@@ -86,16 +75,20 @@ def dashboard():
             Entry.created_at >= start_of_month
         ).count()
 
-        # Mood statistics
+        # Mood breakdown for chart and most common mood
         mood_counts = db.session.query(
             Entry.mood,
             func.count(Entry.id).label('count')
         ).filter(
-            Entry.user_id == current_user.id,
-            Entry.mood.isnot(None)
-        ).group_by(Entry.mood).order_by(func.count(Entry.mood).desc()).all()
+            Entry.user_id == current_user.id
+        ).group_by(Entry.mood).order_by(func.count(Entry.id).desc()).all()
 
         most_common_mood = mood_counts[0].mood if mood_counts else None
+
+        mood_chart = {
+            'labels': [mood or 'Not set' for mood, _ in mood_counts],
+            'data': [count for _, count in mood_counts]
+        }
 
         # Recent entries (last 7 days)
         week_ago = datetime.now() - timedelta(days=7)
@@ -108,41 +101,44 @@ def dashboard():
             'total_entries': total_entries,
             'entries_this_month': entries_this_month,
             'most_common_mood': most_common_mood,
-            'recent_entries': recent_entries,
-            'streak_count': current_user.streak_count or 0,
-            'last_entry_at': current_user.last_entry_at
+            'recent_entries': recent_entries
         }
-
-        mood_chart = {
-            'labels': [row.mood for row in mood_counts],
-            'data': [row.count for row in mood_counts]
-        }
-
-        available_tags = (
-            db.session.query(Tag)
-            .join(Tag.entries)
-            .filter(Entry.user_id == current_user.id)
-            .distinct()
-            .order_by(Tag.name.asc())
-            .all()
-        )
 
         current_app.logger.debug(f'Found {entries.total} entries for user {current_user.username}')
+        available_tags = []
+        if not search_query:
+            from app.models.tag import Tag
+            available_tags = Tag.query.join(Tag.entries).filter(Entry.user_id == current_user.id).distinct().all()
+
         return render_template(
             'dashboard.html',
             entries=entries,
             search_query=search_query,
             mood_filter=mood_filter,
-            tag_filter=tag_filter,
-            available_tags=available_tags,
             stats=stats,
-            mood_chart=mood_chart
+            mood_chart=mood_chart,
+            available_tags=available_tags
         )
 
     except Exception as e:
         current_app.logger.error(f'Error in dashboard route: {str(e)}', exc_info=True)
         flash('An error occurred while loading the dashboard.', 'danger')
         return redirect(url_for('main.index'))
+
+
+@main_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+def account_settings():
+    """Allow users to manage account preferences."""
+    form = AdSettingsForm(obj=current_user)
+
+    if form.validate_on_submit():
+        current_user.allow_ads = form.allow_ads.data
+        db.session.commit()
+        flash('Your preferences have been updated.', 'success')
+        return redirect(url_for('main.account_settings'))
+
+    return render_template('settings.html', form=form)
 
 @main_bp.route('/entry/new', methods=['GET', 'POST'])
 @login_required
@@ -151,7 +147,6 @@ def new_entry():
     try:
         template_type = request.args.get('template', 'blank')
         selected_template = None
-        tags_value = ''
 
         # Default templates
         default_templates = {
@@ -173,16 +168,13 @@ def new_entry():
             content = request.form.get('content', '').strip()
             mood = request.form.get('mood', '').strip()
             is_private = 'is_private' in request.form
-            tags_raw = request.form.get('tags', '').strip()
-            tags_value = tags_raw
             
             if not content:
                 flash('Content is required.', 'danger')
-                return render_template('write.html', 
+                return render_template('entry.html', 
                                    template=template_type, 
                                    selected_template=selected_template,
-                                   now=datetime.utcnow(),
-                                   tags_value=tags_value)
+                                   now=datetime.utcnow())
             
             # Create new entry
             entry = Entry(
@@ -192,36 +184,19 @@ def new_entry():
                 is_private=is_private,
                 user_id=current_user.id
             )
-
-            if tags_raw:
-                tag_names = {Tag.normalize(t) for t in tags_raw.split(',') if t.strip()}
-                for name in tag_names:
-                    slug = Tag.slug_for(name)
-                    tag = Tag.query.filter_by(slug=slug).first()
-                    if not tag:
-                        tag = Tag(name=name)
-                        db.session.add(tag)
-                    entry.tags.append(tag)
-
+            
             db.session.add(entry)
-
-            # Update streak statistics for the user
-            current_user.update_streak(entry.created_at)
-
             db.session.commit()
-
-            current_app.logger.info(
-                f'New entry created by user: {current_user.username}; streak={current_user.streak_count}'
-            )
+            
+            current_app.logger.info(f'New entry created by user: {current_user.username}')
             flash('Your diary entry has been saved!', 'success')
             return redirect(url_for('main.view_entry', entry_id=entry.id))
         
         # For GET requests, render the form with current time
-        return render_template('write.html', 
+        return render_template('entry.html', 
                            template=template_type, 
                            selected_template=selected_template,
-                           now=datetime.utcnow(),
-                           tags_value=tags_value)
+                           now=datetime.utcnow())
 
     except Exception as e:
         current_app.logger.error(f'Error in new_entry route: {str(e)}', exc_info=True)
@@ -230,23 +205,19 @@ def new_entry():
 
 @main_bp.route('/entry/<int:entry_id>')
 @login_required
-def view_entry(entry_id: int):
-    """Display a single diary entry."""
-    try:
-        entry = Entry.query.get_or_404(entry_id)
-
-        if entry.user_id != current_user.id:
-            flash('You do not have permission to view this entry.', 'danger')
-            return redirect(url_for('main.dashboard'))
-
-        rendered_content = markdown_to_html(entry.content or '')
-
-        return render_template('view_entry.html', entry=entry, content=rendered_content)
-
-    except Exception as e:
-        current_app.logger.error(f'Error viewing entry {entry_id}: {str(e)}', exc_info=True)
-        flash('An error occurred while loading the entry.', 'danger')
+def view_entry(entry_id):
+    """View a specific diary entry."""
+    entry = Entry.query.get_or_404(entry_id)
+    
+    # Ensure the current user owns the entry
+    if entry.user_id != current_user.id:
+        flash('You do not have permission to view this entry.', 'danger')
         return redirect(url_for('main.dashboard'))
+    
+    # Convert markdown to HTML
+    html_content = markdown_to_html(entry.content)
+    
+    return render_template('view_entry.html', entry=entry, content=html_content)
 
 @main_bp.route('/entry/<int:entry_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -264,8 +235,7 @@ def edit_entry(entry_id):
         content = request.form.get('content', '').strip()
         mood = request.form.get('mood', '').strip()
         is_private = 'is_private' in request.form
-        tags_raw = request.form.get('tags', '').strip()
-
+        
         if not content:
             flash('Content is required.', 'danger')
             return render_template('write.html', 
@@ -273,27 +243,15 @@ def edit_entry(entry_id):
                                content=entry.content, 
                                mood=entry.mood, 
                                is_private=entry.is_private,
-                               tags_value=tags_raw,
                                entry=entry)
-
+        
         # Update entry
         entry.title = title if title else None
         entry.content = content
         entry.mood = mood if mood else None
         entry.is_private = is_private
         entry.updated_at = datetime.utcnow()
-
-        entry.tags.clear()
-        if tags_raw:
-            tag_names = {Tag.normalize(t) for t in tags_raw.split(',') if t.strip()}
-            for name in tag_names:
-                slug = Tag.slug_for(name)
-                tag = Tag.query.filter_by(slug=slug).first()
-                if not tag:
-                    tag = Tag(name=name)
-                    db.session.add(tag)
-                entry.tags.append(tag)
-
+        
         db.session.commit()
         
         flash('Your changes have been saved!', 'success')
@@ -304,7 +262,6 @@ def edit_entry(entry_id):
                        content=entry.content, 
                        mood=entry.mood, 
                        is_private=entry.is_private,
-                       tags_value=', '.join(tag.name for tag in entry.tags),
                        entry=entry)
 
 @main_bp.route('/entry/<int:entry_id>/delete', methods=['POST'])
@@ -345,7 +302,6 @@ def export_entries_json():
         # Get current filters from request
         search_query = request.args.get('search', '').strip()
         mood_filter = request.args.get('mood', '').strip()
-        tag_filter = request.args.get('tag', '').strip()
 
         # Base query for user's entries
         query = Entry.query.filter_by(user_id=current_user.id)
@@ -359,9 +315,6 @@ def export_entries_json():
         if mood_filter:
             query = query.filter(Entry.mood == mood_filter)
 
-        if tag_filter:
-            query = query.filter(Entry.tags.any(Tag.slug == tag_filter))
-
         # Get filtered entries
         entries = query.order_by(Entry.created_at.desc()).all()
 
@@ -373,7 +326,6 @@ def export_entries_json():
                 'title': entry.title,
                 'content': entry.content,
                 'mood': entry.mood,
-                'tags': [tag.name for tag in entry.tags],
                 'is_private': entry.is_private,
                 'created_at': entry.created_at.isoformat() if entry.created_at else None,
                 'updated_at': entry.updated_at.isoformat() if entry.updated_at else None
@@ -386,8 +338,7 @@ def export_entries_json():
             'total_entries': len(entries_data),
             'filters_applied': {
                 'search': search_query if search_query else None,
-                'mood': mood_filter if mood_filter else None,
-                'tag': tag_filter if tag_filter else None
+                'mood': mood_filter if mood_filter else None
             },
             'entries': entries_data
         }
@@ -430,7 +381,6 @@ def export_entry_json(entry_id):
             'title': entry.title,
             'content': entry.content,
             'mood': entry.mood,
-            'tags': [tag.name for tag in entry.tags],
             'is_private': entry.is_private,
             'created_at': entry.created_at.isoformat() if entry.created_at else None,
             'updated_at': entry.updated_at.isoformat() if entry.updated_at else None
@@ -502,8 +452,6 @@ def export_entries_markdown():
             filters_applied.append(f"Search: '{search_query}'")
         if mood_filter:
             filters_applied.append(f"Mood: '{mood_filter}'")
-        if tag_filter:
-            filters_applied.append(f"Tag: '{tag_filter}'")
 
         if filters_applied:
             markdown_content += f"**Filters Applied:** {' | '.join(filters_applied)}\n"
@@ -517,8 +465,6 @@ def export_entries_markdown():
             markdown_content += f"**Date:** {entry.created_at.strftime('%B %d, %Y at %I:%M %p')}\n\n"
             if entry.updated_at and entry.updated_at != entry.created_at:
                 markdown_content += f"**Updated:** {entry.updated_at.strftime('%B %d, %Y at %I:%M %p')}\n\n"
-            if entry.tags:
-                markdown_content += f"**Tags:** {', '.join(tag.name for tag in entry.tags)}\n\n"
             markdown_content += f"{entry.content}\n\n"
             markdown_content += "---\n\n"
 
@@ -692,6 +638,15 @@ def calendar_view():
         flash('An error occurred while loading the calendar.', 'danger')
         return redirect(url_for('main.dashboard'))
 
+@main_bp.route('/api/welcome')
+def api_welcome():
+    """API endpoint that returns a welcome message with request metadata logging."""
+    return jsonify({
+        'message': 'Welcome to the Flask API Service!',
+        'method': request.method,
+        'path': request.path
+    })
+
 @main_bp.route('/calendar/entries/<date>')
 @login_required
 def calendar_entries_by_date(date):
@@ -699,38 +654,3 @@ def calendar_entries_by_date(date):
     try:
         from datetime import datetime
 
-        # Parse date
-        try:
-            target_date = datetime.strptime(date, '%Y-%m-%d').date()
-        except ValueError:
-            return jsonify({'success': False, 'error': 'Invalid date format'}), 400
-
-        # Get entries for this date
-        entries = Entry.query.filter(
-            Entry.user_id == current_user.id,
-            Entry.created_at >= datetime.combine(target_date, datetime.min.time()),
-            Entry.created_at < datetime.combine(target_date + timedelta(days=1), datetime.min.time())
-        ).order_by(Entry.created_at.desc()).all()
-
-        # Convert to JSON format
-        entries_data = []
-        for entry in entries:
-            entries_data.append({
-                'id': entry.id,
-                'title': entry.title,
-                'mood': entry.mood,
-                'content_preview': entry.content[:150] + '...' if len(entry.content) > 150 else entry.content,
-                'created_at': entry.created_at.strftime('%I:%M %p'),
-                'url': url_for('main.view_entry', entry_id=entry.id)
-            })
-
-        return jsonify({
-            'success': True,
-            'date': target_date.strftime('%B %d, %Y'),
-            'entries': entries_data,
-            'total_entries': len(entries_data)
-        })
-
-    except Exception as e:
-        current_app.logger.error(f'Error getting calendar entries: {str(e)}', exc_info=True)
-        return jsonify({'success': False, 'error': 'Failed to load entries'}), 500

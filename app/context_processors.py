@@ -12,5 +12,6 @@ def inject_template_vars():
         'app_name': current_app.config.get('APP_NAME', 'My Diary'),
         'current_year': lambda: datetime.utcnow().year,
         'debug': current_app.debug,
-        'version': current_app.config.get('VERSION', '1.0.0')
+        'version': current_app.config.get('VERSION', '1.0.0'),
+        'config': current_app.config
     }

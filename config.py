@@ -31,6 +31,10 @@ class Config:
     
     # Application settings
     POSTS_PER_PAGE = 10
+
+    # AdSense configuration
+    ADSENSE_CLIENT_ID = os.environ.get('ADSENSE_CLIENT_ID', 'ca-pub-2396098605485959')
+    ADSENSE_SLOT_ID = os.environ.get('ADSENSE_SLOT_ID')
     
     # Password policy
     PASSWORD_MIN_LENGTH = 12

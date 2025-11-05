@@ -45,3 +45,8 @@ class ResetPasswordForm(FlaskForm):
     password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
     password2 = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
+
+
+class AdSettingsForm(FlaskForm):
+    allow_ads = BooleanField('Show relevant ads in my dashboard')
+    submit = SubmitField('Save preferences')

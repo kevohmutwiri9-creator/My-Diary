@@ -55,9 +55,9 @@ def create_app(config_class=Config):
         'default-src': ["'self'"],
         'script-src': [
             "'self'",
-            "'unsafe-inline'",
             'https://cdn.jsdelivr.net',
-            'https://pagead2.googlesyndication.com'
+            'https://pagead2.googlesyndication.com',
+            'https://googleads.g.doubleclick.net'
         ],
         'style-src': [
             "'self'",
@@ -66,7 +66,12 @@ def create_app(config_class=Config):
         ],
         'img-src': ["'self'", 'data:', 'https:'],
         'font-src': ["'self'", 'https://cdn.jsdelivr.net'],
-        'frame-src': ['https://www.google.com']
+        'frame-src': ['https://www.google.com', 'https://googleads.g.doubleclick.net'],
+        'connect-src': [
+            "'self'",
+            'https://pagead2.googlesyndication.com',
+            'https://googleads.g.doubleclick.net'
+        ]
     }
     talisman.init_app(
         app,
@@ -141,6 +146,9 @@ def create_app(config_class=Config):
 
     from app.routes.assistant import assistant_bp
     app.register_blueprint(assistant_bp, url_prefix='/assistant')
+
+    from app.context_processors import inject_template_vars
+    app.context_processor(inject_template_vars)
 
     # Configure Gemini API key
     app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')

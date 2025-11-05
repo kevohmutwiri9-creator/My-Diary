@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - My Diary{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 720px;">
+    <h1 class="mb-4">Account Settings</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Advertising Preferences</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-check form-switch mb-3">
+                    {{ form.allow_ads(class="form-check-input", id="allowAdsToggle") }}
+                    <label class="form-check-label" for="allowAdsToggle">
+                        {{ form.allow_ads.label.text }}
+                    </label>
+                </div>
+                <p class="text-muted small mb-4">
+                    Google AdSense uses cookies and other technologies to serve personalised ads. Disable this if you prefer an ad-free experience.
+                </p>
+                {{ form.submit(class="btn btn-primary") }}
+            </form>
+        </div>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <strong>Reminder:</strong> Ads will only appear on pages with diary content and when you approve AdSense in your account. You can change this preference at any time.
+    </div>
+</div>
+{% endblock %}
