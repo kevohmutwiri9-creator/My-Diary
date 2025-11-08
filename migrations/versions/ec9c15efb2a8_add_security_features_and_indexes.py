@@ -39,6 +39,13 @@ def upgrade():
     dialect = bind.dialect.name
 
     if dialect == 'sqlite':
+        inspector = inspect(bind)
+        tables = set(inspector.get_table_names())
+
+        if 'entries' not in tables and 'diary_entry' in tables:
+            op.execute(sa.text('ALTER TABLE diary_entry RENAME TO entries'))
+            inspector = inspect(bind)
+
         _ensure_column('entries', 'word_count', sa.Column('word_count', sa.Integer(), nullable=True))
 
         _ensure_index('entries', 'idx_entry_created', ['created_at'])
