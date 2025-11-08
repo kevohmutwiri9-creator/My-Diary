@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from app.models.user import User
 
@@ -49,4 +49,14 @@ class ResetPasswordForm(FlaskForm):
 
 class AdSettingsForm(FlaskForm):
     allow_ads = BooleanField('Show relevant ads in my dashboard')
-    submit = SubmitField('Save preferences')
+    submit_ads = SubmitField('Save ad preferences')
+
+
+class ReminderSettingsForm(FlaskForm):
+    reminder_opt_in = BooleanField('Send gentle email reminders to write')
+    reminder_frequency = SelectField(
+        'Reminder frequency',
+        choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')],
+        default='weekly'
+    )
+    submit_reminders = SubmitField('Save reminder settings')

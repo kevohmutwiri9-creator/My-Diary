@@ -23,6 +23,11 @@ class User(UserMixin, db.Model):
     account_locked_until = db.Column(db.DateTime, nullable=True)
     last_entry_at = db.Column(db.DateTime, nullable=True)
     streak_count = db.Column(db.Integer, default=0)
+    allow_ads = db.Column(db.Boolean, default=False)
+    onboarding_state = db.Column(db.JSON, default=dict)
+    reminder_opt_in = db.Column(db.Boolean, default=False)
+    reminder_frequency = db.Column(db.String(20), default='weekly')
+    reminder_last_sent = db.Column(db.DateTime, nullable=True)
     
     # Relationships
     entries = db.relationship('Entry', backref='author', lazy='dynamic', cascade='all, delete-orphan')
@@ -130,6 +135,22 @@ class User(UserMixin, db.Model):
     def is_account_locked(self):
         """Check if the account is currently locked."""
         return self.account_locked_until and self.account_locked_until > datetime.utcnow()
+
+    # Onboarding helpers
+    def get_onboarding_state(self):
+        return self.onboarding_state or {}
+
+    def has_completed_task(self, task_key):
+        state = self.get_onboarding_state()
+        return bool(state.get(task_key))
+
+    def mark_onboarding_task(self, task_key):
+        if self.has_completed_task(task_key):
+            return False
+        state = self.get_onboarding_state().copy()
+        state[task_key] = datetime.utcnow().isoformat()
+        self.onboarding_state = state
+        return True
 
 @login_manager.user_loader
 def load_user(id):

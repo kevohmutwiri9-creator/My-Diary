@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from app import db
@@ -6,13 +6,16 @@ from app.models.entry import Entry
 from markdown import markdown
 import bleach
 import logging
+import io
+import json
+import zipfile
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)
 
 # Import markdown_to_html from utils
 from app.utils.filters import markdown_to_html
-from app.forms import AdSettingsForm
+from app.forms import AdSettingsForm, ReminderSettingsForm
 
 @main_bp.before_request
 def log_request_info():
@@ -105,6 +108,7 @@ def dashboard():
         }
 
         current_app.logger.debug(f'Found {entries.total} entries for user {current_user.username}')
+        onboarding_tasks = _build_onboarding_tasks(current_user, stats)
         available_tags = []
         if not search_query:
             from app.models.tag import Tag
@@ -117,7 +121,8 @@ def dashboard():
             mood_filter=mood_filter,
             stats=stats,
             mood_chart=mood_chart,
-            available_tags=available_tags
+            available_tags=available_tags,
+            onboarding_tasks=onboarding_tasks
         )
 
     except Exception as e:
@@ -130,15 +135,29 @@ def dashboard():
 @login_required
 def account_settings():
     """Allow users to manage account preferences."""
-    form = AdSettingsForm(obj=current_user)
+    ad_form = AdSettingsForm(obj=current_user)
+    reminder_form = ReminderSettingsForm(obj=current_user)
 
-    if form.validate_on_submit():
-        current_user.allow_ads = form.allow_ads.data
-        db.session.commit()
-        flash('Your preferences have been updated.', 'success')
-        return redirect(url_for('main.account_settings'))
+    if request.method == 'POST':
+        if 'submit_ads' in request.form and ad_form.validate():
+            current_user.allow_ads = ad_form.allow_ads.data
+            if current_user.mark_onboarding_task('updated_ad_preferences'):
+                db.session.add(current_user)
+            db.session.commit()
+            flash('Ad preferences updated.', 'success')
+            return redirect(url_for('main.account_settings'))
 
-    return render_template('settings.html', form=form)
+        if 'submit_reminders' in request.form and reminder_form.validate():
+            current_user.reminder_opt_in = reminder_form.reminder_opt_in.data
+            current_user.reminder_frequency = reminder_form.reminder_frequency.data
+            if current_user.reminder_opt_in:
+                if current_user.mark_onboarding_task('enabled_reminders'):
+                    db.session.add(current_user)
+            db.session.commit()
+            flash('Reminder settings saved.', 'success')
+            return redirect(url_for('main.account_settings'))
+
+    return render_template('settings.html', ad_form=ad_form, reminder_form=reminder_form)
 
 @main_bp.route('/entry/new', methods=['GET', 'POST'])
 @login_required
@@ -186,6 +205,8 @@ def new_entry():
             )
             
             db.session.add(entry)
+            if current_user.mark_onboarding_task('first_entry_written'):
+                db.session.add(current_user)
             db.session.commit()
             
             current_app.logger.info(f'New entry created by user: {current_user.username}')
@@ -485,6 +506,88 @@ def export_entries_markdown():
         flash('An error occurred while exporting your entries.', 'danger')
         return redirect(url_for('main.dashboard'))
 
+
+@main_bp.route('/backup/download')
+@login_required
+def download_backup():
+    """Provide a single ZIP download containing all diary data."""
+    try:
+        current_app.logger.info(f'Generating full backup for user: {current_user.username}')
+
+        export_time = datetime.utcnow()
+        entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).all()
+
+        entries_payload = [entry.to_dict() for entry in entries]
+
+        metadata = {
+            'generated_at': export_time.isoformat(),
+            'app_version': current_app.config.get('VERSION', '1.0.0'),
+            'user': {
+                'id': current_user.id,
+                'username': current_user.username,
+                'email': current_user.email,
+                'allow_ads': current_user.allow_ads,
+                'created_at': current_user.created_at.isoformat() if current_user.created_at else None
+            },
+            'counts': {
+                'entries': len(entries_payload)
+            }
+        }
+
+        markdown_sections = [
+            '# My Diary Backup',
+            f'**Generated:** {export_time.strftime("%Y-%m-%d %H:%M:%S UTC")}',
+            f'**Total Entries:** {len(entries_payload)}',
+            ''
+        ]
+
+        if entries:
+            markdown_sections.append('---')
+            for entry in entries:
+                header = entry.title or 'Untitled Entry'
+                markdown_sections.append(f'## {header}')
+                markdown_sections.append(f'**Date:** {entry.created_at.strftime("%B %d, %Y %H:%M")}' if entry.created_at else '**Date:** Unknown')
+                if entry.updated_at and entry.updated_at != entry.created_at:
+                    markdown_sections.append(f'**Updated:** {entry.updated_at.strftime("%B %d, %Y %H:%M")}')
+                if entry.mood:
+                    markdown_sections.append(f'**Mood:** {entry.mood}')
+                if entry.tags:
+                    markdown_sections.append('**Tags:** ' + ', '.join(tag.name for tag in entry.tags))
+                markdown_sections.append('')
+                markdown_sections.append(entry.content)
+                markdown_sections.append('')
+                markdown_sections.append('---')
+        else:
+            markdown_sections.append('No entries yet. Start writing to build your history!')
+
+        markdown_output = '\n'.join(markdown_sections)
+
+        archive_buffer = io.BytesIO()
+        with zipfile.ZipFile(archive_buffer, 'w', zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('metadata.json', json.dumps(metadata, indent=2, ensure_ascii=False))
+            archive.writestr('entries.json', json.dumps(entries_payload, indent=2, ensure_ascii=False))
+            archive.writestr('entries.md', markdown_output)
+
+        archive_buffer.seek(0)
+        filename = f"my-diary-backup_{export_time.strftime('%Y%m%d_%H%M%S')}.zip"
+
+        if current_user.mark_onboarding_task('backup_downloaded'):
+            db.session.add(current_user)
+            db.session.commit()
+
+        current_app.logger.info(f'Backup archive ready for user {current_user.username} ({len(entries_payload)} entries)')
+        return send_file(
+            archive_buffer,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        current_app.logger.error(f'Error creating backup for user {current_user.username}: {str(e)}', exc_info=True)
+        flash('We could not generate your backup. Please try again in a moment.', 'danger')
+        return redirect(url_for('main.account_settings'))
+
 @main_bp.route('/templates')
 @login_required
 def get_templates():
@@ -544,6 +647,52 @@ def get_templates():
     except Exception as e:
         current_app.logger.error(f'Error getting templates: {str(e)}', exc_info=True)
         return jsonify({'success': False, 'error': 'Failed to load templates'}), 500
+
+
+def _build_onboarding_tasks(user, stats):
+    tasks = [
+        {
+            'key': 'first_entry_written',
+            'label': 'Write your first diary entry',
+            'help': 'Capture anything about your day to unlock insights.',
+            'cta_label': 'Write now',
+            'cta_url': url_for('main.new_entry'),
+            'completed': stats['total_entries'] > 0 or user.has_completed_task('first_entry_written')
+        },
+        {
+            'key': 'enabled_reminders',
+            'label': 'Enable writing reminders',
+            'help': 'Get gentle nudges to keep your journaling habit on track.',
+            'cta_label': 'Configure reminders',
+            'cta_url': url_for('main.account_settings'),
+            'completed': bool(user.reminder_opt_in or user.has_completed_task('enabled_reminders'))
+        },
+        {
+            'key': 'explored_calendar',
+            'label': 'Explore your calendar view',
+            'help': 'See your entries on a monthly calendar to spot gaps.',
+            'cta_label': 'Open calendar',
+            'cta_url': url_for('main.calendar_view'),
+            'completed': user.has_completed_task('explored_calendar')
+        },
+        {
+            'key': 'backup_downloaded',
+            'label': 'Download a secure backup',
+            'help': 'Keep an offline copy of your diary for peace of mind.',
+            'cta_label': 'Download backup',
+            'cta_url': url_for('main.account_settings'),
+            'completed': user.has_completed_task('backup_downloaded')
+        }
+    ]
+
+    pending = [task for task in tasks if not task['completed']]
+    completed = [task for task in tasks if task['completed']]
+
+    return {
+        'pending': pending,
+        'completed': completed,
+        'total': len(tasks)
+    }
 
 @main_bp.route('/calendar')
 @login_required
@@ -619,6 +768,10 @@ def calendar_view():
         # Month statistics
         total_entries_this_month = len(entries)
         days_with_entries = len(entries_by_date)
+
+        if current_user.mark_onboarding_task('explored_calendar'):
+            db.session.add(current_user)
+            db.session.commit()
 
         return render_template('calendar.html',
                              calendar_data=calendar_data,

@@ -12,23 +12,80 @@
         </div>
         <div class="card-body">
             <form method="POST">
-                {{ form.hidden_tag() }}
+                {{ ad_form.hidden_tag() }}
                 <div class="form-check form-switch mb-3">
-                    {{ form.allow_ads(class="form-check-input", id="allowAdsToggle") }}
+                    {{ ad_form.allow_ads(class="form-check-input", id="allowAdsToggle") }}
                     <label class="form-check-label" for="allowAdsToggle">
-                        {{ form.allow_ads.label.text }}
+                        {{ ad_form.allow_ads.label.text }}
                     </label>
                 </div>
+                {% if ad_form.allow_ads.errors %}
+                    <div class="alert alert-warning py-2">
+                        {{ ad_form.allow_ads.errors[0] }}
+                    </div>
+                {% endif %}
                 <p class="text-muted small mb-4">
                     Google AdSense uses cookies and other technologies to serve personalised ads. Disable this if you prefer an ad-free experience.
                 </p>
-                {{ form.submit(class="btn btn-primary") }}
+                {{ ad_form.submit_ads(class="btn btn-primary", value="Save ad preferences") }}
             </form>
         </div>
     </div>
 
     <div class="alert alert-info" role="alert">
         <strong>Reminder:</strong> Ads will only appear on pages with diary content and when you approve AdSense in your account. You can change this preference at any time.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Writing Reminders</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ reminder_form.hidden_tag() }}
+                <div class="form-check form-switch mb-3">
+                    {{ reminder_form.reminder_opt_in(class="form-check-input", id="reminderOptIn") }}
+                    <label class="form-check-label" for="reminderOptIn">
+                        {{ reminder_form.reminder_opt_in.label.text }}
+                    </label>
+                </div>
+                <div class="mb-3">
+                    {{ reminder_form.reminder_frequency.label(class="form-label") }}
+                    {% if reminder_form.reminder_opt_in.data %}
+                        {{ reminder_form.reminder_frequency(class="form-select") }}
+                    {% else %}
+                        {{ reminder_form.reminder_frequency(class="form-select", disabled=True) }}
+                    {% endif %}
+                </div>
+                {% if reminder_form.reminder_frequency.errors %}
+                    <div class="alert alert-warning py-2">
+                        {{ reminder_form.reminder_frequency.errors[0] }}
+                    </div>
+                {% endif %}
+                {{ reminder_form.submit_reminders(class="btn btn-primary") }}
+                <p class="text-muted small mt-3 mb-0">
+                    We’ll email you a gentle nudge at the frequency you choose. You can opt out at any time.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Data Backup</h5>
+            <span class="badge bg-secondary">New</span>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-4">
+                Download a complete backup of your diary, including all entries, metadata, and a Markdown archive. Keep it somewhere safe or import it into another tool.
+            </p>
+            <a class="btn btn-outline-primary" href="{{ url_for('main.download_backup') }}">
+                <i class="bi bi-download"></i> Download full backup (ZIP)
+            </a>
+            <p class="text-muted small mt-3 mb-0">
+                Backups generate on the fly and include your current entries. Store them securely—anyone with the file can read your diary.
+            </p>
+        </div>
     </div>
 </div>
 {% endblock %}
