@@ -87,6 +87,12 @@ flask run
 
 Then open your browser and navigate to `http://localhost:5000`.
 
+On Render (free tier compatible), set the **Start Command** to:
+```bash
+./render_start.sh
+```
+This script runs `flask db upgrade` before launching Gunicorn so migrations apply automatically without needing shell access.
+
 ## 🤖 Gemini Diary Assistant
 
 The floating assistant in the UI uses Google Gemini for contextual answers based on your recent diary entries.
