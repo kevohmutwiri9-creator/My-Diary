@@ -4,11 +4,7 @@
 
 {% block extra_js %}
 {{ super() }}
-{% set chart_meta = {
-    'labels': mood_chart.labels if mood_chart else [],
-    'data': mood_chart.data if mood_chart else []
-} %}
-<script id="moodChart-data" type="application/json">{{ chart_meta | tojson | safe }}</script>
+<script id="analytics-data" type="application/json">{{ analytics | tojson | safe }}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
@@ -198,48 +194,41 @@
 
     <!-- Dashboard Stats -->
     {% if not search_query %}
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card text-center h-100">
+    <div class="row g-3 mb-4 stats-grid" data-animate="stagger">
+        <div class="col-6 col-lg-3">
+            <div class="card stats-card text-center h-100 shadow-sm">
                 <div class="card-body">
-                    <div class="stats-icon" style="font-size: 2rem; color: #0d6efd;">
-                        <i class="bi bi-journal-text"></i>
-                    </div>
-                    <h3 class="card-title">{{ stats.total_entries }}</h3>
+                    <div class="stats-icon text-primary"><i class="bi bi-journal-text"></i></div>
+                    <h3 class="card-title count-up" data-target="{{ stats.total_entries }}">0</h3>
                     <p class="card-text text-muted">Total Entries</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center h-100">
+        <div class="col-6 col-lg-3">
+            <div class="card stats-card text-center h-100 shadow-sm">
                 <div class="card-body">
-                    <div class="stats-icon" style="font-size: 2rem; color: #198754;">
-                        <i class="bi bi-calendar-plus"></i>
-                    </div>
-                    <h3 class="card-title">{{ stats.entries_this_month }}</h3>
+                    <div class="stats-icon text-success"><i class="bi bi-calendar-plus"></i></div>
+                    <h3 class="card-title count-up" data-target="{{ stats.entries_this_month }}">0</h3>
                     <p class="card-text text-muted">This Month</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center h-100">
+        <div class="col-6 col-lg-3">
+            <div class="card stats-card text-center h-100 shadow-sm">
                 <div class="card-body">
-                    <div class="stats-icon" style="font-size: 2rem; color: #fd7e14;">
-                        <i class="bi bi-clock-history"></i>
-                    </div>
-                    <h3 class="card-title">{{ stats.recent_entries }}</h3>
-                    <p class="card-text text-muted">This Week</p>
+                    <div class="stats-icon text-warning"><i class="bi bi-clock-history"></i></div>
+                    <h3 class="card-title count-up" data-target="{{ stats.recent_entries }}">0</h3>
+                    <p class="card-text text-muted">Past 7 Days</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center h-100">
+        <div class="col-6 col-lg-3">
+            <div class="card stats-card text-center h-100 shadow-sm streak-card">
                 <div class="card-body">
-                    <div class="stats-icon" style="font-size: 2rem; color: #6f42c1;">
-                        <i class="bi bi-fire"></i>
-                    </div>
-                    <h3 class="card-title">{{ stats.streak_count }}</h3>
-                    <p class="card-text text-muted">Day Streak</p>
+                    <div class="stats-icon text-purple"><i class="bi bi-fire"></i></div>
+                    <h3 class="card-title count-up" data-target="{{ stats.streak_count }}">0</h3>
+                    <p class="card-text text-muted mb-1">Current Streak</p>
+                    <small class="text-muted">Best: {{ stats.best_streak }}</small>
                 </div>
             </div>
         </div>
@@ -247,15 +236,178 @@
     {% endif %}
 
     {% if stats.most_common_mood %}
-    <div class="alert alert-light border d-flex align-items-center gap-3 mb-4" role="alert">
-        <div style="font-size: 1.5rem;">
-            <i class="bi bi-emoji-smile text-warning"></i>
-        </div>
+    <div class="alert alert-light border d-flex align-items-center gap-3 mb-4 animate-fade-in" role="alert">
+        <div class="alert-icon"><i class="bi bi-emoji-smile text-warning"></i></div>
         <div>
             <strong>Top mood lately:</strong> {{ stats.most_common_mood }}
             {% if stats.last_entry_at %}
                 <div class="small text-muted">Last written {{ stats.last_entry_at.strftime('%B %d, %Y') }}</div>
             {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not search_query and stats.total_entries > 0 %}
+    <div class="row g-3 mb-4 analytics-row">
+        <div class="col-12 col-xl-6">
+            <div class="card analytics-card heatmap-card is-loading" data-analytics="heatmap">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Mood Heatmap</h5>
+                        <small class="text-muted">Last 90 days</small>
+                    </div>
+                    <span class="badge bg-light text-dark">Daily count</span>
+                </div>
+                <div class="card-body">
+                    <div class="skeleton skeleton-heatmap"></div>
+                    <div class="heatmap-grid" aria-hidden="true"></div>
+                    <div class="heatmap-legend mt-3 d-flex justify-content-between text-muted small">
+                        <span>Low</span>
+                        <span>High</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-6">
+            <div class="card analytics-card is-loading" data-analytics="trend">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Mood Trend</h5>
+                        <small class="text-muted">Last 30 days</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="skeleton skeleton-chart"></div>
+                    <canvas id="moodTrendChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 analytics-row">
+        <div class="col-12 col-lg-6">
+            <div class="card analytics-card is-loading" data-analytics="mood-breakdown">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Mood Breakdown</h5>
+                        <small class="text-muted">All time</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="skeleton skeleton-chart"></div>
+                    <canvas id="moodChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card analytics-card is-loading" data-analytics="keywords">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Themes Spotlight</h5>
+                        <small class="text-muted">Top {{ analytics.keywords['items']|length }} from last 30 days</small>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary">{{ analytics.keywords.source|title }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="skeleton skeleton-pill-list"></div>
+                    <div class="keyword-pills d-flex flex-wrap gap-2" data-keywords-target>
+                        {% for item in analytics.keywords['items'] %}
+                        <button class="btn btn-sm btn-outline-primary keyword-pill" data-keyword="{{ item.label }}">
+                            <span>{{ item.label }}</span>
+                            <span class="badge bg-primary bg-opacity-25 text-primary">{{ item.count }}</span>
+                        </button>
+                        {% endfor %}
+                        {% if analytics.keywords['items']|length == 0 %}
+                        <p class="text-muted mb-0">Not enough recent data yet — keep writing!</p>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted d-block mt-2">Tap a chip to filter entries by keyword.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4 analytics-row">
+        <div class="col-12 col-xl-6">
+            <div class="card analytics-card is-loading" data-analytics="streaks">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Streak Momentum</h5>
+                        <small class="text-muted">Stay on track</small>
+                    </div>
+                    <span class="badge bg-purple bg-opacity-10 text-purple"><i class="bi bi-fire"></i></span>
+                </div>
+                <div class="card-body">
+                    <div class="skeleton skeleton-insight"></div>
+                    <ul class="insight-list list-unstyled mb-0">
+                        <li class="insight-item">
+                            <span class="insight-label">Current streak</span>
+                            <span class="insight-value"><span class="count-up" data-target="{{ analytics.streaks.current }}">0</span> days</span>
+                        </li>
+                        <li class="insight-item">
+                            <span class="insight-label">Best streak</span>
+                            <span class="insight-value"><span class="count-up" data-target="{{ analytics.streaks.best }}">0</span> days</span>
+                        </li>
+                        <li class="insight-item">
+                            <span class="insight-label">Entries this week</span>
+                            <span class="insight-value"><span class="count-up" data-target="{{ analytics.streaks.entries_this_week }}">0</span></span>
+                        </li>
+                        <li class="insight-item">
+                            <span class="insight-label">Entries this month</span>
+                            <span class="insight-value"><span class="count-up" data-target="{{ analytics.streaks.entries_this_month }}">0</span></span>
+                        </li>
+                        {% if stats.last_entry_at %}
+                        <li class="insight-item">
+                            <span class="insight-label">Last entry</span>
+                            <span class="insight-value text-muted">{{ stats.last_entry_at.strftime('%b %d, %Y') }}</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-6">
+            <div class="card analytics-card is-loading" data-analytics="productivity">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Productivity Pulse</h5>
+                        <small class="text-muted">Last 30 days</small>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary"><i class="bi bi-activity"></i></span>
+                </div>
+                <div class="card-body">
+                    <div class="skeleton skeleton-insight"></div>
+                    <div class="productivity-grid">
+                        <div class="consistency-panel">
+                            <div class="consistency-ring" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ analytics.productivity.consistency_percent }}" data-consistency-ring="{{ analytics.productivity.consistency_percent }}">
+                                <div class="consistency-center">
+                                    <span class="consistency-label text-muted">Consistency</span>
+                                    <span class="consistency-value"><span class="count-up" data-target="{{ analytics.productivity.consistency_percent }}">0</span>%</span>
+                                </div>
+                            </div>
+                            <p class="text-muted small mb-0">Active days: <strong><span class="count-up" data-target="{{ analytics.productivity.active_days_30 }}">0</span></strong> / {{ analytics.productivity.last_30_days }}</p>
+                        </div>
+                        <div class="productivity-stats">
+                            <div class="insight-item">
+                                <span class="insight-label">Entries written</span>
+                                <span class="insight-value"><span class="count-up" data-target="{{ analytics.productivity.entries_last_30 }}">0</span></span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="insight-label">Avg. per active day</span>
+                                <span class="insight-value"><span class="count-up" data-target="{{ '%.1f'|format(analytics.productivity.avg_entries_per_active_day) }}" data-decimals="1">0.0</span></span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="insight-label">Avg. per day</span>
+                                <span class="insight-value"><span class="count-up" data-target="{{ '%.1f'|format(analytics.productivity.avg_entries_per_day) }}" data-decimals="1">0.0</span></span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="insight-label">Current streak pace</span>
+                                <span class="insight-value text-muted">{{ analytics.streaks.current }} days active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     {% endif %}

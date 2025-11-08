@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
+from dataclasses import asdict
 from app import db
 from app.models.entry import Entry
 from markdown import markdown
@@ -16,6 +17,7 @@ main_bp = Blueprint('main', __name__)
 # Import markdown_to_html from utils
 from app.utils.filters import markdown_to_html
 from app.forms import AdSettingsForm, ReminderSettingsForm
+from app.services.analytics import build_dashboard_analytics
 
 @main_bp.before_request
 def log_request_info():
@@ -64,48 +66,18 @@ def dashboard():
         entries = query.order_by(Entry.created_at.desc())\
                       .paginate(page=page, per_page=10, error_out=False)
 
-        # Get dashboard statistics
-        from datetime import datetime, timedelta
-        from sqlalchemy import func
+        analytics = build_dashboard_analytics(current_user.id)
 
-        # Total entries count
-        total_entries = Entry.query.filter_by(user_id=current_user.id).count()
+        stats = dict(analytics.stats)
+        stats['recent_entries'] = analytics.streaks.get('entries_this_week', 0)
+        stats['streak_count'] = analytics.streaks.get('current', 0)
+        stats['best_streak'] = analytics.streaks.get('best', 0)
 
-        # Entries this month
-        start_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        entries_this_month = Entry.query.filter(
-            Entry.user_id == current_user.id,
-            Entry.created_at >= start_of_month
-        ).count()
-
-        # Mood breakdown for chart and most common mood
-        mood_counts = db.session.query(
-            Entry.mood,
-            func.count(Entry.id).label('count')
-        ).filter(
-            Entry.user_id == current_user.id
-        ).group_by(Entry.mood).order_by(func.count(Entry.id).desc()).all()
-
-        most_common_mood = mood_counts[0].mood if mood_counts else None
-
-        mood_chart = {
-            'labels': [mood or 'Not set' for mood, _ in mood_counts],
-            'data': [count for _, count in mood_counts]
-        }
-
-        # Recent entries (last 7 days)
-        week_ago = datetime.now() - timedelta(days=7)
-        recent_entries = Entry.query.filter(
-            Entry.user_id == current_user.id,
-            Entry.created_at >= week_ago
-        ).count()
-
-        stats = {
-            'total_entries': total_entries,
-            'entries_this_month': entries_this_month,
-            'most_common_mood': most_common_mood,
-            'recent_entries': recent_entries
-        }
+        latest_entry = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).first()
+        if latest_entry and latest_entry.created_at:
+            stats['last_entry_at'] = latest_entry.created_at
+        else:
+            stats['last_entry_at'] = None
 
         current_app.logger.debug(f'Found {entries.total} entries for user {current_user.username}')
         onboarding_tasks = _build_onboarding_tasks(current_user, stats)
@@ -114,13 +86,22 @@ def dashboard():
             from app.models.tag import Tag
             available_tags = Tag.query.join(Tag.entries).filter(Entry.user_id == current_user.id).distinct().all()
 
+        analytics_payload = {
+            'mood_chart': analytics.mood_chart,
+            'heatmap': analytics.heatmap,
+            'trend': analytics.trend,
+            'streaks': analytics.streaks,
+            'keywords': analytics.keywords,
+            'productivity': analytics.productivity,
+        }
+
         return render_template(
             'dashboard.html',
             entries=entries,
             search_query=search_query,
             mood_filter=mood_filter,
             stats=stats,
-            mood_chart=mood_chart,
+            analytics=analytics_payload,
             available_tags=available_tags,
             onboarding_tasks=onboarding_tasks
         )

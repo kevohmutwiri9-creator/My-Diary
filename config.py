@@ -38,6 +38,16 @@ class Config:
     # AdSense configuration
     ADSENSE_CLIENT_ID = os.environ.get('ADSENSE_CLIENT_ID', 'ca-pub-2396098605485959')
     ADSENSE_SLOT_ID = os.environ.get('ADSENSE_SLOT_ID')
+
+    # Assistant configuration
+    ASSISTANT_MODEL_CANDIDATES = [
+        candidate.strip() for candidate in os.environ.get(
+            'ASSISTANT_MODEL_CANDIDATES',
+            'models/gemini-2.5-flash,models/gemini-2.5-pro,models/gemini-flash-latest,models/gemini-pro-latest'
+        ).split(',') if candidate.strip()
+    ]
+    ASSISTANT_CONTEXT_DAYS = int(os.environ.get('ASSISTANT_CONTEXT_DAYS', 30))
+    ASSISTANT_PROMPT_DAYS = int(os.environ.get('ASSISTANT_PROMPT_DAYS', 14))
     
     # Password policy
     PASSWORD_MIN_LENGTH = 12

@@ -70,7 +70,8 @@ def create_app(config_class=Config):
         'connect-src': [
             "'self'",
             'https://pagead2.googlesyndication.com',
-            'https://googleads.g.doubleclick.net'
+            'https://googleads.g.doubleclick.net',
+            'https://cdn.jsdelivr.net'
         ]
     }
     talisman.init_app(

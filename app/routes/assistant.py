@@ -1,77 +1,161 @@
 """AI Assistant Routes"""
-import google.generativeai as genai
-from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, jsonify, request, current_app
+from flask_login import current_user, login_required
+
+from app.services.assistant import (
+    AssistantGenerationError,
+    AssistantNotConfiguredError,
+    DiaryAssistantService,
+)
 from app.models.entry import Entry
-from datetime import datetime, timedelta
-import os
 
-assistant_bp = Blueprint('assistant', __name__)
+assistant_bp = Blueprint("assistant", __name__)
 
-def get_entries_context(days=30):
-    """Get recent entries as context"""
-    date_threshold = datetime.utcnow() - timedelta(days=days)
-    entries = Entry.query.filter(
-        Entry.user_id == current_user.id,
-        Entry.created_at >= date_threshold
-    ).order_by(Entry.created_at.desc()).all()
-    return "\n\n".join(
-        f"{e.created_at.date()}: {e.content[:200]}{'...' if len(e.content) > 200 else ''}"
-        for e in entries
-    )
 
-@assistant_bp.route('/ask', methods=['POST'])
+def _assistant_service() -> DiaryAssistantService:
+    return DiaryAssistantService(current_user)
+
+
+def _json_error(message: str, status: int = 400):
+    return jsonify({"error": message}), status
+
+
+@assistant_bp.route("/ask", methods=["POST"])
 @login_required
 def ask_assistant():
     try:
-        if not current_app.config['GEMINI_API_KEY']:
-            return jsonify({"error": "Assistant not configured"}), 503
-            
-        user_question = request.json.get('question', '').strip()
-        if len(user_question) < 3:
-            return jsonify({"error": "Question too short"}), 400
-            
-        context = get_entries_context()
-        
-        genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
-        model_candidates = [
-            'models/gemini-2.5-flash',
-            'models/gemini-2.5-pro',
-            'models/gemini-flash-latest',
-            'models/gemini-pro-latest'
-        ]
-        last_error = None
+        payload = request.get_json(silent=True) or {}
+        question = (payload.get("question") or "").strip()
+        if len(question) < 3:
+            return _json_error("Question too short", 400)
 
-        for model_id in model_candidates:
-            try:
-                current_app.logger.debug("Attempting Gemini model: %s", model_id)
-                model = genai.GenerativeModel(model_id)
-                response = model.generate_content(
-                    f"""Role: Private diary assistant. Be concise and specific.
-                    Recent Entries:
-                    {context}
-                    
-                    Question: {user_question}
-                    Answer:"""
-                )
-                return jsonify({"answer": response.text, "model": model_id})
-            except Exception as inner_err:
-                last_error = inner_err
-                current_app.logger.warning(
-                    "Assistant generation failed using %s: %s",
-                    model_id,
-                    inner_err,
-                    exc_info=True
-                )
-                continue
+        service = _assistant_service()
+        response = service.answer_question(
+            question,
+            context_days=current_app.config.get("ASSISTANT_CONTEXT_DAYS", 30),
+        )
+        return jsonify({"answer": response.text, "model": response.model})
+    except AssistantNotConfiguredError as exc:
+        return _json_error(str(exc), 503)
+    except AssistantGenerationError as exc:
+        current_app.logger.warning("Assistant generation error: %s", exc, exc_info=True)
+        return _json_error(str(exc), 503)
+    except Exception as exc:  # pragma: no cover - defensive logging
+        current_app.logger.error("Unexpected assistant error: %s", exc, exc_info=True)
+        return _json_error("Assistant unavailable", 500)
 
-        error_message = "Assistant temporarily unavailable"
-        if last_error:
-            error_message = f"Assistant error: {last_error}"
-        return jsonify({"error": error_message}), 503
-    except KeyError as key_err:
-        current_app.logger.error("Assistant configuration error: missing %s", key_err)
-        return jsonify({"error": "Assistant not configured"}), 503
-    except Exception as e:
-        current_app.logger.error("Assistant error: %s", e, exc_info=True)
-        return jsonify({"error": "Assistant unavailable"}), 500
+
+@assistant_bp.route("/summarize", methods=["POST"])
+@login_required
+def summarize_entry():
+    try:
+        payload = request.get_json(silent=True) or {}
+        content = (payload.get("content") or "").strip()
+        if not content:
+            return _json_error("Entry content is required", 400)
+
+        service = _assistant_service()
+        result = service.summarize_entry(
+            content,
+            title=payload.get("title"),
+            instructions=payload.get("instructions"),
+        )
+        return jsonify({"summary": result["summary"], "takeaways": result["takeaways"], "model": result["model"]})
+    except AssistantNotConfiguredError as exc:
+        return _json_error(str(exc), 503)
+    except AssistantGenerationError as exc:
+        current_app.logger.warning("Assistant summary error: %s", exc, exc_info=True)
+        return _json_error(str(exc), 503)
+    except Exception as exc:  # pragma: no cover
+        current_app.logger.error("Unexpected summary error: %s", exc, exc_info=True)
+        return _json_error("Assistant unavailable", 500)
+
+
+@assistant_bp.route("/mood", methods=["POST"])
+@login_required
+def infer_mood():
+    try:
+        payload = request.get_json(silent=True) or {}
+        content = (payload.get("content") or "").strip()
+        if not content:
+            return _json_error("Entry content is required", 400)
+
+        service = _assistant_service()
+        result = service.infer_mood(content)
+        return jsonify(result)
+    except AssistantNotConfiguredError as exc:
+        return _json_error(str(exc), 503)
+    except AssistantGenerationError as exc:
+        current_app.logger.warning("Assistant mood error: %s", exc, exc_info=True)
+        return _json_error(str(exc), 503)
+    except Exception as exc:  # pragma: no cover
+        current_app.logger.error("Unexpected mood error: %s", exc, exc_info=True)
+        return _json_error("Assistant unavailable", 500)
+
+
+@assistant_bp.route("/tags", methods=["POST"])
+@login_required
+def suggest_tags():
+    try:
+        payload = request.get_json(silent=True) or {}
+        content = (payload.get("content") or "").strip()
+        if not content:
+            return _json_error("Entry content is required", 400)
+
+        service = _assistant_service()
+        result = service.suggest_tags(
+            content,
+            max_tags=int(payload.get("max_tags", 5)),
+        )
+        return jsonify(result)
+    except AssistantNotConfiguredError as exc:
+        return _json_error(str(exc), 503)
+    except AssistantGenerationError as exc:
+        current_app.logger.warning("Assistant tags error: %s", exc, exc_info=True)
+        return _json_error(str(exc), 503)
+    except Exception as exc:  # pragma: no cover
+        current_app.logger.error("Unexpected tags error: %s", exc, exc_info=True)
+        return _json_error("Assistant unavailable", 500)
+
+
+@assistant_bp.route("/prompts", methods=["POST"])
+@login_required
+def suggest_prompts():
+    try:
+        payload = request.get_json(silent=True) or {}
+        days = int(payload.get("context_days", current_app.config.get("ASSISTANT_PROMPT_DAYS", 14)))
+        suggestions = int(payload.get("count", 3))
+
+        service = _assistant_service()
+        result = service.suggest_prompts(context_days=days, suggestions=suggestions)
+        return jsonify(result)
+    except AssistantNotConfiguredError as exc:
+        return _json_error(str(exc), 503)
+    except AssistantGenerationError as exc:
+        current_app.logger.warning("Assistant prompts error: %s", exc, exc_info=True)
+        return _json_error(str(exc), 503)
+    except Exception as exc:  # pragma: no cover
+        current_app.logger.error("Unexpected prompts error: %s", exc, exc_info=True)
+        return _json_error("Assistant unavailable", 500)
+
+
+@assistant_bp.route("/latest", methods=["GET"])
+@login_required
+def latest_entry_snapshot():
+    entry = (
+        Entry.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Entry.created_at.desc())
+        .first()
+    )
+    if not entry:
+        return jsonify({}), 200
+
+    return jsonify(
+        {
+            "id": entry.id,
+            "title": entry.title,
+            "content": entry.content,
+            "created_at": entry.created_at.isoformat() if entry.created_at else None,
+        }
+    )
