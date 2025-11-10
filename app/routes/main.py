@@ -68,10 +68,10 @@ def dashboard():
 
         analytics = build_dashboard_analytics(current_user.id)
 
-        stats = dict(analytics.stats)
-        stats['recent_entries'] = analytics.streaks.get('entries_this_week', 0)
-        stats['streak_count'] = analytics.streaks.get('current', 0)
-        stats['best_streak'] = analytics.streaks.get('best', 0)
+        stats = dict(analytics['stats'])
+        stats['recent_entries'] = analytics['streaks'].get('entries_this_week', 0)
+        stats['streak_count'] = analytics['streaks'].get('current', 0)
+        stats['best_streak'] = analytics['streaks'].get('best', 0)
 
         latest_entry = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).first()
         if latest_entry and latest_entry.created_at:
@@ -86,22 +86,13 @@ def dashboard():
             from app.models.tag import Tag
             available_tags = Tag.query.join(Tag.entries).filter(Entry.user_id == current_user.id).distinct().all()
 
-        analytics_payload = {
-            'mood_chart': analytics.mood_chart,
-            'heatmap': analytics.heatmap,
-            'trend': analytics.trend,
-            'streaks': analytics.streaks,
-            'keywords': analytics.keywords,
-            'productivity': analytics.productivity,
-        }
-
         return render_template(
             'dashboard.html',
             entries=entries,
             search_query=search_query,
             mood_filter=mood_filter,
             stats=stats,
-            analytics=analytics_payload,
+            analytics=analytics,
             available_tags=available_tags,
             onboarding_tasks=onboarding_tasks
         )
