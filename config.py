@@ -11,8 +11,10 @@ load_dotenv(os.path.join(basedir, '.env'))
 class Config:
     # App Config
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(INSTANCE_DIR, 'app.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or (
+        'mssql+pyodbc://@localhost/MyDiaryDB'
+        '?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes'
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Security
