@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file, abort
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from dataclasses import asdict
 from app import db
 from app.models.entry import Entry
 from markdown import markdown
+import os
 import bleach
 import logging
 import io
@@ -13,6 +14,19 @@ import zipfile
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/ads.txt')
+def ads_txt():
+    """Serve the ads.txt file for AdSense verification"""
+    try:
+        ads_txt_path = os.path.join(current_app.root_path, '..', 'ads.txt')
+        if os.path.exists(ads_txt_path):
+            return send_file(ads_txt_path, mimetype='text/plain')
+        else:
+            abort(404)
+    except Exception as e:
+        current_app.logger.error(f"Error serving ads.txt: {str(e)}")
+        abort(500)
 
 # Import markdown_to_html from utils
 from app.utils.filters import markdown_to_html
