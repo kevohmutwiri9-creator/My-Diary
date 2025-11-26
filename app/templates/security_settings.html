@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+{% block title %}Security Settings - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.security-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.security-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.security-section h5 {
+    color: #495057;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.security-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.security-status:last-child {
+    border-bottom: none;
+}
+
+.security-status .status-info {
+    flex: 1;
+}
+
+.security-status .status-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.security-status .status-description {
+    color: #6c757d;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.security-status .status-indicator {
+    margin-left: 20px;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.status-enabled {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-disabled {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.security-action {
+    margin-top: 15px;
+}
+
+.qr-code-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.qr-code-container img {
+    max-width: 200px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.manual-key {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: monospace;
+    font-size: 1.1em;
+    word-break: break-all;
+}
+
+.backup-section {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.backup-section h6 {
+    color: #1565c0;
+    margin-bottom: 15px;
+}
+
+.security-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.security-warning h6 {
+    color: #856404;
+    margin-bottom: 10px;
+}
+
+.security-warning p {
+    color: #856404;
+    margin-bottom: 0;
+}
+
+.security-info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.security-info h6 {
+    color: #0c5460;
+    margin-bottom: 10px;
+}
+
+.security-info p {
+    color: #0c5460;
+    margin-bottom: 0;
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .security-section,
+[data-bs-theme="dark"] .security-status {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .security-section h5 {
+    color: #e2e8f0;
+    border-bottom-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .security-status .status-description {
+    color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .security-status {
+    border-bottom-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .manual-key {
+    background: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .security-status {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .security-status .status-indicator {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="security-header">
+    <div class="container">
+        <h1><i class="bi bi-shield-lock"></i> Security Settings</h1>
+        <p class="lead mb-0">Protect your diary with advanced security features</p>
+    </div>
+</div>
+
+<div class="container">
+    
+    <!-- Security Warning -->
+    <div class="security-warning">
+        <h6><i class="bi bi-exclamation-triangle"></i> Important Security Notice</h6>
+        <p>Enable 2FA and encryption to protect your diary entries. Store your backup files securely and never share them with anyone.</p>
+    </div>
+
+    <!-- Two-Factor Authentication -->
+    <div class="security-section">
+        <h5><i class="bi bi-phone"></i> Two-Factor Authentication</h5>
+        
+        <div class="security-status">
+            <div class="status-info">
+                <div class="status-title">2FA Status</div>
+                <div class="status-description">
+                    Add an extra layer of security to your account with authenticator app
+                </div>
+            </div>
+            <div class="status-indicator">
+                {% if settings.two_factor_enabled %}
+                    <span class="status-badge status-enabled">
+                        <i class="bi bi-check-circle"></i> Enabled
+                    </span>
+                {% else %}
+                    <span class="status-badge status-disabled">
+                        <i class="bi bi-x-circle"></i> Disabled
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="security-action">
+            {% if settings.two_factor_enabled %}
+                <form method="POST" action="{{ url_for('main.disable_2fa_route') }}" 
+                      onsubmit="return confirm('Are you sure you want to disable 2FA? This will make your account less secure.');">
+                    <div class="mb-3">
+                        <label for="disable_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="disable_password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-shield-x"></i> Disable 2FA
+                    </button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('main.setup_2fa_page') }}" class="btn btn-success">
+                    <i class="bi bi-shield-plus"></i> Enable 2FA
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Data Encryption -->
+    <div class="security-section">
+        <h5><i class="bi bi-lock"></i> Data Encryption</h5>
+        
+        <div class="security-status">
+            <div class="status-info">
+                <div class="status-title">Entry Encryption</div>
+                <div class="status-description">
+                    Encrypt your diary entries for maximum privacy and security
+                </div>
+            </div>
+            <div class="status-indicator">
+                {% if settings.encryption_enabled %}
+                    <span class="status-badge status-enabled">
+                        <i class="bi bi-check-circle"></i> Enabled
+                    </span>
+                {% else %}
+                    <span class="status-badge status-warning">
+                        <i class="bi bi-exclamation-circle"></i> Disabled
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('main.update_security') }}">
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="encryption_enabled" 
+                       id="encryption_enabled" {{ 'checked' if settings.encryption_enabled }}>
+                <label class="form-check-label" for="encryption_enabled">
+                    Enable entry encryption (requires password for backup/restore)
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Update Encryption Settings
+            </button>
+        </form>
+    </div>
+
+    <!-- Backup & Restore -->
+    <div class="security-section">
+        <h5><i class="bi bi-cloud-download"></i> Backup & Restore</h5>
+        
+        <div class="backup-section">
+            <h6><i class="bi bi-info-circle"></i> About Backups</h6>
+            <p>
+                Backups contain all your diary entries in an encrypted format. 
+                Store them securely and use them to restore your data if needed.
+                Keep your backup files private and never share them.
+            </p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Create Backup</h6>
+                <p class="text-muted">Download an encrypted backup of all your entries</p>
+                <a href="{{ url_for('main.create_backup') }}" class="btn btn-success">
+                    <i class="bi bi-download"></i> Download Backup
+                </a>
+            </div>
+            <div class="col-md-6">
+                <h6>Restore Backup</h6>
+                <p class="text-muted">Restore entries from a previous backup file</p>
+                <form method="POST" action="{{ url_for('main.restore_backup') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" name="backup_file" accept=".encrypted" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-upload"></i> Restore Backup
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Info -->
+    <div class="security-info">
+        <h6><i class="bi bi-info-circle"></i> Security Best Practices</h6>
+        <p>
+            <strong>1. Enable 2FA:</strong> Always use two-factor authentication for maximum security.<br>
+            <strong>2. Use Strong Passwords:</strong> Create unique, complex passwords for your account.<br>
+            <strong>3. Regular Backups:</strong> Create backups regularly and store them securely.<br>
+            <strong>4. Keep Software Updated:</strong> Use updated browsers and authenticator apps.<br>
+            <strong>5. Privacy First:</strong> Never share your backup files or authentication codes.
+        </p>
+    </div>
+
+    <!-- Account Security Status -->
+    <div class="security-section">
+        <h5><i class="bi bi-shield-check"></i> Account Security Status</h5>
+        
+        <div class="security-status">
+            <div class="status-info">
+                <div class="status-title">Failed Login Attempts</div>
+                <div class="status-description">
+                    Number of recent failed login attempts to your account
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-badge {{ 'status-warning' if settings.login_attempts > 0 else 'status-enabled' }}">
+                    {{ settings.login_attempts }} attempts
+                </span>
+            </div>
+        </div>
+        
+        {% if settings.account_locked %}
+        <div class="security-status">
+            <div class="status-info">
+                <div class="status-title">Account Status</div>
+                <div class="status-description">
+                    Your account is temporarily locked due to multiple failed attempts
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-badge status-disabled">
+                    <i class="bi bi-lock"></i> Locked
+                </span>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="security-status">
+            <div class="status-info">
+                <div class="status-title">Last Password Change</div>
+                <div class="status-description">
+                    When you last changed your account password
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-badge status-enabled">
+                    {{ settings.last_password_change | datetimefilter if settings.last_password_change else 'Never' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add confirmation for sensitive actions
+document.querySelector('form[action*="disable_2fa"]').addEventListener('submit', function(e) {
+    const password = document.getElementById('disable_password').value;
+    if (!password) {
+        e.preventDefault();
+        alert('Please enter your password to disable 2FA.');
+        return;
+    }
+    
+    if (!confirm('Disabling 2FA will make your account less secure. Are you sure you want to continue?')) {
+        e.preventDefault();
+    }
+});
+
+// Add visual feedback for encryption toggle
+document.getElementById('encryption_enabled').addEventListener('change', function() {
+    if (this.checked) {
+        alert('Encryption will be applied to new entries. Existing entries will remain unchanged.');
+    }
+});
+
+// Auto-refresh security status
+setInterval(async function() {
+    try {
+        const response = await fetch('/api/security/settings');
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update UI with latest settings
+            console.log('Security settings refreshed');
+        }
+    } catch (error) {
+        console.log('Error refreshing security settings:', error);
+    }
+}, 30000);
+</script>
+{% endblock %}

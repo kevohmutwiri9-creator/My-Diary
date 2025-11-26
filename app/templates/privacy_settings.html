@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Settings - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.privacy-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.privacy-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.privacy-section h5 {
+    color: #495057;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.privacy-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.privacy-option:last-child {
+    border-bottom: none;
+}
+
+.privacy-option .option-info {
+    flex: 1;
+}
+
+.privacy-option .option-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.privacy-option .option-description {
+    color: #6c757d;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.privacy-option .option-control {
+    margin-left: 20px;
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+}
+
+.privacy-warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.privacy-warning h6 {
+    color: #856404;
+    margin-bottom: 10px;
+}
+
+.privacy-warning p {
+    color: #856404;
+    margin-bottom: 0;
+}
+
+.privacy-info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.privacy-info h6 {
+    color: #0c5460;
+    margin-bottom: 10px;
+}
+
+.privacy-info p {
+    color: #0c5460;
+    margin-bottom: 0;
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .privacy-section,
+[data-bs-theme="dark"] .privacy-option {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .privacy-section h5 {
+    color: #e2e8f0;
+    border-bottom-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .privacy-option .option-description {
+    color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .privacy-option {
+    border-bottom-color: #4a5568;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .privacy-option {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .privacy-option .option-control {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-header">
+    <div class="container">
+        <h1><i class="bi bi-shield-lock"></i> Privacy Settings</h1>
+        <p class="lead mb-0">Control how your data is shared and displayed</p>
+    </div>
+</div>
+
+<div class="container">
+    <form method="POST" action="{{ url_for('main.update_privacy') }}">
+        
+        <!-- Privacy Warning -->
+        <div class="privacy-warning">
+            <h6><i class="bi bi-exclamation-triangle"></i> Important Privacy Notice</h6>
+            <p>When you share entries publicly, they are anonymized and personal information is automatically removed. However, please be careful not to share sensitive personal information in public entries.</p>
+        </div>
+
+        <!-- Community Settings -->
+        <div class="privacy-section">
+            <h5><i class="bi bi-people"></i> Community & Sharing</h5>
+            
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Auto-share Anonymous Entries</div>
+                    <div class="option-description">
+                        Automatically share new public entries to the community feed without your name
+                    </div>
+                </div>
+                <div class="option-control">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="auto_share_anonymous" 
+                               id="auto_share_anonymous" {{ 'checked' if settings.auto_share_anonymous }}>
+                    </div>
+                </div>
+            </div>
+
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Show in Community</div>
+                    <div class="option-description">
+                        Allow your anonymous entries to appear in the community feed and statistics
+                    </div>
+                </div>
+                <div class="option-control">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="show_in_community" 
+                               id="show_in_community" {{ 'checked' if settings.show_in_community }}>
+                    </div>
+                </div>
+            </div>
+
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Allow Public Search</div>
+                    <div class="option-description">
+                        Allow your anonymous entries to be searchable by other users
+                    </div>
+                </div>
+                <div class="option-control">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="allow_public_search" 
+                               id="allow_public_search" {{ 'checked' if settings.allow_public_search }}>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Default Privacy Settings -->
+        <div class="privacy-section">
+            <h5><i class="bi bi-lock"></i> Default Privacy</h5>
+            
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Private by Default</div>
+                    <div class="option-description">
+                        Make new entries private by default. You can always change this for individual entries.
+                    </div>
+                </div>
+                <div class="option-control">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="default_privacy" 
+                               id="default_privacy" {{ 'checked' if settings.default_privacy }}>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cookie Consent Settings -->
+        <div class="privacy-section">
+            <h5><i class="bi bi-shield-check"></i> Cookie Preferences</h5>
+            
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Cookie Consent Status</div>
+                    <div class="option-description">
+                        {% if cookie_consent.has_consent() %}
+                            <span class="badge bg-success">Consent Given</span> on {{ cookie_consent.get_consent_date() }}
+                        {% else %}
+                            <span class="badge bg-warning">No Consent</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="option-control">
+                    <a href="{{ url_for('main.cookie_consent') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-gear"></i> Manage Cookies
+                    </a>
+                </div>
+            </div>
+            
+            {% if cookie_consent.has_consent() %}
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Current Preferences</div>
+                    <div class="option-description">
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for category, enabled in cookie_consent.get_preferences().items() %}
+                                <span class="badge {{ 'bg-success' if enabled else 'bg-secondary' }}">
+                                    {{ category.title() }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="option-control">
+                    <form method="POST" action="{{ url_for('main.update_cookie_consent') }}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-arrow-clockwise"></i> Update
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="privacy-option">
+                <div class="option-info">
+                    <div class="option-title">Withdraw Consent</div>
+                    <div class="option-description">
+                        Remove all cookie consent. Some features may be limited after withdrawal.
+                    </div>
+                </div>
+                <div class="option-control">
+                    <form method="POST" action="{{ url_for('main.withdraw_cookie_consent') }}" class="d-inline" 
+                          onsubmit="return confirm('Are you sure you want to withdraw cookie consent? Some features may be limited.')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-x-circle"></i> Withdraw
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Information -->
+        <div class="privacy-info">
+            <h6><i class="bi bi-info-circle"></i> How Privacy Works</h6>
+            <p>
+                <strong>Private entries:</strong> Only visible to you. Never shared with anyone.<br>
+                <strong>Public entries:</strong> Shared anonymously with the community. Personal information is automatically removed.<br>
+                <strong>Anonymization:</strong> All public entries have names, emails, phone numbers, and other identifying information removed automatically.
+            </p>
+        </div>
+
+        <!-- Save Button -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-save"></i> Save Privacy Settings
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add confirmation for sensitive changes
+document.getElementById('auto_share_anonymous').addEventListener('change', function() {
+    if (this.checked) {
+        if (!confirm('Are you sure you want to auto-share entries? This will make future public entries immediately visible to the community.')) {
+            this.checked = false;
+        }
+    }
+});
+
+document.getElementById('allow_public_search').addEventListener('change', function() {
+    if (this.checked) {
+        if (!confirm('Are you sure you want to allow public search? This will make your anonymous entries searchable by other users.')) {
+            this.checked = false;
+        }
+    }
+});
+
+// Add visual feedback for form changes
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const section = this.closest('.privacy-section');
+        section.style.borderColor = '#007bff';
+        section.style.transition = 'border-color 0.3s ease';
+        
+        setTimeout(() => {
+            section.style.borderColor = '';
+        }, 2000);
+    });
+});
+</script>
+{% endblock %}

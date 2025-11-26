@@ -15,7 +15,7 @@ from flask_limiter.util import get_remote_address
 from config import Config
 
 # Import custom filters
-from app.utils.filters import markdown_to_html
+from app.utils.filters import markdown_to_html, zip_filter, datetimefilter
 
 # Initialize extensions without app
 db = SQLAlchemy()
@@ -52,32 +52,59 @@ def create_app(config_class=Config):
     csrf.init_app(app)
     # Configure Content Security Policy for production to allow required CDNs
     csp = {
-        'default-src': ["'self'"],
-        'script-src': [
+        'default-src': [
             "'self'",
             'https://cdn.jsdelivr.net',
             'https://pagead2.googlesyndication.com',
             'https://googleads.g.doubleclick.net'
         ],
-        'style-src': [
+        'script-src': [
             "'self'",
-            "'unsafe-inline'",
-            'https://cdn.jsdelivr.net'
-        ],
-        'img-src': ["'self'", 'data:', 'https:'],
-        'font-src': ["'self'", 'https://cdn.jsdelivr.net'],
-        'frame-src': ['https://www.google.com', 'https://googleads.g.doubleclick.net'],
-        'connect-src': [
-            "'self'",
+            "'unsafe-inline'",  # Allow inline scripts
+            'https://cdn.jsdelivr.net',
             'https://pagead2.googlesyndication.com',
             'https://googleads.g.doubleclick.net',
-            'https://cdn.jsdelivr.net'
+            'https://cdn.quilljs.com'
+        ],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'",  # Allow inline styles
+            'https://cdn.jsdelivr.net',
+            'https://fonts.googleapis.com',
+            'https://cdn.quilljs.com'
+        ],
+        'font-src': [
+            "'self'",
+            'https://fonts.gstatic.com',
+            'https://cdn.jsdelivr.net',
+            'data:'
+        ],
+        'img-src': [
+            "'self'",
+            'data:',
+            'https:',
+            'blob:'
+        ],
+        'connect-src': [
+            "'self'",
+            'https://cdn.jsdelivr.net',
+            'https://pagead2.googlesyndication.com',
+            'https://googleads.g.doubleclick.net',
+            'https://ep1.adtrafficquality.google'
+        ],
+        'frame-src': [
+            "'self'",
+            'https://googleads.g.doubleclick.net',
+            'https://pagead2.googlesyndication.com'
+        ],
+        'object-src': [
+            "'none'"
         ]
     }
     talisman.init_app(
         app,
         content_security_policy=csp,
-        content_security_policy_nonce_in=['script-src']
+        force_https=app.config.get('FORCE_HTTPS', False)
     )
     login_manager.init_app(app)
     mail.init_app(app)
@@ -137,6 +164,8 @@ def create_app(config_class=Config):
 
     # Register custom Jinja filters (before blueprints)
     app.jinja_env.filters['markdown_to_html'] = markdown_to_html
+    app.jinja_env.filters['zip'] = zip_filter
+    app.jinja_env.filters['datetimefilter'] = datetimefilter
 
     # Register blueprints
     from app.routes.main import main_bp
@@ -147,12 +176,25 @@ def create_app(config_class=Config):
 
     from app.routes.assistant import assistant_bp
     app.register_blueprint(assistant_bp, url_prefix='/assistant')
+    
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp)
+    
+    from app.routes.profile import profile_bp
+    app.register_blueprint(profile_bp)
+    
+    from app.routes.two_factor import two_factor_bp
+    app.register_blueprint(two_factor_bp)
 
     from app.context_processors import inject_template_vars
     app.context_processor(inject_template_vars)
 
     # Configure Gemini API key
     app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')
+
+    # Initialize cookie consent
+    from app.utils.cookie_consent import init_cookie_consent
+    init_cookie_consent(app)
 
     # Create tables
     with app.app_context():

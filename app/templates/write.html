@@ -3,6 +3,9 @@
 {% block title %}Write New Entry - My Diary{% endblock %}
 
 {% block extra_head %}
+<!-- Quill Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <style>
     .editor-container {
         display: flex;
@@ -22,29 +25,79 @@
         background: var(--bs-light);
         overflow-y: auto;
     }
-    .markdown-toolbar {
-        display: flex;
-        gap: 5px;
-        margin-bottom: 5px;
-        flex-wrap: wrap;
-        overflow-x: auto;
-        padding-bottom: 4px;
-    }
-    .markdown-btn {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        padding: 2px 8px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-    .markdown-btn:hover {
-        background: #e9ecef;
-    }
-    #content {
-        font-family: 'Courier New', monospace;
+    
+    /* Quill Editor Customizations */
+    #editor {
         min-height: 300px;
+        font-size: 16px;
+        line-height: 1.6;
     }
+    
+    .ql-toolbar {
+        border-radius: 0.375rem 0.375rem 0 0;
+        border-color: #dee2e6;
+        background: #f8f9fa;
+        padding: 10px;
+    }
+    
+    .ql-container {
+        border-radius: 0 0 0.375rem 0.375rem;
+        border-color: #dee2e6;
+        font-family: inherit;
+    }
+    
+    .ql-editor {
+        min-height: 300px;
+        padding: 15px;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    
+    .ql-editor.ql-blank::before {
+        color: #6c757d;
+        font-style: normal;
+    }
+    
+    /* Custom toolbar buttons */
+    .ql-toolbar button {
+        border-radius: 4px;
+        margin: 0 2px;
+        transition: all 0.2s ease;
+    }
+    
+    .ql-toolbar button:hover {
+        background: #e9ecef;
+        transform: translateY(-1px);
+    }
+    
+    .ql-toolbar button.ql-active {
+        background: #007bff;
+        color: white;
+    }
+    
+    /* Format dropdown styling */
+    .ql-toolbar .ql-picker {
+        color: #495057;
+    }
+    
+    .ql-toolbar .ql-picker-label {
+        border-radius: 4px;
+    }
+    
+    .ql-toolbar .ql-picker-label:hover {
+        color: #007bff;
+    }
+    
+    .ql-toolbar .ql-picker-options {
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Hidden textarea for form submission */
+    #content {
+        display: none;
+    }
+    
     .template-card {
         transition: transform 0.2s, box-shadow 0.2s;
         border: 1px solid #dee2e6;
@@ -92,17 +145,346 @@
         .preview-pane.active-preview {
             display: block;
         }
+    }
 
-        .markdown-toolbar {
-            white-space: nowrap;
+    /* Voice Recording Styles */
+    .voice-recording-controls {
+        border-left: 2px solid #dee2e6;
+        padding-left: 10px;
+        margin-left: 10px;
+    }
+
+    .voice-recording-section {
+        margin-top: 20px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .voice-waveform {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    #voice-waveform {
+        width: 100%;
+        height: 100px;
+        max-height: 100px;
+    }
+
+    .voice-recording-controls .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+
+    .voice-timer .badge {
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Dark mode for voice recording */
+    [data-bs-theme="dark"] .voice-waveform {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+
+    [data-bs-theme="dark"] .voice-recording-controls {
+        border-left-color: #4a5568;
+    }
+
+    /* Mobile responsive for voice recording */
+    @media (max-width: 768px) {
+        .voice-recording-controls {
+            flex-direction: column;
+            gap: 5px;
+            border-left: none;
+            padding-left: 0;
+            margin-left: 0;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+            margin-top: 10px;
         }
 
-        .editor-pane {
-            order: var(--editor-order, 1);
+        .voice-recording-controls .btn {
+            width: 100%;
+            justify-content: center;
         }
 
-        .preview-pane {
-            order: var(--preview-order, 2);
+        #voice-waveform {
+            height: 60px;
+        }
+    }
+
+    /* AI Features Styles */
+    .ai-features-section {
+        margin-top: 20px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .ai-assist-controls {
+        border-left: 2px solid #dee2e6;
+        padding-left: 10px;
+        margin-left: 10px;
+    }
+
+    .ai-assist-controls .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+
+    .ai-assist-controls .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: white;
+    }
+
+    .suggestions-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .suggestion-item {
+        padding: 8px 12px;
+        margin: 4px 0;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-left: 3px solid #0dcaf0;
+    }
+
+    .suggestion-item:hover {
+        background-color: #e9ecef;
+        transform: translateX(3px);
+    }
+
+    .suggestion-item small {
+        display: block;
+        color: #6c757d;
+        font-size: 0.8em;
+        margin-top: 4px;
+    }
+
+    .mood-insight-card {
+        padding: 12px;
+        margin: 8px 0;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #198754;
+    }
+
+    .wellness-tip {
+        padding: 8px 12px;
+        margin: 6px 0;
+        background-color: #d1ecf1;
+        border-radius: 6px;
+        border-left: 3px solid #0dcaf0;
+        font-size: 0.9em;
+    }
+
+    .sentiment-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+        font-weight: 500;
+    }
+
+    .sentiment-positive {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .sentiment-negative {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    .sentiment-neutral {
+        background-color: #e2e3e5;
+        color: #41464b;
+    }
+
+    /* Dark mode for AI features */
+    [data-bs-theme="dark"] .ai-assist-controls {
+        border-left-color: #4a5568;
+    }
+
+    [data-bs-theme="dark"] .suggestion-item {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+
+    [data-bs-theme="dark"] .suggestion-item:hover {
+        background-color: #4a5568;
+    }
+
+    [data-bs-theme="dark"] .mood-insight-card {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+
+    [data-bs-theme="dark"] .wellness-tip {
+        background-color: #1a365d;
+        color: #bee3f8;
+    }
+
+    [data-bs-theme="dark"] .sentiment-positive {
+        background-color: #1a365d;
+        color: #68d391;
+    }
+
+    [data-bs-theme="dark"] .sentiment-negative {
+        background-color: #742a2a;
+        color: #fc8181;
+    }
+
+    [data-bs-theme="dark"] .sentiment-neutral {
+        background-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    /* Mobile responsive for AI features */
+    @media (max-width: 768px) {
+        .ai-assist-controls {
+            border-left: none;
+            border-top: 1px solid #dee2e6;
+            padding-left: 0;
+            padding-top: 10px;
+            margin-left: 0;
+            margin-top: 10px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .ai-assist-controls .btn {
+            margin-bottom: 5px;
+        }
+    }
+
+    /* Media Upload Styles */
+    .media-upload-controls {
+        border-left: 2px solid #dee2e6;
+        padding-left: 10px;
+        margin-left: 10px;
+    }
+
+    .media-upload-section {
+        margin-top: 20px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: #0dcaf0;
+        background-color: #f8f9fa;
+    }
+
+    .upload-area.dragover {
+        border-color: #0dcaf0;
+        background-color: #e3f2fd;
+    }
+
+    .uploaded-file {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background-color: #f8f9fa;
+    }
+
+    .uploaded-file img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+
+    .uploaded-file .file-info {
+        flex-grow: 1;
+    }
+
+    .uploaded-file .file-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .file-preview {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .file-preview:hover {
+        transform: scale(1.05);
+    }
+
+    /* Dark mode for media features */
+    [data-bs-theme="dark"] .media-upload-controls {
+        border-left-color: #4a5568;
+    }
+
+    [data-bs-theme="dark"] .upload-area {
+        border-color: #4a5568;
+        background-color: #2d3748;
+    }
+
+    [data-bs-theme="dark"] .upload-area:hover {
+        border-color: #0dcaf0;
+        background-color: #4a5568;
+    }
+
+    [data-bs-theme="dark"] .uploaded-file {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    /* Mobile responsive for media features */
+    @media (max-width: 768px) {
+        .media-upload-controls {
+            border-left: none;
+            border-top: 1px solid #dee2e6;
+            padding-left: 0;
+            padding-top: 10px;
+            margin-left: 0;
+            margin-top: 10px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .media-upload-controls .btn {
+            margin-bottom: 5px;
         }
     }
 </style>
@@ -157,7 +539,7 @@
             
             <div class="form-group mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label">Your thoughts</label>
+                    <label for="content" class="form-label">Your thoughts</label>
                     <small class="text-muted">Supports <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">Markdown</a></small>
                 </div>
                 
@@ -168,34 +550,221 @@
 
                 <div class="editor-container">
                     <div class="editor-pane">
-                        <div class="markdown-toolbar">
-                            <button type="button" class="markdown-btn" data-insert="**Bold**"><strong>B</strong></button>
-                            <button type="button" class="markdown-btn" data-insert="*Italic*"><em>I</em></button>
-                            <button type="button" class="markdown-btn" data-insert="~~Strikethrough~~"><s>S</s></button>
-                            <button type="button" class="markdown-btn" data-insert="- List item\n- Another item">List</button>
-                            <button type="button" class="markdown-btn" data-insert="[Link](https://)">Link</button>
-                            <button type="button" class="markdown-btn" data-insert="![Image](image.jpg)">Image</button>
-                            <button type="button" class="markdown-btn" data-insert="```\ncode\n```">Code</button>
-                            <button type="button" class="markdown-btn" data-insert="# ">H1</button>
-                            <button type="button" class="markdown-btn" data-insert="## ">H2</button>
-                            <button type="button" class="markdown-btn" data-insert="### ">H3</button>
-                            <button type="button" class="markdown-btn" data-insert="---">HR</button>
-                            <button type="button" class="markdown-btn" data-insert="> Quote">❝</button>
-                        </div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <small class="text-muted" id="word-count">0 words, 0 characters</small>
                             <div class="d-flex align-items-center gap-2">
+                                <div class="voice-recording-controls d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="voice-record-btn" title="Start voice recording">
+                                        <i class="bi bi-mic"></i> Record
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="voice-stop-btn" title="Stop recording">
+                                        <i class="bi bi-stop-fill"></i> Stop
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="voice-pause-btn" title="Pause recording">
+                                        <i class="bi bi-pause-fill"></i>
+                                    </button>
+                                    <div class="voice-timer d-none">
+                                        <span class="badge bg-danger" id="voice-timer-display">00:00</span>
+                                    </div>
+                                </div>
+                                <div class="ai-assist-controls d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="ai-prompt-btn" title="Get AI writing prompt">
+                                        <i class="bi bi-lightbulb"></i> AI Prompt
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-info" id="ai-suggestions-btn" title="Get writing suggestions">
+                                        <i class="bi bi-magic"></i> Suggestions
+                                    </button>
+                                </div>
+                                <div class="media-upload-controls d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="media-upload-btn" title="Upload images or files">
+                                        <i class="bi bi-cloud-upload"></i> Upload
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="media-gallery-btn" title="View media gallery">
+                                        <i class="bi bi-images"></i> Gallery
+                                    </button>
+                                    <input type="file" id="media-file-input" accept="image/*,video/*,.pdf,.doc,.docx,.txt,.md" multiple style="display: none;">
+                                </div>
                                 <small class="text-muted" id="draft-status">Draft auto-saved</small>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="save-draft-btn">
                                     <i class="bi bi-save"></i> Save Draft
                                 </button>
                             </div>
                         </div>
-                        <textarea class="form-control" id="content" name="content"
-                                  rows="10" required>{{ selected_template.template_content if selected_template else request.form.get('content', '') }}</textarea>
+                        <!-- Hidden textarea for form submission -->
+                        <textarea class="form-control" id="content" name="content" style="display: none;">{{ selected_template.template_content if selected_template else request.form.get('content', '') }}</textarea>
+                        
+                        <!-- Quill Rich Text Editor -->
+                        <div id="editor"></div>
                     </div>
                     <div class="preview-pane" id="preview">
                         <div class="preview-placeholder">Preview will appear here...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Voice Recording Section -->
+            <div class="voice-recording-section d-none" id="voice-recording-section">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="bi bi-mic"></i> Voice Recording
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="voice-clear-btn">
+                            <i class="bi bi-trash"></i> Clear
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="voice-waveform mb-3">
+                            <canvas id="voice-waveform" width="800" height="100"></canvas>
+                        </div>
+                        <div class="voice-player mb-3">
+                            <audio controls class="w-100" id="voice-audio-player">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                        <div class="voice-transcription mb-3">
+                            <label for="voice-transcription" class="form-label">Transcription</label>
+                            <textarea class="form-control" id="voice-transcription" rows="4" placeholder="Voice transcription will appear here..."></textarea>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-primary" id="voice-insert-btn">
+                                    <i class="bi bi-plus"></i> Insert into Entry
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="voice-retry-btn">
+                                    <i class="bi bi-arrow-clockwise"></i> Retry Transcription
+                                </button>
+                            </div>
+                        </div>
+                        <div class="voice-info">
+                            <small class="text-muted">
+                                <span id="voice-duration">Duration: 00:00</span> • 
+                                <span id="voice-size">Size: 0 KB</span> • 
+                                <span id="voice-format">Format: WebM</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-features-section d-none" id="ai-features-section">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="bi bi-lightbulb"></i> AI Writing Assistant
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="ai-close-btn">
+                            <i class="bi bi-x"></i> Close
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- AI Prompt Section -->
+                        <div class="ai-prompt-section mb-4" id="ai-prompt-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="bi bi-lightbulb"></i> Writing Prompt
+                            </h6>
+                            <div class="prompt-content">
+                                <div class="alert alert-info" id="ai-prompt-display">
+                                    <i class="bi bi-lightbulb"></i> 
+                                    <span id="ai-prompt-text">Click "Get AI Prompt" for a personalized writing suggestion...</span>
+                                </div>
+                                <div class="prompt-insight mt-2">
+                                    <small class="text-muted" id="ai-prompt-insight"></small>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-sm btn-primary" id="ai-get-prompt-btn">
+                                        <i class="bi bi-arrow-clockwise"></i> Get New Prompt
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="ai-use-prompt-btn">
+                                        <i class="bi bi-plus"></i> Use This Prompt
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Suggestions Section -->
+                        <div class="ai-suggestions-section mb-4" id="ai-suggestions-section">
+                            <h6 class="text-info mb-3">
+                                <i class="bi bi-magic"></i> Writing Suggestions
+                            </h6>
+                            <div class="suggestions-content">
+                                <div class="suggestions-list" id="ai-suggestions-list">
+                                    <div class="text-muted">Type some text and click "Get Suggestions" for AI-powered writing help...</div>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-sm btn-info" id="ai-get-suggestions-btn">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh Suggestions
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mood Insights Section -->
+                        <div class="ai-mood-section mb-4" id="ai-mood-section">
+                            <h6 class="text-success mb-3">
+                                <i class="bi bi-heart"></i> Mood Insights
+                            </h6>
+                            <div class="mood-content">
+                                <div class="mood-insights" id="ai-mood-insights">
+                                    <div class="text-muted">Select a mood to get personalized insights and wellness tips...</div>
+                                </div>
+                                <div class="wellness-tips mt-3" id="ai-wellness-tips">
+                                    <!-- Wellness tips will appear here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Entry Analysis Section -->
+                        <div class="ai-analysis-section" id="ai-analysis-section">
+                            <h6 class="text-warning mb-3">
+                                <i class="bi bi-graph-up"></i> Entry Analysis
+                            </h6>
+                            <div class="analysis-content">
+                                <div class="sentiment-analysis" id="ai-sentiment-analysis">
+                                    <!-- Sentiment analysis will appear here -->
+                                </div>
+                                <div class="writing-stats mt-2">
+                                    <small class="text-muted" id="ai-writing-stats">
+                                        <!-- Writing statistics will appear here -->
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Upload Section -->
+            <div class="media-upload-section d-none" id="media-upload-section">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="bi bi-cloud-upload"></i> Media Upload
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="media-close-btn">
+                            <i class="bi bi-x"></i> Close
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="upload-area">
+                            <div class="text-center p-4 border-dashed rounded" style="border: 2px dashed #dee2e6;">
+                                <i class="bi bi-cloud-upload fs-1 text-muted mb-3"></i>
+                                <h6 class="text-muted">Drop files here or click to browse</h6>
+                                <p class="text-muted small">Supported: Images, Videos, PDFs, Documents</p>
+                                <button type="button" class="btn btn-success" id="media-browse-btn">
+                                    <i class="bi bi-folder-open"></i> Browse Files
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="uploaded-files mt-3" id="uploaded-files">
+                            <!-- Uploaded files will appear here -->
+                        </div>
+                        
+                        <div class="upload-progress d-none" id="upload-progress">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%" id="progress-bar"></div>
+                            </div>
+                            <small class="text-muted mt-1" id="upload-status">Uploading...</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -223,7 +792,7 @@
             </div>
 
             <div class="form-group mb-4">
-                <label class="form-label d-flex align-items-center gap-2">
+                <label for="ai-insights" class="form-label d-flex align-items-center gap-2">
                     <span>AI Insights</span>
                     <small class="text-muted">Get quick suggestions based on your entry</small>
                 </label>
@@ -260,9 +829,33 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Quill Rich Text Editor
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'font': [] }],
+                [{ 'align': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Start writing your diary entry...'
+    });
+
+    // Get elements
     const textarea = document.getElementById('content');
     const preview = document.getElementById('preview');
-    const editorPane = textarea.closest('.editor-pane');
+    const editorPane = document.querySelector('.editor-pane');
     const mobileTabButtons = document.querySelectorAll('[data-editor-view]');
     const wordCount = document.getElementById('word-count');
     const draftStatus = document.getElementById('draft-status');
@@ -276,9 +869,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiSummarizeBtn = document.getElementById('ai-summarize-btn');
     const aiIdeasBtn = document.getElementById('ai-ideas-btn');
 
+    // Load initial content into Quill
+    const initialContent = textarea.value || '';
+    if (initialContent) {
+        quill.root.innerHTML = initialContent;
+    }
+
+    // Sync Quill content with hidden textarea
+    quill.on('text-change', function() {
+        textarea.value = quill.root.innerHTML;
+        updateWordCount();
+        schedulePreviewUpdate();
+        setupAutoSave();
+    });
+
     // Word and character counter
     function updateWordCount() {
-        const text = textarea.value;
+        const text = quill.getText();
         const words = text.trim() ? text.trim().split(/\s+/).length : 0;
         const characters = text.length;
         wordCount.textContent = `${words} words, ${characters} characters`;
@@ -321,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save draft function
     function saveDraft() {
         const title = document.getElementById('title').value;
-        const content = textarea.value;
+        const content = quill.root.innerHTML;
         const mood = document.getElementById('mood').value;
         const tags = tagsInput.value;
 
@@ -474,8 +1081,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update content with template
-        textarea.value = template.template_content;
-        textarea.focus();
+        quill.root.innerHTML = template.template_content;
+        textarea.value = quill.root.innerHTML;
+        quill.focus();
 
         // Update mood based on template
         const moodSelect = document.getElementById('mood');
@@ -516,8 +1124,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Live preview functionality
     async function updatePreview() {
-        const text = textarea.value;
-        if (!text.trim()) {
+        const text = quill.root.innerHTML;
+        if (!text.trim() || text === '<p><br></p>') {
             preview.innerHTML = '<div class="preview-placeholder">Preview will appear here...</div>';
             return;
         }
@@ -537,57 +1145,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Markdown toolbar functionality
-    document.querySelectorAll('.markdown-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const insertText = this.getAttribute('data-insert');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const beforeText = textarea.value.substring(0, start);
-            const afterText = textarea.value.substring(end);
-            const selectedText = textarea.value.substring(start, end);
-
-            let newText;
-            if (selectedText) {
-                // If text is selected, wrap it with markdown
-                if (insertText === '**Bold**') {
-                    newText = beforeText + `**${selectedText}**` + afterText;
-                } else if (insertText === '*Italic*') {
-                    newText = beforeText + `*${selectedText}*` + afterText;
-                } else if (insertText === '~~Strikethrough~~') {
-                    newText = beforeText + `~~${selectedText}~~` + afterText;
-                } else {
-                    newText = beforeText + insertText + afterText;
-                }
-            } else {
-                newText = beforeText + insertText + afterText;
-            }
-
-            textarea.value = newText;
-            textarea.focus();
-
-            // Set cursor position
-            let newCursorPos;
-            if (selectedText && (insertText === '**Bold**' || insertText === '*Italic*' || insertText === '~~Strikethrough~~')) {
-                newCursorPos = start + insertText.length;
-            } else if (selectedText) {
-                newCursorPos = end + insertText.length;
-            } else {
-                newCursorPos = start + insertText.length;
-            }
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
-
-            updateWordCount();
-            schedulePreviewUpdate();
-        });
-    });
-
     // Auto-save functionality (optional)
     let autoSaveTimeout;
     function setupAutoSave() {
         clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(function() {
-            if (textarea.value.trim() || document.getElementById('title').value.trim()) {
+            if (quill.getText().trim() || document.getElementById('title').value.trim()) {
                 saveDraft();
             }
         }, 2000); // Auto-save after 2 seconds of inactivity
@@ -601,12 +1164,6 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(previewUpdateTimeout);
         previewUpdateTimeout = setTimeout(updatePreview, 300);
     }
-
-    textarea.addEventListener('input', () => {
-        updateWordCount();
-        schedulePreviewUpdate();
-        setupAutoSave();
-    });
 
     // Title input listener
     document.getElementById('title').addEventListener('input', setupAutoSave);
@@ -632,8 +1189,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!document.getElementById('title').value) {
                     document.getElementById('title').value = draftData.title || '';
                 }
-                if (!textarea.value) {
-                    textarea.value = draftData.content || '';
+                if (!quill.getText().trim()) {
+                    quill.root.innerHTML = draftData.content || '';
+                    textarea.value = quill.root.innerHTML;
                 }
                 if (!document.getElementById('mood').value) {
                     document.getElementById('mood').value = draftData.mood || '';
@@ -678,5 +1236,910 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Voice Recording Functionality
+class VoiceRecorder {
+    constructor() {
+        this.mediaRecorder = null;
+        this.audioChunks = [];
+        this.audioBlob = null;
+        this.audioUrl = null;
+        this.stream = null;
+        this.isRecording = false;
+        this.isPaused = false;
+        this.startTime = null;
+        this.timerInterval = null;
+        this.animationFrame = null;
+        
+        this.initializeElements();
+        this.bindEvents();
+    }
+    
+    initializeElements() {
+        this.recordBtn = document.getElementById('voice-record-btn');
+        this.stopBtn = document.getElementById('voice-stop-btn');
+        this.pauseBtn = document.getElementById('voice-pause-btn');
+        this.clearBtn = document.getElementById('voice-clear-btn');
+        this.insertBtn = document.getElementById('voice-insert-btn');
+        this.retryBtn = document.getElementById('voice-retry-btn');
+        this.timerDisplay = document.getElementById('voice-timer-display');
+        this.timerContainer = document.querySelector('.voice-timer');
+        this.recordingSection = document.getElementById('voice-recording-section');
+        this.audioPlayer = document.getElementById('voice-audio-player');
+        this.transcriptionTextarea = document.getElementById('voice-transcription');
+        this.waveformCanvas = document.getElementById('voice-waveform');
+        this.waveformCtx = this.waveformCanvas.getContext('2d');
+        this.durationSpan = document.getElementById('voice-duration');
+        this.sizeSpan = document.getElementById('voice-size');
+        this.formatSpan = document.getElementById('voice-format');
+    }
+    
+    bindEvents() {
+        this.recordBtn.addEventListener('click', () => this.startRecording());
+        this.stopBtn.addEventListener('click', () => this.stopRecording());
+        this.pauseBtn.addEventListener('click', () => this.togglePause());
+        this.clearBtn.addEventListener('click', () => this.clearRecording());
+        this.insertBtn.addEventListener('click', () => this.insertIntoEntry());
+        this.retryBtn.addEventListener('click', () => this.retryTranscription());
+    }
+    
+    async startRecording() {
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(this.stream);
+            this.audioChunks = [];
+            
+            this.mediaRecorder.ondataavailable = (event) => {
+                this.audioChunks.push(event.data);
+            };
+            
+            this.mediaRecorder.onstop = () => this.handleRecordingStop();
+            
+            this.mediaRecorder.start();
+            this.isRecording = true;
+            this.startTime = Date.now();
+            
+            this.updateUI();
+            this.startTimer();
+            this.startWaveformVisualization();
+            
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            this.showError('Could not access microphone. Please check permissions.');
+        }
+    }
+    
+    stopRecording() {
+        if (this.mediaRecorder && this.isRecording) {
+            this.mediaRecorder.stop();
+            this.stream.getTracks().forEach(track => track.stop());
+            this.isRecording = false;
+            this.isPaused = false;
+            
+            this.stopTimer();
+            this.stopWaveformVisualization();
+            this.updateUI();
+        }
+    }
+    
+    togglePause() {
+        if (this.mediaRecorder && this.isRecording) {
+            if (this.isPaused) {
+                this.mediaRecorder.resume();
+                this.isPaused = false;
+                this.pauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i> Pause';
+                this.startTimer();
+            } else {
+                this.mediaRecorder.pause();
+                this.isPaused = true;
+                this.pauseBtn.innerHTML = '<i class="bi bi-play-fill"></i> Resume';
+                this.stopTimer();
+            }
+        }
+    }
+    
+    handleRecordingStop() {
+        this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.audioUrl = URL.createObjectURL(this.audioBlob);
+        
+        this.audioPlayer.src = this.audioUrl;
+        this.recordingSection.classList.remove('d-none');
+        
+        // Update info
+        const duration = Math.floor((Date.now() - this.startTime) / 1000);
+        this.durationSpan.textContent = `Duration: ${this.formatTime(duration)}`;
+        this.sizeSpan.textContent = `Size: ${(this.audioBlob.size / 1024).toFixed(1)} KB`;
+        
+        // Start transcription
+        this.transcribeAudio();
+    }
+    
+    async transcribeAudio() {
+        if (!this.audioBlob) return;
+        
+        try {
+            const formData = new FormData();
+            formData.append('audio', this.audioBlob, 'recording.webm');
+            
+            const response = await fetch('/transcribe-audio', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.transcriptionTextarea.value = data.transcription || 'Transcription failed. Please try again.';
+            } else {
+                throw new Error('Transcription failed');
+            }
+        } catch (error) {
+            console.error('Transcription error:', error);
+            this.transcriptionTextarea.value = 'Transcription unavailable. You can still insert the audio into your entry.';
+        }
+    }
+    
+    async retryTranscription() {
+        this.transcriptionTextarea.value = 'Retrying transcription...';
+        await this.transcribeAudio();
+    }
+    
+    insertIntoEntry() {
+        const transcription = this.transcriptionTextarea.value.trim();
+        if (transcription && transcription !== 'Transcription unavailable. You can still insert the audio into your entry.') {
+            // Insert into Quill editor
+            const quill = window.quill;
+            const currentContent = quill.getText();
+            const insertText = currentContent.trim() ? 
+                `\n\n🎤 Voice Recording:\n${transcription}\n\n` : 
+                `🎤 Voice Recording:\n${transcription}\n\n`;
+            
+            quill.clipboard.dangerouslyPasteHTML(quill.getLength(), insertText.replace(/\n/g, '<br>'));
+        }
+        
+        // Insert audio player as HTML
+        const audioHtml = `<div class="voice-audio-embed mb-3">
+            <audio controls class="w-100" src="${this.audioUrl}">
+                Your browser does not support the audio element.
+            </audio>
+        </div>`;
+        
+        const quill = window.quill;
+        quill.clipboard.dangerouslyPasteHTML(quill.getLength(), audioHtml);
+        
+        // Show success message
+        this.showSuccess('Voice recording inserted into entry!');
+    }
+    
+    clearRecording() {
+        this.audioBlob = null;
+        this.audioUrl = null;
+        this.audioChunks = [];
+        
+        this.audioPlayer.src = '';
+        this.transcriptionTextarea.value = '';
+        this.recordingSection.classList.add('d-none');
+        
+        // Reset info
+        this.durationSpan.textContent = 'Duration: 00:00';
+        this.sizeSpan.textContent = 'Size: 0 KB';
+        
+        this.updateUI();
+    }
+    
+    updateUI() {
+        if (this.isRecording) {
+            this.recordBtn.classList.add('d-none');
+            this.stopBtn.classList.remove('d-none');
+            this.pauseBtn.classList.remove('d-none');
+            this.timerContainer.classList.remove('d-none');
+            this.recordBtn.classList.add('btn-danger');
+        } else {
+            this.recordBtn.classList.remove('d-none');
+            this.stopBtn.classList.add('d-none');
+            this.pauseBtn.classList.add('d-none');
+            this.timerContainer.classList.add('d-none');
+            this.recordBtn.classList.remove('btn-danger');
+        }
+    }
+    
+    startTimer() {
+        this.timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+            this.timerDisplay.textContent = this.formatTime(elapsed);
+        }, 1000);
+    }
+    
+    stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+    
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    startWaveformVisualization() {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaStreamSource(this.stream);
+        
+        source.connect(analyser);
+        analyser.fftSize = 256;
+        
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const draw = () => {
+            if (!this.isRecording) return;
+            
+            this.animationFrame = requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+            
+            this.waveformCtx.fillStyle = '#f8f9fa';
+            this.waveformCtx.fillRect(0, 0, this.waveformCanvas.width, this.waveformCanvas.height);
+            
+            const barWidth = (this.waveformCanvas.width / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
+                
+                const gradient = this.waveformCtx.createLinearGradient(0, 0, 0, this.waveformCanvas.height);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                
+                this.waveformCtx.fillStyle = gradient;
+                this.waveformCtx.fillRect(x, this.waveformCanvas.height - barHeight, barWidth, barHeight);
+                
+                x += barWidth + 1;
+            }
+        };
+        
+        draw();
+    }
+    
+    stopWaveformVisualization() {
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+    }
+    
+    showError(message) {
+        // Show error message (could integrate with existing notification system)
+        alert(message);
+    }
+    
+    showSuccess(message) {
+        // Show success message (could integrate with existing notification system)
+        console.log(message);
+    }
+}
+
+// Initialize voice recorder when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if browser supports audio recording
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        window.voiceRecorder = new VoiceRecorder();
+    } else {
+        // Hide voice recording controls if not supported
+        const voiceControls = document.querySelector('.voice-recording-controls');
+        if (voiceControls) {
+            voiceControls.style.display = 'none';
+        }
+    }
+});
+
+// AI Features Functionality
+class AIAssistant {
+    constructor() {
+        this.initializeElements();
+        this.bindEvents();
+        this.currentPrompt = null;
+        this.currentSuggestions = null;
+        this.analysisInterval = null;
+    }
+    
+    initializeElements() {
+        this.promptBtn = document.getElementById('ai-prompt-btn');
+        this.suggestionsBtn = document.getElementById('ai-suggestions-btn');
+        this.closeBtn = document.getElementById('ai-close-btn');
+        this.aiSection = document.getElementById('ai-features-section');
+        
+        // Prompt elements
+        this.getPromptBtn = document.getElementById('ai-get-prompt-btn');
+        this.usePromptBtn = document.getElementById('ai-use-prompt-btn');
+        this.promptText = document.getElementById('ai-prompt-text');
+        this.promptInsight = document.getElementById('ai-prompt-insight');
+        
+        // Suggestions elements
+        this.getSuggestionsBtn = document.getElementById('ai-get-suggestions-btn');
+        this.suggestionsList = document.getElementById('ai-suggestions-list');
+        
+        // Mood elements
+        this.moodSelect = document.getElementById('mood');
+        this.moodInsights = document.getElementById('ai-mood-insights');
+        this.wellnessTips = document.getElementById('ai-wellness-tips');
+        
+        // Analysis elements
+        this.sentimentAnalysis = document.getElementById('ai-sentiment-analysis');
+        this.writingStats = document.getElementById('ai-writing-stats');
+    }
+    
+    bindEvents() {
+        this.promptBtn.addEventListener('click', () => this.showAISection('prompt'));
+        this.suggestionsBtn.addEventListener('click', () => this.showAISection('suggestions'));
+        this.closeBtn.addEventListener('click', () => this.hideAISection());
+        
+        this.getPromptBtn.addEventListener('click', () => this.getNewPrompt());
+        this.usePromptBtn.addEventListener('click', () => this.usePrompt());
+        this.getSuggestionsBtn.addEventListener('click', () => this.getSuggestions());
+        
+        this.moodSelect.addEventListener('change', () => this.updateMoodInsights());
+        
+        // Auto-analyze content as user types
+        if (window.quill) {
+            window.quill.on('text-change', () => {
+                this.debounceAnalysis();
+            });
+        }
+    }
+    
+    showAISection(initialTab = 'prompt') {
+        this.aiSection.classList.remove('d-none');
+        this.aiSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Initialize based on tab
+        if (initialTab === 'prompt' && !this.currentPrompt) {
+            this.getNewPrompt();
+        } else if (initialTab === 'suggestions') {
+            this.getSuggestions();
+        }
+        
+        this.updateMoodInsights();
+    }
+    
+    hideAISection() {
+        this.aiSection.classList.add('d-none');
+    }
+    
+    async getNewPrompt() {
+        try {
+            this.getPromptBtn.disabled = true;
+            this.getPromptBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
+            
+            const currentMood = this.moodSelect.value;
+            const response = await fetch(`/ai/prompt?mood=${encodeURIComponent(currentMood)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.currentPrompt = data;
+                this.displayPrompt(data);
+            } else {
+                throw new Error('Failed to get prompt');
+            }
+        } catch (error) {
+            console.error('Error getting prompt:', error);
+            this.promptText.textContent = 'Could not load prompt. Please try again.';
+        } finally {
+            this.getPromptBtn.disabled = false;
+            this.getPromptBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Get New Prompt';
+        }
+    }
+    
+    displayPrompt(promptData) {
+        this.promptText.textContent = promptData.prompt;
+        this.promptInsight.textContent = promptData.insight || '';
+        
+        if (promptData.personalized) {
+            this.promptInsight.innerHTML = `<i class="bi bi-stars"></i> ${promptData.insight}`;
+        }
+    }
+    
+    usePrompt() {
+        if (!this.currentPrompt) return;
+        
+        const prompt = this.currentPrompt.prompt;
+        const quill = window.quill;
+        
+        if (quill) {
+            const currentContent = quill.getText().trim();
+            const insertText = currentContent ? 
+                `\n\n${prompt}\n\n` : 
+                `${prompt}\n\n`;
+            
+            quill.clipboard.dangerouslyPasteHTML(quill.getLength(), insertText.replace(/\n/g, '<br>'));
+            quill.focus();
+        }
+        
+        this.showSuccess('Prompt added to your entry!');
+    }
+    
+    async getSuggestions() {
+        try {
+            this.getSuggestionsBtn.disabled = true;
+            this.getSuggestionsBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
+            
+            const quill = window.quill;
+            const currentText = quill ? quill.getText() : '';
+            
+            const response = await fetch('/ai/suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: currentText,
+                    cursor_position: quill ? quill.getSelection()?.index || 0 : 0
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.currentSuggestions = data;
+                this.displaySuggestions(data);
+            } else {
+                throw new Error('Failed to get suggestions');
+            }
+        } catch (error) {
+            console.error('Error getting suggestions:', error);
+            this.suggestionsList.innerHTML = '<div class="text-muted">Could not load suggestions. Please try again.</div>';
+        } finally {
+            this.getSuggestionsBtn.disabled = false;
+            this.getSuggestionsBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Suggestions';
+        }
+    }
+    
+    displaySuggestions(suggestionsData) {
+        const suggestions = suggestionsData.suggestions || [];
+        
+        if (suggestions.length === 0) {
+            this.suggestionsList.innerHTML = '<div class="text-muted">No suggestions available. Try writing more text.</div>';
+            return;
+        }
+        
+        const suggestionsHtml = suggestions.map((suggestion, index) => `
+            <div class="suggestion-item" data-suggestion="${suggestion}">
+                ${suggestion}
+                <small>Click to add to entry</small>
+            </div>
+        `).join('');
+        
+        this.suggestionsList.innerHTML = suggestionsHtml;
+        
+        // Add click handlers to suggestions
+        this.suggestionsList.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const suggestion = item.dataset.suggestion;
+                this.insertSuggestion(suggestion);
+            });
+        });
+    }
+    
+    insertSuggestion(suggestion) {
+        const quill = window.quill;
+        if (quill) {
+            const currentContent = quill.getText().trim();
+            const insertText = currentContent ? 
+                `\n${suggestion} ` : 
+                `${suggestion} `;
+            
+            quill.clipboard.dangerouslyPasteHTML(quill.getLength(), insertText.replace(/\n/g, '<br>'));
+            quill.focus();
+        }
+        
+        this.showSuccess('Suggestion added to your entry!');
+    }
+    
+    async updateMoodInsights() {
+        const currentMood = this.moodSelect.value;
+        if (!currentMood) {
+            this.moodInsights.innerHTML = '<div class="text-muted">Select a mood to get personalized insights...</div>';
+            this.wellnessTips.innerHTML = '';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/ai/mood-insights?mood=${encodeURIComponent(currentMood)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.displayMoodInsights(data);
+            } else {
+                throw new Error('Failed to get mood insights');
+            }
+        } catch (error) {
+            console.error('Error getting mood insights:', error);
+            this.moodInsights.innerHTML = '<div class="text-muted">Could not load mood insights.</div>';
+        }
+    }
+    
+    displayMoodInsights(data) {
+        const insights = data.insights;
+        const tips = data.wellness_tips || [];
+        
+        // Display insights
+        const insightsHtml = (insights.insights || []).map(insight => `
+            <div class="mood-insight-card">
+                <i class="bi bi-lightbulb"></i> ${insight}
+            </div>
+        `).join('');
+        
+        this.moodInsights.innerHTML = insightsHtml || '<div class="text-muted">No insights available for this mood.</div>';
+        
+        // Display wellness tips
+        const tipsHtml = tips.map(tip => `
+            <div class="wellness-tip">
+                <i class="bi bi-heart"></i> ${tip}
+            </div>
+        `).join('');
+        
+        this.wellnessTips.innerHTML = tipsHtml || '';
+    }
+    
+    debounceAnalysis() {
+        if (this.analysisInterval) {
+            clearTimeout(this.analysisInterval);
+        }
+        
+        this.analysisInterval = setTimeout(() => {
+            this.analyzeCurrentEntry();
+        }, 2000); // Wait 2 seconds after typing stops
+    }
+    
+    async analyzeCurrentEntry() {
+        const quill = window.quill;
+        if (!quill) return;
+        
+        const currentText = quill.getText();
+        if (currentText.trim().length < 10) {
+            this.sentimentAnalysis.innerHTML = '';
+            this.writingStats.textContent = 'Keep writing to see analysis...';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/ai/analyze-entry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: currentText
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.displayAnalysis(data);
+            }
+        } catch (error) {
+            console.error('Error analyzing entry:', error);
+        }
+    }
+    
+    displayAnalysis(data) {
+        const sentiment = data.sentiment;
+        const wordCount = data.word_count;
+        
+        // Display sentiment
+        const sentimentClass = `sentiment-${sentiment.sentiment}`;
+        const sentimentText = sentiment.sentiment.charAt(0).toUpperCase() + sentiment.sentiment.slice(1);
+        
+        this.sentimentAnalysis.innerHTML = `
+            <span class="sentiment-badge ${sentimentClass}">
+                ${sentimentText} (${Math.round(sentiment.confidence * 100)}% confidence)
+            </span>
+            <small class="text-muted ms-2">
+                ${sentiment.positive_words} positive, ${sentiment.negative_words} negative words
+            </small>
+        `;
+        
+        // Display writing stats
+        this.writingStats.innerHTML = `
+            <i class="bi bi-file-text"></i> ${wordCount} words • 
+            <i class="bi bi-clock"></i> ${Math.round(wordCount / 200)} min read
+        `;
+    }
+    
+    showSuccess(message) {
+        // Simple success notification (could be enhanced with a proper notification system)
+        console.log(message);
+    }
+}
+
+// Initialize AI Assistant when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('ai-prompt-btn')) {
+        window.aiAssistant = new AIAssistant();
+    }
+});
+
+class MediaUpload {
+    constructor() {
+        this.initializeElements();
+        this.bindEvents();
+        this.uploadedFiles = [];
+    }
+    
+    initializeElements() {
+        this.uploadBtn = document.getElementById('media-upload-btn');
+        this.galleryBtn = document.getElementById('media-gallery-btn');
+        this.fileInput = document.getElementById('media-file-input');
+        this.uploadSection = document.getElementById('media-upload-section');
+        this.closeBtn = document.getElementById('media-close-btn');
+        this.browseBtn = document.getElementById('media-browse-btn');
+        this.uploadArea = document.getElementById('upload-area');
+        this.uploadedFilesContainer = document.getElementById('uploaded-files');
+        this.progressBar = document.getElementById('progress-bar');
+        this.uploadProgress = document.getElementById('upload-progress');
+        this.uploadStatus = document.getElementById('upload-status');
+    }
+    
+    bindEvents() {
+        // Upload button click
+        this.uploadBtn.addEventListener('click', () => this.showUploadSection());
+        
+        // Gallery button click
+        this.galleryBtn.addEventListener('click', () => this.openGallery());
+        
+        // Close button click
+        this.closeBtn.addEventListener('click', () => this.hideUploadSection());
+        
+        // Browse button click
+        this.browseBtn.addEventListener('click', () => this.fileInput.click());
+        
+        // File input change
+        this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        
+        // Drag and drop
+        this.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+        this.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        this.uploadArea.addEventListener('drop', (e) => this.handleFileDrop(e));
+        this.uploadArea.addEventListener('click', () => this.fileInput.click());
+    }
+    
+    showUploadSection() {
+        this.uploadSection.classList.remove('d-none');
+        this.uploadSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    hideUploadSection() {
+        this.uploadSection.classList.add('d-none');
+    }
+    
+    openGallery() {
+        window.open('/media', '_blank');
+    }
+    
+    handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        this.uploadFiles(files);
+    }
+    
+    handleDragOver(event) {
+        event.preventDefault();
+        this.uploadArea.classList.add('dragover');
+    }
+    
+    handleDragLeave(event) {
+        event.preventDefault();
+        this.uploadArea.classList.remove('dragover');
+    }
+    
+    handleFileDrop(event) {
+        event.preventDefault();
+        this.uploadArea.classList.remove('dragover');
+        
+        const files = Array.from(event.dataTransfer.files);
+        this.uploadFiles(files);
+    }
+    
+    async uploadFiles(files) {
+        for (const file of files) {
+            await this.uploadFile(file);
+        }
+    }
+    
+    async uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Show progress
+        this.showProgress();
+        this.updateProgress(0);
+        
+        try {
+            const response = await fetch('/media/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.addUploadedFile(data.media);
+                this.updateProgress(100);
+                setTimeout(() => this.hideProgress(), 1000);
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Upload failed');
+            }
+        } catch (error) {
+            this.showError('Upload failed: ' + error.message);
+        }
+    }
+    
+    addUploadedFile(media) {
+        this.uploadedFiles.push(media);
+        this.displayUploadedFile(media);
+        this.addMediaIdToForm(media.id);
+    }
+    
+    addMediaIdToForm(mediaId) {
+        // Add hidden input to track media IDs
+        const form = document.getElementById('entryForm');
+        if (!form) return;
+        
+        // Check if media ID already exists in form
+        const existingInput = form.querySelector(`input[name="media_ids"][value="${mediaId}"]`);
+        if (existingInput) return;
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'media_ids';
+        hiddenInput.value = mediaId;
+        form.appendChild(hiddenInput);
+    }
+    
+    displayUploadedFile(media) {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'uploaded-file';
+        fileElement.dataset.mediaId = media.id;
+        
+        const fileIcon = this.getFileIcon(media.filetype);
+        const fileSize = this.formatFileSize(media.filesize);
+        
+        fileElement.innerHTML = `
+            ${media.filetype === 'image' ? `<img src="${media.url}" alt="${media.filename}" class="file-preview">` : `<div class="file-icon">${fileIcon}</div>`}
+            <div class="file-info">
+                <div class="file-name">${media.filename}</div>
+                <small class="text-muted">${fileSize} • ${this.formatDate(media.created_at)}</small>
+            </div>
+            <div class="file-actions">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="mediaUpload.insertToEditor('${media.id}')">
+                    <i class="bi bi-plus"></i> Add to Entry
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="mediaUpload.deleteFile('${media.id}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        this.uploadedFilesContainer.appendChild(fileElement);
+    }
+    
+    async insertToEditor(mediaId) {
+        const media = this.uploadedFiles.find(m => m.id == mediaId);
+        if (!media) return;
+        
+        const quill = window.quill;
+        if (!quill) return;
+        
+        let content = '';
+        if (media.filetype === 'image') {
+            content = `<img src="${media.url}" alt="${media.filename}" style="max-width: 100%; border-radius: 4px;">`;
+        } else {
+            content = `<div class="file-attachment">
+                <a href="${media.url}" target="_blank">
+                    <i class="bi bi-file-earmark"></i> ${media.filename}
+                </a>
+            </div>`;
+        }
+        
+        quill.clipboard.dangerouslyPasteHTML(quill.getLength(), content);
+        quill.focus();
+        
+        this.showSuccess('Media added to your entry!');
+    }
+    
+    async deleteFile(mediaId) {
+        if (!confirm('Are you sure you want to delete this file?')) return;
+        
+        try {
+            const response = await fetch(`/media/${mediaId}/delete`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                // Remove from uploaded files
+                this.uploadedFiles = this.uploadedFiles.filter(m => m.id != mediaId);
+                
+                // Remove from UI
+                const fileElement = document.querySelector(`[data-media-id="${mediaId}"]`);
+                if (fileElement) {
+                    fileElement.remove();
+                }
+                
+                // Remove from form
+                this.removeMediaIdFromForm(mediaId);
+                
+                this.showSuccess('File deleted successfully!');
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Delete failed');
+            }
+        } catch (error) {
+            this.showError('Delete failed: ' + error.message);
+        }
+    }
+    
+    removeMediaIdFromForm(mediaId) {
+        const form = document.getElementById('entryForm');
+        if (!form) return;
+        
+        const input = form.querySelector(`input[name="media_ids"][value="${mediaId}"]`);
+        if (input) {
+            input.remove();
+        }
+    }
+    
+    getFileIcon(filetype) {
+        const icons = {
+            'image': '<i class="bi bi-file-image"></i>',
+            'video': '<i class="bi bi-file-play"></i>',
+            'document': '<i class="bi bi-file-text"></i>'
+        };
+        return icons[filetype] || '<i class="bi bi-file"></i>';
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    
+    showProgress() {
+        this.uploadProgress.classList.remove('d-none');
+    }
+    
+    hideProgress() {
+        this.uploadProgress.classList.add('d-none');
+    }
+    
+    updateProgress(percent) {
+        this.progressBar.style.width = percent + '%';
+        this.uploadStatus.textContent = `Uploading... ${percent}%`;
+    }
+    
+    showError(message) {
+        this.hideProgress();
+        alert('Error: ' + message);
+    }
+    
+    showSuccess(message) {
+        console.log(message);
+        // Could be enhanced with proper notification system
+    }
+}
+
+// Initialize Media Upload when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('media-upload-btn')) {
+        window.mediaUpload = new MediaUpload();
+    }
+});
+
 </script>
 {% endblock %}

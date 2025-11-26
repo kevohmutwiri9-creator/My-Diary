@@ -18,6 +18,9 @@ class Entry(db.Model):
     
     # Foreign key to users table
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    
+    # Relationship to User model
+    user = db.relationship('User', back_populates='entries')
 
     tags = db.relationship(
         'Tag',

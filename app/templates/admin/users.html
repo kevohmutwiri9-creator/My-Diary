@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-card {
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.user-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-left-color: #0d6efd;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.action-buttons .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.search-box {
+    max-width: 400px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">User Management</h1>
+            <p class="text-muted mb-0">Manage all users in the system</p>
+        </div>
+        <div>
+            <span class="badge bg-info">{{ users.total }} total users</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <nav class="d-flex gap-2">
+                        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="{{ url_for('admin.users') }}" class="admin-nav-link active">
+                            <i class="fas fa-users me-2"></i>Users
+                        </a>
+                        <a href="{{ url_for('admin.entries') }}" class="admin-nav-link">
+                            <i class="fas fa-file-alt me-2"></i>Entries
+                        </a>
+                        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="d-flex gap-2 align-items-center">
+                        <div class="search-box flex-grow-1">
+                            <input type="text" name="search" value="{{ search }}" 
+                                   class="form-control" placeholder="Search users by username or email...">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                        {% if search %}
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Clear
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Users ({{ users.total }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if users.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Joined</th>
+                                        <th>Last Seen</th>
+                                        <th>Entries</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar me-3">
+                                                    {{ user.username[0].upper() }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ user.username }}</div>
+                                                    {% if user.is_admin %}
+                                                        <span class="status-badge bg-danger">Admin</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if user.last_seen %}
+                                                {{ user.last_seen.strftime('%Y-%m-%d %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Never</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ user.entries.count() }}</span>
+                                        </td>
+                                        <td>
+                                            {% if user.account_locked_until %}
+                                                <span class="status-badge bg-warning">Locked</span>
+                                            {% elif user.failed_login_attempts > 0 %}
+                                                <span class="status-badge bg-warning">{{ user.failed_login_attempts }} failed attempts</span>
+                                            {% else %}
+                                                <span class="status-badge bg-success">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons d-flex gap-1">
+                                                {% if not user.is_admin %}
+                                                    {% if user.account_locked_until %}
+                                                        <form method="POST" action="{{ url_for('admin.unlock_user', user_id=user.id) }}" 
+                                                              class="d-inline" onsubmit="return confirm('Unlock this user?')">
+                                                            <button type="submit" class="btn btn-sm btn-success" title="Unlock">
+                                                                <i class="fas fa-unlock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('admin.lock_user', user_id=user.id) }}" 
+                                                              class="d-inline" onsubmit="return confirm('Lock this user for 30 days?')">
+                                                            <button type="submit" class="btn btn-sm btn-warning" title="Lock">
+                                                                <i class="fas fa-lock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                    
+                                                    <form method="POST" action="{{ url_for('admin.reset_user_password', user_id=user.id) }}" 
+                                                          class="d-inline" onsubmit="return confirm('Reset password for this user?')">
+                                                        <button type="submit" class="btn btn-sm btn-info" title="Reset Password">
+                                                            <i class="fas fa-key"></i>
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" 
+                                                          class="d-inline" onsubmit="return confirm('DELETE this user and ALL their entries? This cannot be undone!')">
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="text-muted small">Admin</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if users.pages > 1 %}
+                        <nav aria-label="User pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if users.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.users', page=users.prev_num, search=search) }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in users.iter_pages() %}
+                                    {% if page_num %}
+                                        {% if page_num != users.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('admin.users', page=page_num, search=search) }}">{{ page_num }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if users.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.users', page=users.next_num, search=search) }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No users found</h5>
+                            <p class="text-muted">
+                                {% if search %}
+                                    No users match your search criteria.
+                                {% else %}
+                                    No users have been created yet.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Confirm destructive actions
+document.querySelectorAll('form').forEach(form => {
+    if (form.onsubmit && form.onsubmit.toString().includes('DELETE')) {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure? This action cannot be undone!')) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

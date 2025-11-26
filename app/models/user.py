@@ -28,9 +28,29 @@ class User(UserMixin, db.Model):
     reminder_opt_in = db.Column(db.Boolean, default=False)
     reminder_frequency = db.Column(db.String(20), default='weekly')
     reminder_last_sent = db.Column(db.DateTime, nullable=True)
+    daily_goal = db.Column(db.Integer, default=1)
+    weekly_goal = db.Column(db.Integer, default=7)
+    # Social features
+    auto_share_anonymous = db.Column(db.Boolean, default=False)
+    allow_public_search = db.Column(db.Boolean, default=False)
+    show_in_community = db.Column(db.Boolean, default=True)
+    default_privacy = db.Column(db.Boolean, default=True)
+    # Security features
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True)
+    two_factor_backup_codes = db.Column(db.JSON, nullable=True)
+    encryption_enabled = db.Column(db.Boolean, default=False)
+    encryption_key = db.Column(db.String(64), nullable=True)
+    # Internationalization
+    preferred_language = db.Column(db.String(5), default='en')
+    timezone = db.Column(db.String(50), default='UTC')
+    
+    # Profile
+    profile_picture = db.Column(db.String(255), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
     
     # Relationships
-    entries = db.relationship('Entry', backref='author', lazy='dynamic', cascade='all, delete-orphan')
+    entries = db.relationship('Entry', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
     
     def __init__(self, **kwargs):
         password = kwargs.pop('password', None)
@@ -151,6 +171,17 @@ class User(UserMixin, db.Model):
         state[task_key] = datetime.utcnow().isoformat()
         self.onboarding_state = state
         return True
+
+    def get_profile_picture_url(self):
+        """Get the URL for the user's profile picture."""
+        if self.profile_picture:
+            return f"/static/uploads/profile_pictures/{self.profile_picture}"
+        # Generate avatar based on username
+        return f"https://ui-avatars.com/api/?name={self.username}&background=random&color=fff&size=128"
+
+    def update_profile_picture(self, filename):
+        """Update the user's profile picture."""
+        self.profile_picture = filename
 
 @login_manager.user_loader
 def load_user(id):

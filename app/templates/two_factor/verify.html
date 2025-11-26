@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication{% endblock %}
+
+{% block extra_css %}
+<style>
+.verify-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.verify-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.verify-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.verify-header h1 {
+    margin-bottom: 10px;
+}
+
+.verify-body {
+    padding: 30px;
+}
+
+.tab-navigation {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.tab-btn:hover {
+    background: #f8f9fa;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.code-input {
+    font-size: 24px;
+    letter-spacing: 0.5em;
+    text-align: center;
+    font-weight: bold;
+}
+
+.backup-code-input {
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    font-weight: bold;
+}
+
+.info-box {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.info-box h5 {
+    color: #0c5460;
+    margin-bottom: 10px;
+}
+
+.timer {
+    font-size: 14px;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.countdown {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+@media (max-width: 576px) {
+    .code-input {
+        font-size: 20px;
+    }
+    
+    .tab-btn {
+        font-size: 14px;
+        padding: 12px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="verify-container">
+        <div class="verify-card">
+            <div class="verify-header">
+                <i class="fas fa-shield-alt fa-3x mb-3"></i>
+                <h1>Two-Factor Authentication</h1>
+                <p class="mb-0">Enter your verification code to continue</p>
+            </div>
+            
+            <div class="verify-body">
+                <div class="tab-navigation">
+                    <button type="button" class="tab-btn active" onclick="switchTab('totp')">
+                        <i class="fas fa-mobile-alt me-2"></i>Authenticator App
+                    </button>
+                    <button type="button" class="tab-btn" onclick="switchTab('backup')">
+                        <i class="fas fa-key me-2"></i>Backup Code
+                    </button>
+                </div>
+                
+                <!-- TOTP Tab -->
+                <div id="totp-tab" class="tab-content active">
+                    <form method="POST" action="{{ url_for('two_factor.verify') }}">
+                        <div class="mb-4">
+                            <label for="token" class="form-label">Authentication Code</label>
+                            <input type="text" class="form-control code-input" 
+                                   id="token" name="token" 
+                                   placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+                            <div class="form-text">Enter the 6-digit code from your authenticator app</div>
+                        </div>
+                        
+                        <div class="timer">
+                            <i class="fas fa-clock me-2"></i>
+                            Code refreshes in <span class="countdown" id="countdown">30</span> seconds
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-check me-2"></i>Verify
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Backup Code Tab -->
+                <div id="backup-tab" class="tab-content">
+                    <form method="POST" action="{{ url_for('two_factor.verify') }}">
+                        <div class="mb-4">
+                            <label for="backup_code" class="form-label">Backup Code</label>
+                            <input type="text" class="form-control backup-code-input" 
+                                   id="backup_code" name="backup_code" 
+                                   placeholder="XXXXXXXX" maxlength="8" required>
+                            <div class="form-text">Enter one of your 8-character backup codes</div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <h5><i class="fas fa-info-circle me-2"></i>About Backup Codes</h5>
+                            <p class="mb-0">Backup codes are one-time use codes that can access your account if you lose your authenticator device. Each code can only be used once.</p>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning btn-lg w-100">
+                            <i class="fas fa-key me-2"></i>Use Backup Code
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let countdownInterval;
+let currentTab = 'totp';
+
+function switchTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tab + '-tab').classList.add('active');
+    
+    // Activate corresponding button
+    event.target.classList.add('active');
+    
+    currentTab = tab;
+    
+    // Clear countdown if switching away from TOTP
+    if (tab !== 'totp' && countdownInterval) {
+        clearInterval(countdownInterval);
+    } else if (tab === 'totp') {
+        startCountdown();
+    }
+}
+
+function startCountdown() {
+    let seconds = 30;
+    const countdownElement = document.getElementById('countdown');
+    
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
+    
+    countdownInterval = setInterval(() => {
+        seconds--;
+        countdownElement.textContent = seconds;
+        
+        if (seconds <= 0) {
+            seconds = 30;
+        }
+    }, 1000);
+}
+
+// Auto-focus and format inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const tokenInput = document.getElementById('token');
+    const backupCodeInput = document.getElementById('backup_code');
+    
+    if (tokenInput) {
+        tokenInput.focus();
+        
+        // Only allow numbers
+        tokenInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Auto-submit when 6 digits entered
+        tokenInput.addEventListener('input', function(e) {
+            if (this.value.length === 6) {
+                setTimeout(() => {
+                    this.form.submit();
+                }, 100);
+            }
+        });
+    }
+    
+    if (backupCodeInput) {
+        // Uppercase backup codes
+        backupCodeInput.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    }
+    
+    // Start countdown
+    startCountdown();
+});
+
+// Clear countdown when page is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden && countdownInterval) {
+        clearInterval(countdownInterval);
+    } else if (!document.hidden && currentTab === 'totp') {
+        startCountdown();
+    }
+});
+</script>
+{% endblock %}

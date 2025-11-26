@@ -1,12 +1,66 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file, abort
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file, abort, session
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from dataclasses import asdict
+from werkzeug.utils import secure_filename
 from app import db
 from app.models.entry import Entry
+from app.models.media import Media
+from app.models.user import User
+from app.services.ai_features import ai_features
+from app.services.media_service import save_media, delete_media, get_user_media, link_media_to_entry
+from app.services.productivity_service import (
+    get_user_productivity_stats, get_productivity_recommendations, 
+    generate_calendar_events, update_user_goals
+)
+from app.services.social_service import (
+    get_anonymous_public_entries, share_entry_anonymously, get_community_stats,
+    get_trending_topics, get_inspiration_prompts, get_user_privacy_settings,
+    update_privacy_settings, like_public_entry, report_public_entry
+)
+from app.services.security_service import (
+    setup_2fa, verify_2fa_setup, verify_2fa_token, disable_2fa,
+    backup_user_data, restore_user_data, get_security_settings,
+    update_security_settings, generate_encryption_key
+)
+from app.services.i18n_service import (
+    get_current_language, set_language, translate, get_supported_languages,
+    get_language_direction, format_date, format_number
+)
+from app.utils.cookie_consent import CookieConsent
 from markdown import markdown
 import os
 import bleach
+
+def _expand_semantic_query(query):
+    """
+    Expand a search query with semantic keywords for better matching.
+    This is a simplified version - in production you'd use proper word embeddings.
+    """
+    # Define semantic keyword groups
+    semantic_groups = {
+        'happy': ['happy', 'joy', 'glad', 'pleased', 'delighted', 'cheerful', 'content', 'satisfied'],
+        'sad': ['sad', 'unhappy', 'depressed', 'down', 'blue', 'melancholy', 'sorrowful', 'gloomy'],
+        'angry': ['angry', 'mad', 'furious', 'irate', 'annoyed', 'frustrated', 'upset', 'resentful'],
+        'work': ['work', 'job', 'career', 'office', 'business', 'employment', 'profession', 'task'],
+        'family': ['family', 'parents', 'children', 'siblings', 'relatives', 'home', 'household'],
+        'health': ['health', 'exercise', 'fitness', 'diet', 'wellness', 'medical', 'doctor', 'sick'],
+        'stress': ['stress', 'anxiety', 'worry', 'tension', 'pressure', 'overwhelmed', 'nervous'],
+        'success': ['success', 'achieve', 'accomplish', 'win', 'victory', 'triumph', 'goal', 'progress'],
+        'relationship': ['relationship', 'love', 'romance', 'dating', 'marriage', 'partner', 'intimate'],
+        'money': ['money', 'financial', 'income', 'salary', 'budget', 'expenses', 'wealth', 'cost'],
+    }
+    
+    query_lower = query.lower()
+    expanded_keywords = [query]  # Always include original query
+    
+    # Check if query matches any semantic group
+    for key, keywords in semantic_groups.items():
+        if key in query_lower or any(kw in query_lower for kw in keywords):
+            expanded_keywords.extend(keywords)
+            break
+    
+    return list(set(expanded_keywords))  # Remove duplicates
 import logging
 import io
 import json
@@ -55,30 +109,120 @@ def dashboard():
     """User dashboard showing recent entries."""
     try:
         current_app.logger.info(f'Rendering dashboard for user: {current_user.username}')
-
-        # Get search query from request
+        
+        # Get search parameters
         search_query = request.args.get('search', '').strip()
+        search_type = request.args.get('search_type', 'all')
         page = request.args.get('page', 1, type=int)
+        
+        # Date filters
+        date_from = request.args.get('date_from', '').strip()
+        date_to = request.args.get('date_to', '').strip()
+        
+        # Other filters
+        mood_filter = request.args.get('mood', '').strip()
+        tag_filter = request.args.get('tag', '').strip()
+        words_min = request.args.get('words_min', '').strip()
+        words_max = request.args.get('words_max', '').strip()
+        sort_by = request.args.get('sort', 'date_desc')
 
         # Base query for user's entries
         query = Entry.query.filter_by(user_id=current_user.id)
 
-        # Apply search filter if search query exists
+        # Apply search filter
         if search_query:
-            current_app.logger.info(f'Searching for: {search_query}')
-            # Search in both title and content fields
-            search_filter = Entry.title.contains(search_query) | Entry.content.contains(search_query)
-            query = query.filter(search_filter)
+            current_app.logger.info(f'Searching for: {search_query} (type: {search_type})')
+            
+            if search_type == 'semantic':
+                # Semantic search using word embeddings (simplified version)
+                # In a real implementation, you'd use libraries like spaCy, sentence-transformers, or OpenAI embeddings
+                # For now, we'll use keyword matching with synonyms
+                semantic_keywords = _expand_semantic_query(search_query)
+                semantic_filter = None
+                for keyword in semantic_keywords:
+                    keyword_filter = Entry.title.contains(keyword) | Entry.content.contains(keyword)
+                    if semantic_filter is None:
+                        semantic_filter = keyword_filter
+                    else:
+                        semantic_filter = semantic_filter | keyword_filter
+                if semantic_filter:
+                    query = query.filter(semantic_filter)
+            elif search_type == 'title':
+                query = query.filter(Entry.title.contains(search_query))
+            elif search_type == 'content':
+                query = query.filter(Entry.content.contains(search_query))
+            else:  # 'all'
+                search_filter = Entry.title.contains(search_query) | Entry.content.contains(search_query)
+                query = query.filter(search_filter)
 
-        # Apply mood filter if specified
-        mood_filter = request.args.get('mood', '').strip()
+        # Apply date range filter
+        if date_from:
+            try:
+                from datetime import datetime
+                date_from_dt = datetime.strptime(date_from, '%Y-%m-%d')
+                query = query.filter(Entry.created_at >= date_from_dt)
+                current_app.logger.info(f'Filtering from date: {date_from}')
+            except ValueError:
+                pass
+                
+        if date_to:
+            try:
+                from datetime import datetime
+                date_to_dt = datetime.strptime(date_to, '%Y-%m-%d')
+                # Add one day to make it inclusive
+                from datetime import timedelta
+                date_to_dt = date_to_dt + timedelta(days=1)
+                query = query.filter(Entry.created_at < date_to_dt)
+                current_app.logger.info(f'Filtering to date: {date_to}')
+            except ValueError:
+                pass
+
+        # Apply mood filter
         if mood_filter:
             current_app.logger.info(f'Filtering by mood: {mood_filter}')
             query = query.filter(Entry.mood == mood_filter)
 
-        # Order by creation date (newest first) and paginate
-        entries = query.order_by(Entry.created_at.desc())\
-                      .paginate(page=page, per_page=10, error_out=False)
+        # Apply tag filter
+        if tag_filter:
+            current_app.logger.info(f'Filtering by tag: {tag_filter}')
+            from app.models.tag import Tag
+            tag = Tag.query.filter_by(name=tag_filter).first()
+            if tag:
+                query = query.filter(Entry.tags.any(id=tag.id))
+
+        # Apply word count filters
+        if words_min:
+            try:
+                min_words = int(words_min)
+                query = query.filter(Entry.word_count >= min_words)
+                current_app.logger.info(f'Filtering min words: {min_words}')
+            except ValueError:
+                pass
+                
+        if words_max:
+            try:
+                max_words = int(words_max)
+                query = query.filter(Entry.word_count <= max_words)
+                current_app.logger.info(f'Filtering max words: {max_words}')
+            except ValueError:
+                pass
+
+        # Apply sorting
+        if sort_by == 'date_asc':
+            query = query.order_by(Entry.created_at.asc())
+        elif sort_by == 'title_asc':
+            query = query.order_by(Entry.title.asc())
+        elif sort_by == 'title_desc':
+            query = query.order_by(Entry.title.desc())
+        elif sort_by == 'words_desc':
+            query = query.order_by(Entry.word_count.desc())
+        elif sort_by == 'words_asc':
+            query = query.order_by(Entry.word_count.asc())
+        else:  # date_desc (default)
+            query = query.order_by(Entry.created_at.desc())
+
+        # Paginate results
+        entries = query.paginate(page=page, per_page=10, error_out=False)
 
         analytics = build_dashboard_analytics(current_user.id)
 
@@ -99,12 +243,20 @@ def dashboard():
         if not search_query:
             from app.models.tag import Tag
             available_tags = Tag.query.join(Tag.entries).filter(Entry.user_id == current_user.id).distinct().all()
-
+        
+        # Pass all filter parameters to template for form persistence
         return render_template(
             'dashboard.html',
             entries=entries,
             search_query=search_query,
+            search_type=search_type,
             mood_filter=mood_filter,
+            tag_filter=tag_filter,
+            date_from=date_from,
+            date_to=date_to,
+            words_min=words_min,
+            words_max=words_max,
+            sort_by=sort_by,
             stats=stats,
             analytics=analytics,
             available_tags=available_tags,
@@ -173,10 +325,11 @@ def new_entry():
             content = request.form.get('content', '').strip()
             mood = request.form.get('mood', '').strip()
             is_private = 'is_private' in request.form
+            media_ids = request.form.getlist('media_ids')  # Get media IDs from form
             
             if not content:
                 flash('Content is required.', 'danger')
-                return render_template('entry.html', 
+                return render_template('write.html', 
                                    template=template_type, 
                                    selected_template=selected_template,
                                    now=datetime.utcnow())
@@ -191,6 +344,14 @@ def new_entry():
             )
             
             db.session.add(entry)
+            db.session.flush()  # Get the entry ID without committing
+            
+            # Link media to entry if provided
+            if media_ids:
+                success, error = link_media_to_entry(media_ids, entry.id, current_user.id)
+                if error:
+                    current_app.logger.error(f'Error linking media to entry: {error}')
+            
             if current_user.mark_onboarding_task('first_entry_written'):
                 db.session.add(current_user)
             db.session.commit()
@@ -209,6 +370,136 @@ def new_entry():
         current_app.logger.error(f'Error in new_entry route: {str(e)}', exc_info=True)
         flash('An error occurred while loading the form.', 'danger')
         return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/transcribe-audio', methods=['POST'])
+@login_required
+def transcribe_audio():
+    """Transcribe audio file to text."""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'error': 'No audio file selected'}), 400
+        
+        # For now, return a placeholder transcription
+        # In a real implementation, you would integrate with:
+        # - OpenAI Whisper API
+        # - Google Speech-to-Text
+        # - Azure Speech Services
+        # - Or a local Whisper model
+        
+        # Placeholder transcription based on duration
+        audio_file.seek(0, 2)  # Seek to end
+        file_size = audio_file.tell()
+        audio_file.seek(0)  # Reset to beginning
+        
+        # Estimate duration (very rough approximation for WebM audio)
+        estimated_duration = file_size / (1024 * 10)  # Rough estimate
+        
+        placeholder_text = f"This is a placeholder transcription for your voice recording. "
+        placeholder_text += f"The recording appears to be approximately {estimated_duration:.1f} seconds long. "
+        placeholder_text += f"In a production environment, this would be replaced with actual AI-powered transcription using services like OpenAI Whisper, Google Speech-to-Text, or Azure Speech Services. "
+        placeholder_text += f"The audio file size is {file_size / 1024:.1f} KB."
+        
+        return jsonify({
+            'transcription': placeholder_text,
+            'duration': estimated_duration,
+            'file_size': file_size
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error in transcribe_audio route: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Transcription failed'}), 500
+
+@main_bp.route('/ai/prompt', methods=['GET'])
+@login_required
+def get_ai_prompt():
+    """Get personalized AI writing prompt."""
+    try:
+        current_mood = request.args.get('mood')
+        
+        # Get user's recent entries for personalization
+        user_entries = Entry.query.filter_by(user_id=current_user.id)\
+                                .order_by(Entry.created_at.desc())\
+                                .limit(20).all()
+        
+        prompt_data = ai_features.get_personalized_prompt(user_entries, current_mood)
+        
+        return jsonify(prompt_data)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error in get_ai_prompt route: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Failed to generate prompt'}), 500
+
+@main_bp.route('/ai/suggestions', methods=['POST'])
+@login_required
+def get_ai_suggestions():
+    """Get smart writing suggestions based on current text."""
+    try:
+        data = request.get_json()
+        current_text = data.get('text', '')
+        cursor_position = data.get('cursor_position', 0)
+        
+        suggestions = ai_features.get_smart_suggestions(current_text, cursor_position)
+        
+        return jsonify(suggestions)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error in get_ai_suggestions route: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Failed to generate suggestions'}), 500
+
+@main_bp.route('/ai/mood-insights', methods=['GET'])
+@login_required
+def get_mood_insights():
+    """Get insights and recommendations for current mood."""
+    try:
+        mood = request.args.get('mood')
+        if not mood:
+            return jsonify({'error': 'Mood parameter required'}), 400
+        
+        # Get user's recent entries for context
+        recent_entries = Entry.query.filter_by(user_id=current_user.id)\
+                                  .order_by(Entry.created_at.desc())\
+                                  .limit(10).all()
+        
+        insights = ai_features.get_mood_insights(mood)
+        wellness_tips = ai_features.get_wellness_tips(mood, recent_entries)
+        
+        return jsonify({
+            'insights': insights,
+            'wellness_tips': wellness_tips,
+            'mood': mood
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error in get_mood_insights route: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Failed to get mood insights'}), 500
+
+@main_bp.route('/ai/analyze-entry', methods=['POST'])
+@login_required
+def analyze_entry():
+    """Analyze entry sentiment and provide insights."""
+    try:
+        data = request.get_json()
+        text = data.get('text', '')
+        
+        if not text.strip():
+            return jsonify({'error': 'Text is required for analysis'}), 400
+        
+        sentiment_analysis = ai_features.analyze_entry_sentiment(text)
+        suggestions = ai_features.get_smart_suggestions(text)
+        
+        return jsonify({
+            'sentiment': sentiment_analysis,
+            'suggestions': suggestions,
+            'word_count': len(text.split())
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error in analyze_entry route: {str(e)}', exc_info=True)
+        return jsonify({'error': 'Failed to analyze entry'}), 500
 
 @main_bp.route('/entry/<int:entry_id>')
 @login_required
@@ -818,3 +1109,715 @@ def calendar_entries_by_date(date):
     except Exception as e:
         current_app.logger.error(f'Error fetching calendar entries: {str(e)}', exc_info=True)
         return jsonify({'success': False, 'error': 'Failed to load entries for the selected date.'}), 500
+
+@main_bp.route('/media/upload', methods=['POST'])
+@login_required
+def upload_media():
+    """Handle file upload"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        entry_id = request.form.get('entry_id', None)
+        
+        media, error = save_media(file, current_user.id, entry_id)
+        if error:
+            return jsonify({'success': False, 'error': error}), 400
+        
+        return jsonify({
+            'success': True,
+            'media': media.to_dict()
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error uploading media: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Upload failed'}), 500
+
+@main_bp.route('/media/<int:media_id>/delete', methods=['POST'])
+@login_required
+def delete_media_route(media_id):
+    """Delete a media file"""
+    try:
+        success, error = delete_media(media_id, current_user.id)
+        if error:
+            return jsonify({'success': False, 'error': error}), 400
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error deleting media: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Delete failed'}), 500
+
+@main_bp.route('/media')
+@login_required
+def media_gallery():
+    """Display user's media gallery"""
+    try:
+        media_list = get_user_media(current_user.id)
+        return render_template('media_gallery.html', media_list=media_list)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading media gallery: {str(e)}', exc_info=True)
+        flash('Error loading media gallery', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/uploads/<filename>')
+def serve_upload(filename):
+    """Serve uploaded files"""
+    try:
+        upload_dir = os.path.join(current_app.root_path, '..', 'uploads')
+        return send_file(os.path.join(upload_dir, filename))
+    except FileNotFoundError:
+        abort(404)
+
+@main_bp.route('/media/link-to-entry', methods=['POST'])
+@login_required
+def link_media_to_entry_route():
+    """Link multiple media files to an entry"""
+    try:
+        data = request.get_json()
+        media_ids = data.get('media_ids', [])
+        entry_id = data.get('entry_id')
+        
+        if not entry_id:
+            return jsonify({'success': False, 'error': 'Entry ID required'}), 400
+        
+        success, error = link_media_to_entry(media_ids, entry_id, current_user.id)
+        if error:
+            return jsonify({'success': False, 'error': error}), 400
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error linking media to entry: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Link failed'}), 500
+
+@main_bp.route('/productivity')
+@login_required
+def productivity_dashboard():
+    """Display productivity dashboard with stats and insights."""
+    try:
+        stats = get_user_productivity_stats(current_user.id)
+        recommendations = get_productivity_recommendations(current_user.id)
+        
+        return render_template('productivity.html', 
+                             stats=stats, 
+                             recommendations=recommendations)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading productivity dashboard: {str(e)}', exc_info=True)
+        flash('Error loading productivity dashboard', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/productivity/goals', methods=['POST'])
+@login_required
+def update_goals():
+    """Update user's writing goals."""
+    try:
+        daily_goal = request.form.get('daily_goal', type=int)
+        weekly_goal = request.form.get('weekly_goal', type=int)
+        
+        success = update_user_goals(current_user.id, daily_goal, weekly_goal)
+        
+        if success:
+            flash('Goals updated successfully!', 'success')
+        else:
+            flash('Error updating goals', 'danger')
+            
+        return redirect(url_for('main.productivity_dashboard'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error updating goals: {str(e)}', exc_info=True)
+        flash('Error updating goals', 'danger')
+        return redirect(url_for('main.productivity_dashboard'))
+
+@main_bp.route('/api/productivity/stats')
+@login_required
+def api_productivity_stats():
+    """API endpoint for productivity statistics."""
+    try:
+        stats = get_user_productivity_stats(current_user.id)
+        return jsonify({'success': True, 'stats': stats})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting productivity stats: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load stats'}), 500
+
+@main_bp.route('/api/productivity/recommendations')
+@login_required
+def api_productivity_recommendations():
+    """API endpoint for productivity recommendations."""
+    try:
+        recommendations = get_productivity_recommendations(current_user.id)
+        return jsonify({'success': True, 'recommendations': recommendations})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting recommendations: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load recommendations'}), 500
+
+@main_bp.route('/api/calendar/events/<int:year>/<int:month>')
+@login_required
+def api_calendar_events(year, month):
+    """API endpoint for calendar events."""
+    try:
+        events = generate_calendar_events(current_user.id, year, month)
+        return jsonify({'success': True, 'events': events})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting calendar events: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load events'}), 500
+
+# Social Features Routes
+@main_bp.route('/community')
+@login_required
+def community_feed():
+    """Display community feed with anonymous public entries."""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        
+        entries = get_anonymous_public_entries(limit=per_page, offset=(page-1)*per_page)
+        community_stats = get_community_stats()
+        trending_topics = get_trending_topics(5)
+        
+        return render_template('community.html', 
+                             entries=entries, 
+                             community_stats=community_stats,
+                             trending_topics=trending_topics,
+                             page=page)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading community feed: {str(e)}', exc_info=True)
+        flash('Error loading community feed', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/share-entry/<int:entry_id>', methods=['POST'])
+@login_required
+def share_entry(entry_id):
+    """Share an entry anonymously to the community."""
+    try:
+        result = share_entry_anonymously(entry_id, current_user.id)
+        
+        if result['success']:
+            flash(result['message'], 'success')
+        else:
+            flash(result['error'], 'danger')
+            
+        return redirect(url_for('main.view_entry', entry_id=entry_id))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error sharing entry: {str(e)}', exc_info=True)
+        flash('Error sharing entry', 'danger')
+        return redirect(url_for('main.view_entry', entry_id=entry_id))
+
+@main_bp.route('/privacy-settings')
+@login_required
+def privacy_settings():
+    """Display privacy settings page."""
+    try:
+        settings = get_user_privacy_settings(current_user.id)
+        return render_template('privacy_settings.html', settings=settings)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading privacy settings: {str(e)}', exc_info=True)
+        flash('Error loading privacy settings', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/privacy-settings', methods=['POST'])
+@login_required
+def update_privacy():
+    """Update user's privacy settings."""
+    try:
+        settings = {
+            'auto_share_anonymous': 'auto_share_anonymous' in request.form,
+            'allow_public_search': 'allow_public_search' in request.form,
+            'show_in_community': 'show_in_community' in request.form,
+            'default_privacy': 'default_privacy' in request.form
+        }
+        
+        success = update_privacy_settings(current_user.id, settings)
+        
+        if success:
+            flash('Privacy settings updated successfully!', 'success')
+        else:
+            flash('Error updating privacy settings', 'danger')
+            
+        return redirect(url_for('main.privacy_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error updating privacy settings: {str(e)}', exc_info=True)
+        flash('Error updating privacy settings', 'danger')
+        return redirect(url_for('main.privacy_settings'))
+
+@main_bp.route('/api/community/entries')
+@login_required
+def api_community_entries():
+    """API endpoint for community entries."""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        entries = get_anonymous_public_entries(limit=per_page, offset=(page-1)*per_page)
+        return jsonify({'success': True, 'entries': entries})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting community entries: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load entries'}), 500
+
+@main_bp.route('/api/community/stats')
+@login_required
+def api_community_stats():
+    """API endpoint for community statistics."""
+    try:
+        stats = get_community_stats()
+        return jsonify({'success': True, 'stats': stats})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting community stats: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load stats'}), 500
+
+@main_bp.route('/api/community/trending')
+@login_required
+def api_trending_topics():
+    """API endpoint for trending topics."""
+    try:
+        limit = request.args.get('limit', 10, type=int)
+        topics = get_trending_topics(limit)
+        return jsonify({'success': True, 'topics': topics})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting trending topics: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load topics'}), 500
+
+@main_bp.route('/api/inspiration')
+@login_required
+def api_inspiration():
+    """API endpoint for writing inspiration prompts."""
+    try:
+        prompts = get_inspiration_prompts()
+        return jsonify({'success': True, 'prompts': prompts})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting inspiration prompts: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load prompts'}), 500
+
+# Security Features Routes
+@main_bp.route('/security')
+@login_required
+def security_settings():
+    """Display security settings page."""
+    try:
+        settings = get_security_settings(current_user.id)
+        return render_template('security_settings.html', settings=settings)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading security settings: {str(e)}', exc_info=True)
+        flash('Error loading security settings', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/security/2fa/setup')
+@login_required
+def setup_2fa_page():
+    """Setup 2FA page."""
+    try:
+        result = setup_2fa(current_user.id)
+        
+        if result['success']:
+            return render_template('2fa_setup.html', 
+                                 secret=result['secret'],
+                                 qr_code=result['qr_code'],
+                                 manual_key=result['manual_entry_key'])
+        else:
+            flash(result['error'], 'danger')
+            return redirect(url_for('main.security_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error setting up 2FA: {str(e)}', exc_info=True)
+        flash('Error setting up 2FA', 'danger')
+        return redirect(url_for('main.security_settings'))
+
+@main_bp.route('/security/2fa/verify', methods=['POST'])
+@login_required
+def verify_2fa():
+    """Verify 2FA setup."""
+    try:
+        token = request.form.get('token', '').strip()
+        
+        if not token:
+            flash('Token is required', 'danger')
+            return redirect(url_for('main.setup_2fa_page'))
+        
+        result = verify_2fa_setup(current_user.id, token)
+        
+        if result['success']:
+            flash(result['message'], 'success')
+            return redirect(url_for('main.security_settings'))
+        else:
+            flash(result['error'], 'danger')
+            return redirect(url_for('main.setup_2fa_page'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error verifying 2FA: {str(e)}', exc_info=True)
+        flash('Error verifying 2FA', 'danger')
+        return redirect(url_for('main.setup_2fa_page'))
+
+@main_bp.route('/security/2fa/disable', methods=['POST'])
+@login_required
+def disable_2fa_route():
+    """Disable 2FA."""
+    try:
+        password = request.form.get('password', '')
+        
+        if not password:
+            flash('Password is required', 'danger')
+            return redirect(url_for('main.security_settings'))
+        
+        result = disable_2fa(current_user.id, password)
+        
+        if result['success']:
+            flash(result['message'], 'success')
+        else:
+            flash(result['error'], 'danger')
+            
+        return redirect(url_for('main.security_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error disabling 2FA: {str(e)}', exc_info=True)
+        flash('Error disabling 2FA', 'danger')
+        return redirect(url_for('main.security_settings'))
+
+@main_bp.route('/security/backup')
+@login_required
+def create_backup():
+    """Create encrypted backup of user data."""
+    try:
+        # Get user's encryption key (or generate from password)
+        user = User.query.get(current_user.id)
+        if user.encryption_key:
+            encryption_key = user.encryption_key.encode()
+        else:
+            # Generate from user password hash (simplified)
+            encryption_key = generate_encryption_key(user.password_hash[:32])
+        
+        result = backup_user_data(current_user.id, encryption_key)
+        
+        if result['success']:
+            # Return file download
+            from flask import Response
+            backup_data = result['backup_data']
+            filename = result['filename']
+            
+            response = Response(backup_data, mimetype='application/octet-stream')
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            return response
+        else:
+            flash(result['error'], 'danger')
+            return redirect(url_for('main.security_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error creating backup: {str(e)}', exc_info=True)
+        flash('Error creating backup', 'danger')
+        return redirect(url_for('main.security_settings'))
+
+@main_bp.route('/security/restore', methods=['POST'])
+@login_required
+def restore_backup():
+    """Restore user data from backup."""
+    try:
+        if 'backup_file' not in request.files:
+            flash('No backup file selected', 'danger')
+            return redirect(url_for('main.security_settings'))
+        
+        backup_file = request.files['backup_file']
+        if backup_file.filename == '':
+            flash('No backup file selected', 'danger')
+            return redirect(url_for('main.security_settings'))
+        
+        backup_data = backup_file.read().decode('utf-8')
+        
+        # Get user's encryption key
+        user = User.query.get(current_user.id)
+        if user.encryption_key:
+            encryption_key = user.encryption_key.encode()
+        else:
+            encryption_key = generate_encryption_key(user.password_hash[:32])
+        
+        result = restore_user_data(backup_data, encryption_key, current_user.id)
+        
+        if result['success']:
+            flash(result['message'], 'success')
+        else:
+            flash(result['error'], 'danger')
+            
+        return redirect(url_for('main.security_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error restoring backup: {str(e)}', exc_info=True)
+        flash('Error restoring backup', 'danger')
+        return redirect(url_for('main.security_settings'))
+
+@main_bp.route('/security/settings', methods=['POST'])
+@login_required
+def update_security():
+    """Update security settings."""
+    try:
+        settings = {
+            'encryption_enabled': 'encryption_enabled' in request.form
+        }
+        
+        result = update_security_settings(current_user.id, settings)
+        
+        if result['success']:
+            flash(result['message'], 'success')
+        else:
+            flash(result['error'], 'danger')
+            
+        return redirect(url_for('main.security_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error updating security settings: {str(e)}', exc_info=True)
+        flash('Error updating security settings', 'danger')
+        return redirect(url_for('main.security_settings'))
+
+@main_bp.route('/api/security/settings')
+@login_required
+def api_security_settings():
+    """API endpoint for security settings."""
+    try:
+        settings = get_security_settings(current_user.id)
+        return jsonify({'success': True, 'settings': settings})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting security settings: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load settings'}), 500
+
+# Internationalization Routes
+@main_bp.route('/language')
+@login_required
+def language_settings():
+    """Display language settings page."""
+    try:
+        current_lang = get_current_language()
+        supported_languages = get_supported_languages()
+        user_timezone = getattr(current_user, 'timezone', 'UTC')
+        
+        return render_template('language_settings.html', 
+                             current_language=current_lang,
+                             supported_languages=supported_languages,
+                             user_timezone=user_timezone)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading language settings: {str(e)}', exc_info=True)
+        flash('Error loading language settings', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/language/set', methods=['POST'])
+@login_required
+def set_user_language():
+    """Set user language preference."""
+    try:
+        language = request.form.get('language', 'en')
+        timezone = request.form.get('timezone', 'UTC')
+        
+        # Validate language
+        supported_languages = get_supported_languages()
+        if language not in supported_languages:
+            flash('Invalid language selection', 'danger')
+            return redirect(url_for('main.language_settings'))
+        
+        # Set language
+        success = set_language(language)
+        
+        # Update user timezone
+        if success:
+            current_user.timezone = timezone
+            db.session.commit()
+            flash('Language settings updated successfully!', 'success')
+        else:
+            flash('Error updating language settings', 'danger')
+            
+        return redirect(url_for('main.language_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error setting language: {str(e)}', exc_info=True)
+        flash('Error updating language settings', 'danger')
+        return redirect(url_for('main.language_settings'))
+
+@main_bp.route('/api/language/translate')
+@login_required
+def api_translate():
+    """API endpoint for translation."""
+    try:
+        key = request.args.get('key')
+        language = request.args.get('language', get_current_language())
+        
+        if not key:
+            return jsonify({'success': False, 'error': 'Translation key required'}), 400
+        
+        translation = translate(key, language)
+        return jsonify({'success': True, 'translation': translation})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error translating: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Translation failed'}), 500
+
+@main_bp.route('/api/language/info')
+@login_required
+def api_language_info():
+    """API endpoint for language information."""
+    try:
+        current_lang = get_current_language()
+        supported_languages = get_supported_languages()
+        direction = get_language_direction(current_lang)
+        
+        return jsonify({
+            'success': True,
+            'current_language': current_lang,
+            'supported_languages': supported_languages,
+            'direction': direction
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error getting language info: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to load language info'}), 500
+
+# Add context processor for templates
+@main_bp.app_context_processor
+def inject_i18n():
+    """Inject i18n functions into template context."""
+    return {
+        'translate': translate,
+        'get_current_language': get_current_language,
+        'get_language_direction': get_language_direction,
+        'format_date': format_date,
+        'format_number': format_number,
+        'get_supported_languages': get_supported_languages
+    }
+
+# Cookie Consent Routes
+@main_bp.route('/cookie-consent')
+def cookie_consent():
+    """Display cookie consent page."""
+    try:
+        return render_template('cookie_consent.html', 
+                             categories=CookieConsent.CATEGORIES,
+                             current_preferences=CookieConsent.get_preferences(),
+                             has_consent=CookieConsent.has_consent())
+    except Exception as e:
+        current_app.logger.error(f'Error loading cookie consent: {str(e)}', exc_info=True)
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/cookie-consent/save', methods=['POST'])
+def save_cookie_consent():
+    """Save cookie consent preferences."""
+    try:
+        preferences = {
+            'necessary': True,  # Always required
+            'analytics': request.form.get('analytics') == 'on',
+            'marketing': request.form.get('marketing') == 'on',
+            'personalization': request.form.get('personalization') == 'on'
+        }
+        
+        CookieConsent.set_consent(preferences)
+        
+        # Redirect back to where they came from
+        next_page = request.form.get('next', url_for('main.dashboard'))
+        return redirect(next_page)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error saving cookie consent: {str(e)}', exc_info=True)
+        flash('Error saving cookie preferences', 'danger')
+        return redirect(url_for('main.cookie_consent'))
+
+@main_bp.route('/cookie-consent/update', methods=['POST'])
+@login_required
+def update_cookie_consent():
+    """Update existing cookie consent preferences."""
+    try:
+        preferences = {
+            'necessary': True,  # Always required
+            'analytics': request.form.get('analytics') == 'on',
+            'marketing': request.form.get('marketing') == 'on',
+            'personalization': request.form.get('personalization') == 'on'
+        }
+        
+        if CookieConsent.update_preferences(preferences):
+            flash('Cookie preferences updated successfully', 'success')
+        else:
+            flash('No consent found to update', 'warning')
+            
+        return redirect(url_for('main.privacy_settings'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error updating cookie consent: {str(e)}', exc_info=True)
+        flash('Error updating cookie preferences', 'danger')
+        return redirect(url_for('main.privacy_settings'))
+
+@main_bp.route('/cookie-consent/withdraw', methods=['POST'])
+@login_required
+def withdraw_cookie_consent():
+    """Withdraw cookie consent (GDPR right)."""
+    try:
+        CookieConsent.withdraw_consent()
+        flash('Cookie consent withdrawn. Some features may be limited.', 'info')
+        return redirect(url_for('main.dashboard'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error withdrawing cookie consent: {str(e)}', exc_info=True)
+        flash('Error withdrawing consent', 'danger')
+        return redirect(url_for('main.privacy_settings'))
+
+@main_bp.route('/api/cookie-consent')
+def api_cookie_consent():
+    """API endpoint for cookie consent status."""
+    try:
+        return jsonify({
+            'success': True,
+            'has_consent': CookieConsent.has_consent(),
+            'preferences': CookieConsent.get_preferences(),
+            'consent_date': CookieConsent.get_consent_date(),
+            'categories': CookieConsent.CATEGORIES
+        })
+    except Exception as e:
+        current_app.logger.error(f'Error getting cookie consent: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'error': 'Failed to get consent status'}), 500
+
+# Add cookie consent to template context
+@main_bp.app_context_processor
+def inject_cookie_consent():
+    """Inject cookie consent data into template context."""
+    return {
+        'cookie_consent': CookieConsent,
+        'can_use_analytics': CookieConsent.can_use_analytics(),
+        'can_use_marketing': CookieConsent.can_use_marketing(),
+        'can_use_personalization': CookieConsent.can_use_personalization()
+    }
+
+@main_bp.route('/api/community/like/<int:entry_id>', methods=['POST'])
+@login_required
+def api_community_like(entry_id):
+    """API endpoint for liking community entries."""
+    try:
+        success = like_public_entry(current_user.id, entry_id)
+        if success:
+            return jsonify({'success': True, 'message': 'Entry liked successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to like entry'}), 400
+    except Exception as e:
+        current_app.logger.error(f'Error liking entry {entry_id}: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@main_bp.route('/api/community/report/<int:entry_id>', methods=['POST'])
+@login_required
+def api_community_report(entry_id):
+    """API endpoint for reporting community entries."""
+    try:
+        success = report_public_entry(current_user.id, entry_id)
+        if success:
+            return jsonify({'success': True, 'message': 'Entry reported successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to report entry'}), 400
+    except Exception as e:
+        current_app.logger.error(f'Error reporting entry {entry_id}: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Server error'}), 500

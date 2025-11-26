@@ -2,6 +2,7 @@ from markdown import markdown
 import bleach
 from bleach.css_sanitizer import CSSSanitizer
 from flask import current_app
+import itertools
 
 # Markdown and HTML sanitization settings
 ALLOWED_TAGS = {
@@ -54,3 +55,19 @@ def markdown_to_html(content):
     except Exception as e:
         current_app.logger.error(f'Error converting markdown to HTML: {str(e)}', exc_info=True)
         return "<p>Error rendering content</p>"
+
+def zip_filter(*iterables):
+    """Zip filter for Jinja2 templates - combines multiple iterables."""
+    try:
+        return zip(*iterables)
+    except Exception as e:
+        current_app.logger.error(f'Error in zip filter: {str(e)}')
+        return []
+
+def datetimefilter(value, format='%Y-%m-%d %H:%M'):
+    """Format datetime for display."""
+    if value is None:
+        return ''
+    if isinstance(value, str):
+        return value
+    return value.strftime(format)

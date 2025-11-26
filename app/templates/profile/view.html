@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 0;
+    margin-bottom: 30px;
+    border-radius: 15px;
+}
+
+.profile-picture-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    object-fit: cover;
+}
+
+.profile-picture-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.profile-picture-container:hover .profile-picture-overlay {
+    opacity: 1;
+}
+
+.profile-info {
+    text-align: center;
+}
+
+.profile-username {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.profile-email {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.profile-bio {
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.95;
+}
+
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.profile-actions {
+    margin-top: 20px;
+}
+
+.profile-section {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.recent-entry {
+    border-left: 4px solid #667eea;
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+
+.recent-entry-title {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.recent-entry-date {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.recent-entry-preview {
+    color: #555;
+    line-height: 1.5;
+}
+
+.upload-zone {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: #667eea;
+    background-color: #f8f9fa;
+}
+
+.upload-zone.dragover {
+    border-color: #667eea;
+    background-color: #f0f4ff;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        padding: 40px 20px;
+    }
+    
+    .profile-username {
+        font-size: 2rem;
+    }
+    
+    .profile-stats {
+        gap: 20px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <div class="profile-picture-container">
+                        <img src="{{ user.get_profile_picture_url() }}" alt="{{ user.username }}" class="profile-picture">
+                        <div class="profile-picture-overlay" onclick="showUploadModal()">
+                            <i class="fas fa-camera fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="profile-info">
+                        <h1 class="profile-username">{{ user.username }}</h1>
+                        <p class="profile-email">{{ user.email }}</p>
+                        {% if user.bio %}
+                        <p class="profile-bio">{{ user.bio }}</p>
+                        {% else %}
+                        <p class="profile-bio text-muted">No bio added yet</p>
+                        {% endif %}
+                        
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">{{ user.entries.count() }}</span>
+                                <span class="stat-label">Entries</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">{{ user.streak_count }}</span>
+                                <span class="stat-label">Day Streak</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">{{ user.created_at.strftime('%b %Y') }}</span>
+                                <span class="stat-label">Joined</span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-actions">
+                            <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-light btn-lg">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Entries -->
+    <div class="profile-section">
+        <h2 class="section-title">Recent Entries</h2>
+        {% if user.entries.count() > 0 %}
+            {% for entry in user.entries.order_by(created_at.desc()).limit(5).all() %}
+            <div class="recent-entry">
+                <div class="recent-entry-title">{{ entry.title or 'Untitled' }}</div>
+                <div class="recent-entry-date">{{ entry.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                <div class="recent-entry-preview">{{ entry.content|striptags|truncate(150) }}</div>
+                <a href="{{ url_for('main.view_entry', entry_id=entry.id) }}" class="btn btn-sm btn-outline-primary mt-2">
+                    Read More
+                </a>
+            </div>
+            {% endfor %}
+            
+            {% if user.entries.count() > 5 %}
+            <div class="text-center mt-4">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                    View All Entries
+                </a>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No entries yet</h4>
+                <p class="text-muted">Start writing your first entry to see it here!</p>
+                <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Write First Entry
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-zone" id="uploadZone">
+                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                    <h5>Drop your picture here or click to browse</h5>
+                    <p class="text-muted">Supported formats: JPG, PNG, GIF, WebP (Max 5MB)</p>
+                    <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+                </div>
+                <div id="uploadPreview" class="text-center mt-3" style="display: none;">
+                    <img id="previewImage" class="img-fluid rounded" style="max-height: 200px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="uploadBtn" disabled>Upload Picture</button>
+                {% if user.profile_picture %}
+                <button type="button" class="btn btn-danger" id="removeBtn">Remove Current</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('profilePictureInput');
+const uploadBtn = document.getElementById('uploadBtn');
+const removeBtn = document.getElementById('removeBtn');
+const uploadPreview = document.getElementById('uploadPreview');
+const previewImage = document.getElementById('previewImage');
+
+function showUploadModal() {
+    uploadModal.show();
+}
+
+// Click to upload
+uploadZone.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// Drag and drop
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFileSelect(files[0]);
+    }
+});
+
+// File selection
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+    }
+});
+
+function handleFileSelect(file) {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Please select an image file.');
+        return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File too large. Maximum size is 5MB.');
+        return;
+    }
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        uploadPreview.style.display = 'block';
+        uploadBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+    
+    // Store file for upload
+    uploadBtn.dataset.file = file;
+}
+
+// Upload button
+uploadBtn.addEventListener('click', () => {
+    const file = uploadBtn.dataset.file;
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+    
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    
+    fetch('{{ url_for("profile.upload_picture") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update profile picture on page
+            location.reload();
+        } else {
+            alert(data.message);
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = 'Upload Picture';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error uploading picture');
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = 'Upload Picture';
+    });
+});
+
+// Remove button
+removeBtn.addEventListener('click', () => {
+    if (confirm('Remove your profile picture?')) {
+        fetch('{{ url_for("profile.remove_picture") }}', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing picture');
+        });
+    }
+});
+</script>
+{% endblock %}

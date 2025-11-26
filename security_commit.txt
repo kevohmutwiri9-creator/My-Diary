@@ -1,6 +1,0 @@
-security: Add .gitignore and .env.example to prevent future secret exposure
-
-- Add comprehensive .gitignore to exclude .env files
-- Create .env.example template for secure configuration
-- Add fix_security.py script to help with remediation
-- Prevent future accidental commits of sensitive data

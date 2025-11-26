@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Content Moderation{% endblock %}
+
+{% block extra_css %}
+<style>
+.entry-card {
+    transition: all 0.2s ease;
+    border-left: 4px solid #6f42c1;
+}
+
+.entry-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.entry-preview {
+    max-height: 100px;
+    overflow: hidden;
+    position: relative;
+}
+
+.entry-preview::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(transparent, white);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.search-box {
+    max-width: 500px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Content Moderation</h1>
+            <p class="text-muted mb-0">View and moderate all entries in the system</p>
+        </div>
+        <div>
+            <span class="badge bg-info">{{ entries.total }} total entries</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <nav class="d-flex gap-2">
+                        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="{{ url_for('admin.users') }}" class="admin-nav-link">
+                            <i class="fas fa-users me-2"></i>Users
+                        </a>
+                        <a href="{{ url_for('admin.entries') }}" class="admin-nav-link active">
+                            <i class="fas fa-file-alt me-2"></i>Entries
+                        </a>
+                        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="d-flex gap-2 align-items-center">
+                        <div class="search-box flex-grow-1">
+                            <input type="text" name="search" value="{{ search }}" 
+                                   class="form-control" placeholder="Search entries by title, content, or username...">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                        {% if search %}
+                        <a href="{{ url_for('admin.entries') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Clear
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entries List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">All Entries ({{ entries.total }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if entries.items %}
+                        {% for entry in entries.items %}
+                        <div class="entry-card card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar me-2">
+                                            {{ entry.user.username[0].upper() }}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ entry.user.username }}</h6>
+                                            <small class="text-muted">{{ entry.user.email }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ entry.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        <div>
+                                            <span class="badge bg-secondary">{{ entry.word_count }} words</span>
+                                            {% if entry.is_private %}
+                                                <span class="badge bg-warning">Private</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Public</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="card-title">{{ entry.title or 'Untitled' }}</h5>
+                                
+                                <div class="entry-preview mb-3">
+                                    <p class="card-text">{{ entry.content|striptags }}</p>
+                                </div>
+                                
+                                {% if entry.tags %}
+                                <div class="mb-3">
+                                    {% for tag in entry.tags %}
+                                        <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            Mood: {{ entry.mood or 'Not set' }} | 
+                                            Location: {{ entry.location or 'Not set' }}
+                                        </small>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('main.view_entry', entry_id=entry.id) }}" 
+                                           class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                        <form method="POST" action="{{ url_for('admin.delete_entry', entry_id=entry.id) }}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this entry? This cannot be undone!')">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Pagination -->
+                        {% if entries.pages > 1 %}
+                        <nav aria-label="Entry pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if entries.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.entries', page=entries.prev_num, search=search) }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in entries.iter_pages() %}
+                                    {% if page_num %}
+                                        {% if page_num != entries.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('admin.entries', page=page_num, search=search) }}">{{ page_num }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if entries.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.entries', page=entries.next_num, search=search) }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No entries found</h5>
+                            <p class="text-muted">
+                                {% if search %}
+                                    No entries match your search criteria.
+                                {% else %}
+                                    No entries have been created yet.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Confirm delete actions
+document.querySelectorAll('form').forEach(form => {
+    if (form.onsubmit && form.onsubmit.toString().includes('Delete')) {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure? This action cannot be undone!')) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

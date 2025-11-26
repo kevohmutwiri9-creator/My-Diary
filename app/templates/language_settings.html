@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}Language Settings - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.language-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.language-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.language-section h5 {
+    color: #495057;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.language-option:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.language-option.selected {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.language-option .language-info {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.language-option .language-name {
+    font-weight: 500;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.language-option .language-native {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.language-option .language-flag {
+    font-size: 2em;
+    width: 50px;
+    text-align: center;
+}
+
+.language-option .radio-indicator {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    margin-left: auto;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.language-option.selected .radio-indicator {
+    border-color: #007bff;
+    background: #007bff;
+}
+
+.language-option.selected .radio-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+
+.timezone-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.timezone-section h6 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.language-preview {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.language-preview h6 {
+    color: #1565c0;
+    margin-bottom: 15px;
+}
+
+.preview-item {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+}
+
+.preview-item .preview-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.preview-item .preview-text {
+    color: #6c757d;
+}
+
+.language-info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.language-info h6 {
+    color: #0c5460;
+    margin-bottom: 15px;
+}
+
+.language-info p {
+    color: #0c5460;
+    margin-bottom: 0;
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .language-section,
+[data-bs-theme="dark"] .language-option,
+[data-bs-theme="dark"] .timezone-section,
+[data-bs-theme="dark"] .preview-item {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .language-section h5,
+[data-bs-theme="dark"] .timezone-section h6,
+[data-bs-theme="dark"] .preview-item .preview-label {
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .language-option {
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .language-option:hover {
+    border-color: #007bff;
+    background: #4a5568;
+}
+
+[data-bs-theme="dark"] .language-option.selected {
+    border-color: #007bff;
+    background: #2b6cb0;
+}
+
+[data-bs-theme="dark"] .language-option .language-native,
+[data-bs-theme="dark"] .preview-item .preview-text {
+    color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .language-info {
+    background: #2b6cb0;
+    border-color: #3182ce;
+}
+
+[data-bs-theme="dark"] .language-info h6,
+[data-bs-theme="dark"] .language-info p {
+    color: #e2e8f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .language-option {
+        padding: 15px;
+    }
+    
+    .language-option .language-flag {
+        font-size: 1.5em;
+        width: 40px;
+    }
+    
+    .language-option .language-name {
+        font-size: 1em;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="language-header">
+    <div class="container">
+        <h1><i class="bi bi-translate"></i> Language Settings</h1>
+        <p class="lead mb-0">Choose your preferred language and timezone</p>
+    </div>
+</div>
+
+<div class="container">
+    
+    <!-- Language Info -->
+    <div class="language-info">
+        <h6><i class="bi bi-info-circle"></i> About Language Settings</h6>
+        <p>
+            Select your preferred language to translate the interface. Changes will apply immediately 
+            and will be remembered for future visits. Some content may remain in English as we continue 
+            to expand our translation coverage.
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.set_user_language') }}">
+        
+        <!-- Language Selection -->
+        <div class="language-section">
+            <h5><i class="bi bi-globe"></i> Select Language</h5>
+            
+            {% for lang_code, lang_info in supported_languages.items() %}
+                <div class="language-option {{ 'selected' if lang_code == current_language }}" 
+                     onclick="selectLanguage('{{ lang_code }}')">
+                    <div class="language-flag">
+                        {% if lang_code == 'en' %}🇺🇸{% elif lang_code == 'es' %}🇪🇸{% elif lang_code == 'fr' %}🇫🇷{% endif %}
+                    </div>
+                    <div class="language-info">
+                        <div class="language-name">{{ lang_info.name }}</div>
+                        <div class="language-native">{{ lang_info.native_name }}</div>
+                    </div>
+                    <div class="radio-indicator"></div>
+                </div>
+                
+                <input type="radio" name="language" value="{{ lang_code }}" 
+                       id="lang_{{ lang_code }}" {{ 'checked' if lang_code == current_language }} 
+                       style="display: none;">
+            {% endfor %}
+        </div>
+
+        <!-- Timezone Selection -->
+        <div class="language-section">
+            <h5><i class="bi bi-clock"></i> Timezone Settings</h5>
+            
+            <div class="timezone-section">
+                <h6>Select Your Timezone</h6>
+                <select class="form-select" name="timezone" id="timezone">
+                    <option value="UTC" {{ 'selected' if user_timezone == 'UTC' }}>UTC (Coordinated Universal Time)</option>
+                    <option value="America/New_York" {{ 'selected' if user_timezone == 'America/New_York' }}>Eastern Time (ET)</option>
+                    <option value="America/Chicago" {{ 'selected' if user_timezone == 'America/Chicago' }}>Central Time (CT)</option>
+                    <option value="America/Denver" {{ 'selected' if user_timezone == 'America/Denver' }}>Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles" {{ 'selected' if user_timezone == 'America/Los_Angeles' }}>Pacific Time (PT)</option>
+                    <option value="Europe/London" {{ 'selected' if user_timezone == 'Europe/London' }}>London (GMT/BST)</option>
+                    <option value="Europe/Paris" {{ 'selected' if user_timezone == 'Europe/Paris' }}>Paris (CET/CEST)</option>
+                    <option value="Europe/Berlin" {{ 'selected' if user_timezone == 'Europe/Berlin' }}>Berlin (CET/CEST)</option>
+                    <option value="Asia/Tokyo" {{ 'selected' if user_timezone == 'Asia/Tokyo' }}>Tokyo (JST)</option>
+                    <option value="Asia/Shanghai" {{ 'selected' if user_timezone == 'Asia/Shanghai' }}>Shanghai (CST)</option>
+                    <option value="Australia/Sydney" {{ 'selected' if user_timezone == 'Australia/Sydney' }}>Sydney (AEDT/AEST)</option>
+                </select>
+                <div class="form-text">This affects how dates and times are displayed throughout the app</div>
+            </div>
+        </div>
+
+        <!-- Language Preview -->
+        <div class="language-section">
+            <h5><i class="bi bi-eye"></i> Preview Translations</h5>
+            
+            <div class="language-preview">
+                <h6>Sample Translations</h6>
+                
+                <div class="preview-item">
+                    <div class="preview-label">Dashboard</div>
+                    <div class="preview-text">{{ translate('navigation.dashboard') }}</div>
+                </div>
+                
+                <div class="preview-item">
+                    <div class="preview-label">Save Entry</div>
+                    <div class="preview-text">{{ translate('diary.save_entry') }}</div>
+                </div>
+                
+                <div class="preview-item">
+                    <div class="preview-label">Welcome back</div>
+                    <div class="preview-text">{{ translate('dashboard.welcome') }}</div>
+                </div>
+                
+                <div class="preview-item">
+                    <div class="preview-label">Your diary entry has been saved!</div>
+                    <div class="preview-text">{{ translate('messages.entry_saved') }}</div>
+                </div>
+                
+                <div class="preview-item">
+                    <div class="preview-label">Today</div>
+                    <div class="preview-text">{{ translate('dates.today') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-save"></i> Save Language Settings
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Language selection
+function selectLanguage(languageCode) {
+    // Remove selected class from all options
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    const selectedOption = document.querySelector(`.language-option:has(#lang_${languageCode})`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+    }
+    
+    // Check the radio button
+    document.getElementById(`lang_${languageCode}`).checked = true;
+    
+    // Update preview dynamically (simulate)
+    updatePreview(languageCode);
+}
+
+// Update preview with selected language
+async function updatePreview(languageCode) {
+    try {
+        const previewItems = document.querySelectorAll('.preview-item');
+        
+        for (let item of previewItems) {
+            const label = item.querySelector('.preview-label').textContent;
+            const response = await fetch(`/api/language/translate?key=${encodeURIComponent(label)}&language=${languageCode}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                item.querySelector('.preview-text').textContent = data.translation;
+            }
+        }
+    } catch (error) {
+        console.log('Error updating preview:', error);
+    }
+}
+
+// Add visual feedback for timezone changes
+document.getElementById('timezone').addEventListener('change', function() {
+    const section = this.closest('.timezone-section');
+    section.style.borderColor = '#007bff';
+    section.style.transition = 'border-color 0.3s ease';
+    
+    setTimeout(() => {
+        section.style.borderColor = '';
+    }, 2000);
+});
+
+// Add confirmation for language changes
+document.querySelector('form').addEventListener('submit', function(e) {
+    const currentLang = '{{ current_language }}';
+    const selectedLang = document.querySelector('input[name="language"]:checked').value;
+    
+    if (currentLang !== selectedLang) {
+        if (!confirm('Changing the language will refresh the page and apply the new language immediately. Continue?')) {
+            e.preventDefault();
+        }
+    }
+});
+
+// Initialize selected language on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const currentLang = '{{ current_language }}';
+    selectLanguage(currentLang);
+});
+</script>
+{% endblock %}

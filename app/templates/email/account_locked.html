@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Locked - My Diary</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ffc107;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .alert {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .alert-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .reasons {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .reasons-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .reasons ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .reasons li {
+            margin-bottom: 8px;
+        }
+        .next-steps {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .next-steps-title {
+            font-weight: bold;
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+        .next-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📖 My Diary</div>
+            <div class="title">Account Locked</div>
+            <div class="subtitle">Your account has been temporarily locked</div>
+        </div>
+        
+        <div class="content">
+            <p>Hello {{ user.username }},</p>
+            
+            <div class="alert">
+                <div class="alert-title">⚠️ Account Security Notice</div>
+                <p>Your My Diary account has been temporarily locked due to security concerns. This is a precautionary measure to protect your account and data.</p>
+            </div>
+            
+            <div class="reasons">
+                <div class="reasons-title">🔍 Possible Reasons:</div>
+                <ul>
+                    <li>Multiple failed login attempts</li>
+                    <li>Suspicious activity detected</li>
+                    <li>Security policy violation</li>
+                    <li>Administrative review required</li>
+                </ul>
+            </div>
+            
+            <div class="next-steps">
+                <div class="next-steps-title">📋 What to Do Next:</div>
+                <ol>
+                    <li>Wait for the lock period to expire (typically 24-48 hours)</li>
+                    <li>Contact support if you believe this is an error</li>
+                    <li>Review your account security settings</li>
+                    <li>Consider enabling two-factor authentication</li>
+                </ol>
+            </div>
+            
+            <p>If you believe this lock was applied in error, or if you need immediate assistance, please contact our support team with your username and email address.</p>
+            
+            <p>We take account security seriously and appreciate your understanding as we work to keep your diary safe and private.</p>
+            
+            <p>Best regards,<br>The My Diary Security Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>For support, please contact: support@mydiary.com</p>
+        </div>
+    </div>
+</body>
+</html>

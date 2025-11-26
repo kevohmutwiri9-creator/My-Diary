@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Backup Codes{% endblock %}
+
+{% block extra_css %}
+<style>
+.backup-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.backup-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+}
+
+.backup-body {
+    background: white;
+    padding: 30px;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.backup-codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.backup-code {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    padding: 15px 10px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.backup-code:hover {
+    background: #e9ecef;
+    border-color: #ffc107;
+    transform: translateY(-2px);
+}
+
+.backup-code.copied {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.warning-box h5 {
+    color: #856404;
+    margin-bottom: 15px;
+}
+
+.download-section {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.download-section h5 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.download-options {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .backup-codes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .backup-code {
+        font-size: 12px;
+        padding: 12px 8px;
+    }
+    
+    .download-options {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="backup-container">
+        <div class="backup-header">
+            <i class="fas fa-key fa-3x mb-3"></i>
+            <h1>Backup Codes</h1>
+            <p class="mb-0">Save these codes for emergency access to your account</p>
+        </div>
+        
+        <div class="backup-body">
+            <div class="warning-box">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Instructions</h5>
+                <ul class="mb-0">
+                    <li>Each backup code can only be used once</li>
+                    <li>Store them in a secure, offline location</li>
+                    <li>Don't store them on the same device as your authenticator app</li>
+                    <li>These codes will not be shown again after you leave this page</li>
+                </ul>
+            </div>
+            
+            <h4 class="text-center mb-4">Your 10 Backup Codes</h4>
+            
+            <div class="backup-codes-grid">
+                {% for code in backup_codes %}
+                <div class="backup-code" onclick="copyCode(this, '{{ code }}')">
+                    {{ code }}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="download-section">
+                <h5><i class="fas fa-download me-2"></i>Download Options</h5>
+                <div class="download-options">
+                    <button type="button" class="btn btn-primary" onclick="downloadAsText()">
+                        <i class="fas fa-file-alt me-2"></i>Download as Text
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="downloadAsPDF()">
+                        <i class="fas fa-file-pdf me-2"></i>Download as PDF
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="printCodes()">
+                        <i class="fas fa-print me-2"></i>Print Codes
+                    </button>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb me-2"></i>
+                <strong>Pro Tip:</strong> Consider storing these codes in a password manager or writing them down and storing them in a safe place like a safe deposit box.
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('two_factor.manage') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-check me-2"></i>I've Saved My Codes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyCode(element, code) {
+    navigator.clipboard.writeText(code).then(function() {
+        // Show copied state
+        element.classList.add('copied');
+        element.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        
+        // Reset after 2 seconds
+        setTimeout(function() {
+            element.classList.remove('copied');
+            element.innerHTML = code;
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Failed to copy code: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        element.classList.add('copied');
+        element.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        
+        setTimeout(function() {
+            element.classList.remove('copied');
+            element.innerHTML = code;
+        }, 2000);
+    });
+}
+
+function downloadAsText() {
+    const codes = {{ backup_codes|tojson }};
+    const content = `My Diary - 2FA Backup Codes
+Generated: ${new Date().toLocaleString()}
+User: {{ current_user.username }}
+
+IMPORTANT: Store these codes in a secure location.
+Each code can only be used once.
+
+Backup Codes:
+${codes.join('\n')}
+
+Keep these codes safe and private!`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-diary-2fa-backup-codes.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function downloadAsPDF() {
+    // Simple HTML to PDF conversion (would need a library like jsPDF for production)
+    const codes = {{ backup_codes|tojson }};
+    let content = `
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #333; }
+            .code { font-family: monospace; font-size: 14px; margin: 5px 0; }
+            .warning { background: #fff3cd; padding: 10px; border: 1px solid #ffeaa7; margin: 20px 0; }
+        </style>
+    </head>
+    <body>
+        <h1>My Diary - 2FA Backup Codes</h1>
+        <p>Generated: ${new Date().toLocaleString()}</p>
+        <p>User: {{ current_user.username }}</p>
+        
+        <div class="warning">
+            <strong>IMPORTANT:</strong> Store these codes in a secure location. Each code can only be used once.
+        </div>
+        
+        <h2>Backup Codes:</h2>
+    `;
+    
+    codes.forEach(code => {
+        content += `<div class="code">${code}</div>`;
+    });
+    
+    content += `
+        <p><strong>Keep these codes safe and private!</strong></p>
+    </body>
+    </html>`;
+    
+    const newWindow = window.open('', '_blank');
+    newWindow.document.write(content);
+    newWindow.document.close();
+    newWindow.print();
+}
+
+function printCodes() {
+    window.print();
+}
+
+// Add print styles
+const printStyles = document.createElement('style');
+printStyles.textContent = `
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .backup-container, .backup-container * {
+            visibility: visible;
+        }
+        .backup-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .download-section {
+            display: none;
+        }
+        .backup-code {
+            break-inside: avoid;
+        }
+    }
+`;
+document.head.appendChild(printStyles);
+</script>
+{% endblock %}

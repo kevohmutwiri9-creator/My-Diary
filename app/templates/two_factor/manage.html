@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+.manage-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.status-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.status-card.disabled {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.status-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.action-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.action-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #007bff;
+    transition: transform 0.2s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+}
+
+.action-card h4 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.action-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.backup-codes-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.backup-codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.backup-code {
+    background: white;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.warning-box {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.info-box {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .action-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="manage-container">
+        <div class="text-center mb-4">
+            <h1 class="h3">Two-Factor Authentication</h1>
+            <p class="text-muted">Manage your 2FA security settings</p>
+        </div>
+
+        <!-- Status Card -->
+        <div class="status-card">
+            <div class="status-icon">
+                {% if current_user.two_factor_enabled %}
+                    <i class="fas fa-shield-alt"></i>
+                {% else %}
+                    <i class="fas fa-shield-alt"></i>
+                {% endif %}
+            </div>
+            <h3>
+                {% if current_user.two_factor_enabled %}
+                    2FA is Enabled
+                {% else %}
+                    2FA is Disabled
+                {% endif %}
+            </h3>
+            <p class="mb-0">
+                {% if current_user.two_factor_enabled %}
+                    Your account has enhanced security protection
+                {% else %}
+                    Consider enabling 2FA for better security
+                {% endif %}
+            </p>
+        </div>
+
+        {% if current_user.two_factor_enabled %}
+        <!-- 2FA Enabled Actions -->
+        <div class="action-cards">
+            <div class="action-card">
+                <h4><i class="fas fa-key me-2"></i>Backup Codes</h4>
+                <p>View and manage your backup codes for emergency access</p>
+                <a href="{{ url_for('two_factor.backup_codes') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-eye me-2"></i>View Codes
+                </a>
+            </div>
+            
+            <div class="action-card">
+                <h4><i class="fas fa-sync-alt me-2"></i>Regenerate Codes</h4>
+                <p>Generate new backup codes (requires password confirmation)</p>
+                <button type="button" class="btn btn-outline-warning" onclick="showRegenerateModal()">
+                    <i class="fas fa-redo me-2"></i>Regenerate
+                </button>
+            </div>
+            
+            <div class="action-card">
+                <h4><i class="fas fa-times-circle me-2"></i>Disable 2FA</h4>
+                <p>Remove two-factor authentication from your account</p>
+                <button type="button" class="btn btn-outline-danger" onclick="showDisableModal()">
+                    <i class="fas fa-trash me-2"></i>Disable 2FA
+                </button>
+            </div>
+        </div>
+
+        <!-- Usage Statistics -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-chart-bar me-2"></i>2FA Usage Statistics</h5>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ current_user.two_factor_backup_codes|length if current_user.two_factor_backup_codes else 0 }}</div>
+                        <div class="stat-label">Backup Codes Available</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2FA</div>
+                        <div class="stat-label">Security Level</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ current_user.created_at.strftime('%b %Y') }}</div>
+                        <div class="stat-label">Account Created</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- 2FA Disabled -->
+        <div class="action-cards">
+            <div class="action-card">
+                <h4><i class="fas fa-shield-alt me-2"></i>Enable 2FA</h4>
+                <p>Add an extra layer of security to your admin account</p>
+                <a href="{{ url_for('two_factor.setup') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Setup 2FA
+                </a>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h5><i class="fas fa-info-circle me-2"></i>Why Enable 2FA?</h5>
+            <ul class="mb-0">
+                <li>Protects your account even if your password is compromised</li>
+                <li>Required for admin users to ensure system security</li>
+                <li>Easy to set up with popular authenticator apps</li>
+                <li>Includes backup codes for emergency access</li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Security Best Practices -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-lock me-2"></i>Security Best Practices</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li>Use a reputable authenticator app</li>
+                            <li>Save backup codes in a secure, offline location</li>
+                            <li>Keep your authenticator app updated</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li>Never share your backup codes with anyone</li>
+                            <li>Enable device encryption on your phone</li>
+                            <li>Regularly review your account activity</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disable 2FA Modal -->
+<div class="modal fade" id="disableModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Disable Two-Factor Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('two_factor.disable') }}">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> Disabling 2FA will reduce the security of your account.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-text">Enter your password to confirm disabling 2FA</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Disable 2FA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Regenerate Codes Modal -->
+<div class="modal fade" id="regenerateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Regenerate Backup Codes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('two_factor.regenerate_codes') }}">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This will invalidate all existing backup codes and generate new ones.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="regen_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="regen_password" name="password" required>
+                        <div class="form-text">Enter your password to confirm regenerating backup codes</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Regenerate Codes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showDisableModal() {
+    const modal = new bootstrap.Modal(document.getElementById('disableModal'));
+    modal.show();
+}
+
+function showRegenerateModal() {
+    const modal = new bootstrap.Modal(document.getElementById('regenerateModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

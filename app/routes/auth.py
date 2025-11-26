@@ -92,7 +92,17 @@ def login():
             current_app.logger.warning(f'Failed login attempt for email: {form.email.data}')
             flash('Invalid email or password', 'danger')
             return redirect(url_for('auth.login'))
+        
+        # Check if user has 2FA enabled
+        if user.two_factor_enabled:
+            # Log in user but require 2FA verification
+            login_user(user, remember=form.remember_me.data)
+            current_app.logger.info(f'User {user.username} logged in, 2FA required')
             
+            # Store intended page and redirect to 2FA verification
+            session['2fa_next'] = request.args.get('next') or url_for('main.dashboard')
+            return redirect(url_for('two_factor.verify'))
+        
         login_user(user, remember=form.remember_me.data)
         current_app.logger.info(f'User {user.username} logged in successfully')
         next_page = request.args.get('next')

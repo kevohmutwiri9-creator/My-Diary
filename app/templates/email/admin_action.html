@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account {{ action.title() }} - My Diary</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dc3545;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .alert {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .alert-title {
+            font-weight: bold;
+            color: #721c24;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-title {
+            font-weight: bold;
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+        .action-details {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .action-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        .contact-info {
+            background-color: #e2e3e5;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📖 My Diary</div>
+            <div class="title">Account {{ action.title() }}</div>
+            <div class="subtitle">Administrative action performed on your account</div>
+        </div>
+        
+        <div class="content">
+            <p>Hello {{ user.username }},</p>
+            
+            <div class="alert">
+                <div class="alert-title">🔔 Administrative Action Notice</div>
+                <p>An administrator has performed the following action on your My Diary account: <strong>{{ action.title() }}</strong></p>
+            </div>
+            
+            {% if details %}
+            <div class="action-details">
+                <div class="action-title">📋 Action Details:</div>
+                <p>{{ details }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="info-box">
+                <div class="info-title">ℹ️ What This Means:</div>
+                {% if action == 'deleted' %}
+                    <p>Your account and all associated data have been permanently deleted from our system. This action cannot be undone.</p>
+                {% elif action == 'locked' %}
+                    <p>Your account has been temporarily locked. You will not be able to log in until the lock period expires or an administrator unlocks your account.</p>
+                {% elif action == 'unlocked' %}
+                    <p>Your account has been unlocked and you can now log in normally. If you continue to experience issues, please contact support.</p>
+                {% elif action == 'password_reset' %}
+                    <p>Your password has been reset by an administrator. You should have received a separate email with your new login credentials.</p>
+                {% else %}
+                    <p>An administrative action has been performed on your account. If you have questions about this action, please contact support.</p>
+                {% endif %}
+            </div>
+            
+            {% if action != 'deleted' %}
+            <div class="contact-info">
+                <p><strong>Questions or Concerns?</strong></p>
+                <p>If you believe this action was taken in error, or if you have any questions about your account, please contact our support team:</p>
+                <p>Email: support@mydiary.com<br>
+                Subject: Account Inquiry - {{ user.username }}</p>
+            </div>
+            {% endif %}
+            
+            <p>We take account management seriously and are committed to maintaining a safe and secure environment for all our users.</p>
+            
+            <p>Best regards,<br>The My Diary Administration Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>This notification was sent to {{ user.email }} on {{ moment().format('YYYY-MM-DD HH:mm') }}</p>
+        </div>
+    </div>
+</body>
+</html>

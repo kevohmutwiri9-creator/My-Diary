@@ -1,0 +1,10 @@
+/* Clean CSS without aggressive overrides that cause layout issues */
+
+/* Basic overflow prevention */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* Let Bootstrap handle everything naturally */
+/* Remove all aggressive !important overrides */

@@ -12,8 +12,7 @@ class Config:
     # App Config
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or (
-        'mssql+pyodbc://@localhost/MyDiaryDB'
-        '?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes'
+        'sqlite:///' + os.path.join(basedir, 'app.db')
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -24,6 +23,12 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
     REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = 'Lax'
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    
+    # Additional security headers
+    SESSION_COOKIE_NAME = 'my_diary_session'
+    REMEMBER_COOKIE_NAME = 'my_diary_remember'
     
     # Rate Limiting
     RATELIMIT_DEFAULT = ["200 per day", "50 per hour"]

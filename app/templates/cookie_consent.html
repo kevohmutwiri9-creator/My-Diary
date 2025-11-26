@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}Cookie Consent - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.cookie-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.cookie-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.cookie-section h5 {
+    color: #495057;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.cookie-category {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.cookie-category:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 15px rgba(0,123,255,0.1);
+}
+
+.cookie-category.required {
+    background: #f8f9fa;
+    border-color: #28a745;
+}
+
+.cookie-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.cookie-category-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 1.1em;
+}
+
+.cookie-category-icon {
+    font-size: 1.5em;
+}
+
+.cookie-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.badge-required {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-optional {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.cookie-description {
+    color: #6c757d;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.cookie-list {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.cookie-list strong {
+    color: #495057;
+}
+
+.cookie-toggle {
+    position: relative;
+    width: 60px;
+    height: 30px;
+}
+
+.cookie-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cookie-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.cookie-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.cookie-toggle input:checked + .cookie-toggle-slider {
+    background-color: #007bff;
+}
+
+.cookie-toggle input:checked + .cookie-toggle-slider:before {
+    transform: translateX(30px);
+}
+
+.cookie-toggle.disabled .cookie-toggle-slider {
+    background-color: #28a745;
+    cursor: not-allowed;
+}
+
+.cookie-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-accept-all {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-accept-all:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+}
+
+.btn-customize {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    color: #495057;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-customize:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+.btn-reject {
+    background: #f8f9fa;
+    border: 2px solid #dc3545;
+    color: #dc3545;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-reject:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .cookie-section,
+[data-bs-theme="dark"] .cookie-category {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .cookie-section h5,
+[data-bs-theme="dark"] .cookie-category-title {
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .cookie-description {
+    color: #a0aec0;
+}
+
+[data-bs-theme="dark"] .cookie-category {
+    border-color: #4a5568;
+}
+
+[data-bs-theme="dark"] .cookie-category.required {
+    background: #2d3748;
+    border-color: #38a169;
+}
+
+[data-bs-theme="dark"] .cookie-list {
+    background: #4a5568;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .cookie-list strong {
+    color: #e2e8f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cookie-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .cookie-actions .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .cookie-category-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cookie-header">
+    <div class="container">
+        <h1><i class="bi bi-shield-check"></i> Cookie Consent</h1>
+        <p class="lead mb-0">We use cookies to enhance your experience and personalize content</p>
+    </div>
+</div>
+
+<div class="container">
+    
+    <!-- Cookie Information -->
+    <div class="cookie-section">
+        <h5><i class="bi bi-info-circle"></i> About Our Cookies</h5>
+        <p>
+            We use cookies and similar technologies to help personalize content, tailor and measure 
+            ads, and provide a better experience. By clicking "Accept All", you agree to our use 
+            of cookies. You can manage your preferences at any time.
+        </p>
+        
+        <div class="cookie-actions">
+            <button type="button" class="btn btn-accept-all" onclick="acceptAllCookies()">
+                <i class="bi bi-check-circle"></i> Accept All
+            </button>
+            <button type="button" class="btn btn-customize" onclick="toggleCustomize()">
+                <i class="bi bi-gear"></i> Customize
+            </button>
+            <button type="button" class="btn btn-reject" onclick="rejectAllCookies()">
+                <i class="bi bi-x-circle"></i> Reject All
+            </button>
+        </div>
+    </div>
+
+    <!-- Cookie Categories -->
+    <form method="POST" action="{{ url_for('main.save_cookie_consent') }}" id="cookieForm">
+        <input type="hidden" name="next" value="{{ request.args.get('next', url_for('main.dashboard')) }}">
+        
+        <div class="cookie-section" id="customizeSection" style="display: none;">
+            <h5><i class="bi bi-sliders"></i> Customize Your Preferences</h5>
+            
+            {% for category_key, category_info in categories.items() %}
+                <div class="cookie-category {{ 'required' if category_info.required }}">
+                    <div class="cookie-category-header">
+                        <div class="cookie-category-title">
+                            <span class="cookie-category-icon">
+                                {% if category_key == 'necessary' %}
+                                    <i class="bi bi-shield-lock"></i>
+                                {% elif category_key == 'analytics' %}
+                                    <i class="bi bi-graph-up"></i>
+                                {% elif category_key == 'marketing' %}
+                                    <i class="bi bi-megaphone"></i>
+                                {% elif category_key == 'personalization' %}
+                                    <i class="bi bi-person-gear"></i>
+                                {% endif %}
+                            </span>
+                            {{ category_info.name }}
+                        </div>
+                        <span class="cookie-badge {{ 'badge-required' if category_info.required else 'badge-optional' }}">
+                            {{ 'Required' if category_info.required else 'Optional' }}
+                        </span>
+                    </div>
+                    
+                    <div class="cookie-description">
+                        {{ category_info.description }}
+                    </div>
+                    
+                    <div class="cookie-list">
+                        <strong>Cookies used:</strong> {{ category_info.cookies | join(', ') }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-3">
+                        {% if category_info.required %}
+                            <label class="cookie-toggle disabled">
+                                <input type="checkbox" checked disabled>
+                                <span class="cookie-toggle-slider"></span>
+                            </label>
+                        {% else %}
+                            <label class="cookie-toggle">
+                                <input type="checkbox" 
+                                       name="{{ category_key }}" 
+                                       {{ 'checked' if current_preferences.get(category_key, False) }}>
+                                <span class="cookie-toggle-slider"></span>
+                            </label>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <div class="cookie-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-save"></i> Save Preferences
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Additional Information -->
+    <div class="cookie-section">
+        <h5><i class="bi bi-question-circle"></i> Frequently Asked Questions</h5>
+        
+        <div class="accordion" id="cookieFAQ">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        What are cookies?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#cookieFAQ">
+                    <div class="accordion-body">
+                        Cookies are small text files that are stored on your device when you visit a website. 
+                        They help the website remember information about your visit, which can make it easier 
+                        to visit again and make the site more useful to you.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        How can I manage my cookie preferences?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#cookieFAQ">
+                    <div class="accordion-body">
+                        You can manage your cookie preferences at any time by visiting the Cookie Settings 
+                        page from your account menu. You can also withdraw consent and delete cookies through 
+                        your browser settings.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        What happens if I reject cookies?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#cookieFAQ">
+                    <div class="accordion-body">
+                        If you reject non-essential cookies, some features of our website may not work as intended. 
+                        Essential cookies are always required for the website to function properly.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function acceptAllCookies() {
+    // Set all checkboxes to checked
+    document.querySelectorAll('#customizeSection input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    
+    // Submit the form
+    document.getElementById('cookieForm').submit();
+}
+
+function rejectAllCookies() {
+    // Only keep necessary cookies checked
+    document.querySelectorAll('#customizeSection input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = checkbox.disabled;
+    });
+    
+    // Submit the form
+    document.getElementById('cookieForm').submit();
+}
+
+function toggleCustomize() {
+    const section = document.getElementById('customizeSection');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+// Show customize section if user came to manage preferences
+{% if has_consent %}
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCustomize();
+});
+{% endif %}
+</script>
+{% endblock %}

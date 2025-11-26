@@ -1,0 +1,22 @@
+<!-- Simple Cookie Consent Banner -->
+<div class="alert alert-info alert-dismissible fade show position-fixed bottom-0 start-0 end-0 m-0" role="alert" style="z-index: 1050; border-radius: 0;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="me-3">
+                <strong>🍪 Cookie Notice:</strong> We use cookies to improve your experience. By continuing to use this site, you accept our use of cookies.
+                <a href="/cookie-consent" class="alert-link">Learn more</a>
+            </div>
+            <div>
+                <form method="POST" action="/cookie-consent/save" style="display: inline;">
+                    <input type="hidden" name="necessary" value="on">
+                    <input type="hidden" name="analytics" value="on">
+                    <input type="hidden" name="marketing" value="on">
+                    <input type="hidden" name="personalization" value="on">
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn btn-success btn-sm me-2">Accept All</button>
+                </form>
+                <a href="/cookie-consent" class="btn btn-outline-secondary btn-sm">Customize</a>
+            </div>
+        </div>
+    </div>
+</div>

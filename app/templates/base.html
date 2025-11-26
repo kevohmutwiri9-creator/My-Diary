@@ -10,133 +10,67 @@
     <meta name="google-site-verification" content="ca-pub-2396098605485959">
     <title>{% block title %}My Diary{% endblock %}</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon/diary.png') }}">
+    
+    <!-- Google Analytics -->
+    {% if config.GOOGLE_ANALYTICS_ID and can_use_analytics %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ config.GOOGLE_ANALYTICS_ID }}', {
+        'anonymize_ip': true,
+        'cookie_flags': 'SameSite=Lax;Secure'
+      });
+      
+      // Custom event tracking
+      window.trackEvent = function(category, action, label, value) {
+        gtag('event', action, {
+          'event_category': category,
+          'event_label': label,
+          'value': value
+        });
+      };
+      
+      // Track page performance
+      window.addEventListener('load', function() {
+        if (window.performance && window.performance.timing) {
+          var loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+          gtag('event', 'page_load_time', {
+            'event_category': 'performance',
+            'value': Math.round(loadTime)
+          });
+        }
+      });
+      
+      // Track user interactions
+      document.addEventListener('click', function(e) {
+        var target = e.target.closest('[data-track]');
+        if (target) {
+          var category = target.dataset.track || 'interaction';
+          var action = target.dataset.action || 'click';
+          var label = target.dataset.label || target.textContent.trim();
+          trackEvent(category, action, label);
+        }
+      });
+    </script>
+    {% endif %}
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css', v=version) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom_clean.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+    {% if current_user.is_authenticated and current_user.allow_ads and config.ADSENSE_CLIENT_ID and can_use_marketing %}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config.ADSENSE_CLIENT_ID }}"
+            crossorigin="anonymous"></script>
+    {% endif %}
     {% block extra_head %}{% endblock %}
     <style>
-        :root {
-            --bs-body-bg: #ffffff;
-            --bs-body-color: #212529;
-            --card-bg: #ffffff;
-            --card-border: rgba(0, 0, 0, 0.125);
-            --text-muted: #6c757d;
-            --header-bg: #f8f9fa;
-            --header-border: #e9ecef;
-            --input-bg: #fff;
-            --input-color: #212529;
-            --input-border: #ced4da;
-            --input-focus-bg: #fff;
-            --input-focus-border: #86b7fe;
-            --input-focus-color: #212529;
-            --btn-hover-bg: #e9ecef;
-            --btn-active-bg: #dee2e6;
-            --dropdown-bg: #fff;
-            --dropdown-link-color: #212529;
-            --dropdown-link-hover-bg: #f8f9fa;
-            --dropdown-link-hover-color: #1e2125;
-            --dropdown-link-active-bg: #e9ecef;
-        }
-
-        [data-bs-theme="dark"] {
-            --bs-body-bg: #1a1a1a;
-            --bs-body-color: #e0e0e0;
-            --card-bg: #2d2d2d;
-            --card-border: #444;
-            --text-muted: #9e9e9e;
-            --header-bg: #212529;
-            --header-border: #373b3e;
-            --input-bg: #2b3035;
-            --input-color: #e0e0e0;
-            --input-border: #495057;
-            --input-focus-bg: #2b3035;
-            --input-focus-border: #86b7fe;
-            --input-focus-color: #e0e0e0;
-            --btn-hover-bg: #4d5154;
-            --btn-active-bg: #5a5e62;
-            --dropdown-bg: #2b3035;
-            --dropdown-link-color: #e9ecef;
-            --dropdown-link-hover-bg: #3d4144;
-            --dropdown-link-hover-color: #fff;
-            --dropdown-link-active-bg: #4d5154;
-        }
-
-        body {
-            background-color: var(--bs-body-bg);
-            color: var(--bs-body-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .navbar {
-            background-color: var(--header-bg) !important;
-            border-bottom: 1px solid var(--header-border);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-color: var(--card-border);
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
-        }
-
-        .form-control, .form-select {
-            background-color: var(--input-bg);
-            color: var(--input-color);
-            border-color: var(--input-border);
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background-color: var(--input-focus-bg);
-            border-color: var(--input-focus-border);
-            color: var(--input-focus-color);
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-
-        .btn-outline-secondary {
-            color: var(--bs-body-color);
-            border-color: var(--input-border);
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: var(--btn-hover-bg);
-            border-color: var(--input-border);
-            color: var(--bs-body-color);
-        }
-
-        .btn-outline-secondary:active, .btn-outline-secondary.active {
-            background-color: var(--btn-active-bg);
-            border-color: var(--input-border);
-            color: var(--bs-body-color);
-        }
-
-        .dropdown-menu {
-            background-color: var(--dropdown-bg);
-            border-color: var(--card-border);
-        }
-
-        .dropdown-item {
-            color: var(--dropdown-link-color);
-        }
-
-        .dropdown-item:hover, .dropdown-item:focus {
-            background-color: var(--dropdown-link-hover-bg);
-            color: var(--dropdown-link-hover-color);
-        }
-
-        .dropdown-item.active, .dropdown-item:active {
-            background-color: var(--dropdown-link-active-bg);
-            color: var(--dropdown-link-hover-color);
-        }
-
-        /* Loading state to prevent FOUC */
+        /* Theme loading states */
         .theme-loading {
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -146,37 +80,22 @@
             opacity: 1;
         }
 
-        /* Theme toggle switch */
-        .theme-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        /* Theme selector styles */
+        .theme-selector .btn {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .theme-option {
             cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            border-radius: 2rem;
-            transition: background-color 0.2s ease;
         }
 
-        .theme-toggle:hover {
-            background-color: var(--btn-hover-bg);
+        .theme-option.active {
+            font-weight: 600;
         }
 
-        .theme-toggle i {
-            font-size: 1.25rem;
-            transition: transform 0.3s ease;
-        }
-
-        [data-bs-theme="dark"] .theme-toggle .bi-sun {
-            display: none;
-        }
-
-        [data-bs-theme="light"] .theme-toggle .bi-moon {
-            display: none;
-        }
-
-        /* Smooth transitions for all theme-able elements */
-        a, button, input, select, textarea, .card, .dropdown-menu, .form-control, .btn, .nav-link, .text-muted {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        .theme-check {
+            color: #28a745;
         }
     </style>
     {% if current_user.is_authenticated and current_user.allow_ads and config.ADSENSE_CLIENT_ID %}
@@ -184,6 +103,17 @@
     {% endif %}
 </head>
 <body class="theme-loading">
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-gradient"></div>
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+    </div>
+    
     <nav class="navbar navbar-expand-lg mb-4">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">My Diary</a>
@@ -195,6 +125,12 @@
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.productivity_dashboard') }}">Productivity</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.community_feed') }}">Community</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('main.calendar_view') }}">Calendar</a>
@@ -211,17 +147,90 @@
                                 {{ current_user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
+                                {% if current_user.is_admin %}
+                                <li><h6 class="dropdown-header">Admin</h6></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
+                                    <i class="fas fa-users me-2"></i>User Management
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.entries') }}">
+                                    <i class="fas fa-file-alt me-2"></i>Content Moderation
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.audit_log') }}">
+                                    <i class="fas fa-history me-2"></i>Audit Log
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin.settings') }}">
+                                    <i class="fas fa-cog me-2"></i>System Settings
+                                </a></li>
+                                {% if current_user.two_factor_enabled %}
+                                <li><a class="dropdown-item" href="{{ url_for('two_factor.manage') }}">
+                                    <i class="fas fa-shield-alt me-2"></i>2FA Settings
+                                </a></li>
+                                {% else %}
+                                <li><a class="dropdown-item" href="{{ url_for('two_factor.setup') }}">
+                                    <i class="fas fa-shield-alt me-2"></i>Setup 2FA
+                                </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('main.language_settings') }}">Language Settings</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.privacy_settings') }}">Privacy Settings</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.security_settings') }}">Security Settings</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('main.account_settings') }}">Settings</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <div class="theme-toggle nav-link" id="themeToggle" title="Toggle dark mode">
-                                <i class="bi bi-sun"></i>
-                                <i class="bi bi-moon"></i>
-                            </div>
-                        </li>
+                        <div class="dropdown theme-selector me-2">
+    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center theme-toggle-btn" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-palette-fill theme-icon me-1"></i>
+        <span class="theme-text">Theme</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end theme-menu" id="themeMenu" aria-labelledby="themeDropdown">
+        <li><h6 class="dropdown-header d-flex align-items-center">
+            <i class="bi bi-rainbow me-2"></i>Choose Your Theme
+        </h6></li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="system">
+                <span><i class="bi bi-laptop me-2 theme-option-icon"></i>System</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="light">
+                <span><i class="bi bi-brightness-high-fill me-2 theme-option-icon"></i>Light</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="dark">
+                <span><i class="bi bi-moon-stars-fill me-2 theme-option-icon"></i>Dark</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="high-contrast">
+                <span><i class="bi bi-circle-half me-2 theme-option-icon"></i>High Contrast</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="blue">
+                <span><i class="bi bi-droplet-fill me-2 theme-option-icon"></i>Ocean Blue</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="green">
+                <span><i class="bi bi-tree-fill me-2 theme-option-icon"></i>Forest Green</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+    </ul>
+</div>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
@@ -229,12 +238,54 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
                         </li>
-                        <li class="nav-item">
-                            <div class="theme-toggle nav-link" id="themeToggle" title="Toggle dark mode">
-                                <i class="bi bi-sun"></i>
-                                <i class="bi bi-moon"></i>
-                            </div>
-                        </li>
+                        <div class="dropdown theme-selector me-2">
+    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center theme-toggle-btn" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-palette-fill theme-icon me-1"></i>
+        <span class="theme-text">Theme</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end theme-menu" id="themeMenu" aria-labelledby="themeDropdown">
+        <li><h6 class="dropdown-header d-flex align-items-center">
+            <i class="bi bi-rainbow me-2"></i>Choose Your Theme
+        </h6></li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="system">
+                <span><i class="bi bi-laptop me-2 theme-option-icon"></i>System</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="light">
+                <span><i class="bi bi-brightness-high-fill me-2 theme-option-icon"></i>Light</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="dark">
+                <span><i class="bi bi-moon-stars-fill me-2 theme-option-icon"></i>Dark</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="high-contrast">
+                <span><i class="bi bi-circle-half me-2 theme-option-icon"></i>High Contrast</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="blue">
+                <span><i class="bi bi-droplet-fill me-2 theme-option-icon"></i>Ocean Blue</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="green">
+                <span><i class="bi bi-tree-fill me-2 theme-option-icon"></i>Forest Green</span>
+                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
+            </a>
+        </li>
+    </ul>
+</div>
                     {% endif %}
                 </ul>
             </div>
@@ -242,6 +293,11 @@
     </nav>
 
     <main class="container mb-5 flex-grow-1">
+        <!-- Cookie Consent Banner - Disabled -->
+        {% if false %}
+        {% include 'simple_cookie_banner.html' %}
+        {% endif %}
+        
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -258,6 +314,25 @@
     <footer class="bg-light py-4 mt-5">
         <div class="container text-center">
             <p class="mb-0">&copy; 2025 My Diary. A simple personal journal.</p>
+            {% if current_user.is_authenticated and current_user.allow_ads and config.ADSENSE_CLIENT_ID and can_use_marketing %}
+            <div class="mt-3">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="{{ config.ADSENSE_CLIENT_ID }}"
+                     data-ad-slot="footer-banner"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script nonce="{{ csp_nonce() }}">
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            {% endif %}
+            <div class="mt-3">
+                <small class="text-muted">
+                    <a href="{{ url_for('main.cookie_consent') }}" class="text-decoration-none">Cookie Settings</a> | 
+                    <a href="{{ url_for('main.privacy_settings') }}" class="text-decoration-none">Privacy Policy</a>
+                </small>
+            </div>
         </div>
     </footer>
 
@@ -287,6 +362,6 @@
       </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/assistant.js') }}"></script>
+    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/assistant.js') }}"></script>
 </body>
 </html>

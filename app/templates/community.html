@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Community - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.community-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.community-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-card .stat-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.stat-card .stat-label {
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.community-feed {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.community-entry {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.community-entry:hover {
+    transform: translateY(-2px);
+}
+
+.community-entry .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.community-entry .anonymous-badge {
+    background: #6c757d;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+}
+
+.community-entry .entry-content {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    white-space: pre-wrap;
+}
+
+.community-entry .entry-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.community-entry .entry-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.community-entry .entry-actions button {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.community-entry .entry-actions button:hover {
+    color: #007bff;
+}
+
+.trending-topics {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.trending-topics .topic-item {
+    display: inline-block;
+    background: #e9ecef;
+    color: #495057;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin: 5px;
+    font-size: 0.9em;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.trending-topics .topic-item:hover {
+    background: #007bff;
+    color: white;
+}
+
+.inspiration-section {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.inspiration-section .prompt-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.inspiration-section .prompt-card:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .stat-card,
+[data-bs-theme="dark"] .community-entry,
+[data-bs-theme="dark"] .trending-topics {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .trending-topics .topic-item {
+    background: #4a5568;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .trending-topics .topic-item:hover {
+    background: #007bff;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .community-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .community-entry {
+        padding: 20px;
+    }
+    
+    .community-entry .entry-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="community-header">
+    <div class="container text-center">
+        <h1><i class="bi bi-people"></i> Community</h1>
+        <p class="lead mb-0">Share and discover anonymous journal entries from our community</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Community Stats -->
+    <div class="community-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ community_stats.total_entries }}</div>
+            <div class="stat-label">Public Entries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ community_stats.total_users }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ community_stats.active_users_week }}</div>
+            <div class="stat-label">Active This Week</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ community_stats.popular_moods[0].mood if community_stats.popular_moods else '😊' }}</div>
+            <div class="stat-label">Top Mood</div>
+        </div>
+    </div>
+
+    <!-- Trending Topics -->
+    <div class="trending-topics">
+        <h5><i class="bi bi-hash"></i> Trending Topics</h5>
+        <div class="mt-3">
+            {% for topic in trending_topics %}
+                <span class="topic-item">{{ topic.topic }} ({{ topic.count }})</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Inspiration Section -->
+    <div class="inspiration-section">
+        <h5><i class="bi bi-lightbulb"></i> Need Writing Inspiration?</h5>
+        <p class="mb-3">Click any prompt to start writing:</p>
+        <div id="inspiration-prompts">
+            <div class="text-center">
+                <div class="spinner-border spinner-border-sm text-white" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <small class="ms-2">Loading inspiration...</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Feed -->
+    <div class="community-feed">
+        <h4 class="mb-4">Recent Public Entries</h4>
+        
+        {% if entries %}
+            {% for entry in entries %}
+                <div class="community-entry">
+                    <div class="entry-header">
+                        <div>
+                            <span class="anonymous-badge">
+                                <i class="bi bi-person-fill"></i> Anonymous
+                            </span>
+                            {% if entry.mood %}
+                                <span class="ms-2">{{ entry.mood }}</span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            {{ entry.created_at | datetimefilter }} • {{ entry.word_count }} words
+                        </small>
+                    </div>
+                    
+                    <div class="entry-content">{{ entry.content }}</div>
+                    
+                    <div class="entry-footer">
+                        <div class="entry-actions">
+                            <button onclick="likeEntry({{ entry.id }})" class="like-btn">
+                                <i class="bi bi-heart"></i> <span class="like-count">{{ entry.engagement.likes }}</span>
+                            </button>
+                            <button onclick="reportEntry({{ entry.id }})">
+                                <i class="bi bi-flag"></i> Report
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            {{ entry.engagement.views }} views
+                        </small>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if page > 1 or entries|length >= 20 %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('main.community_feed', page=page-1) }}" 
+                       class="btn btn-outline-primary {{ 'disabled' if page <= 1 }}">
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </a>
+                    <span class="mx-3">Page {{ page }}</span>
+                    <a href="{{ url_for('main.community_feed', page=page+1) }}" 
+                       class="btn btn-outline-primary {{ 'disabled' if entries|length < 20 }}">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people fs-1 text-muted mb-3"></i>
+                <h5>No public entries yet</h5>
+                <p class="text-muted">Be the first to share an entry with the community!</p>
+                <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Write Your First Entry
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load inspiration prompts
+async function loadInspirationPrompts() {
+    try {
+        const response = await fetch('/api/inspiration');
+        const data = await response.json();
+        
+        if (data.success) {
+            const container = document.getElementById('inspiration-prompts');
+            const prompts = data.prompts.slice(0, 3); // Show 3 random prompts
+            
+            container.innerHTML = prompts.map(prompt => `
+                <div class="prompt-card" onclick="usePrompt('${prompt.replace(/'/g, "\\'")}')">
+                    <i class="bi bi-lightbulb"></i> ${prompt}
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.log('Error loading inspiration:', error);
+    }
+}
+
+// Use a prompt for writing
+function usePrompt(prompt) {
+    // Store in localStorage for the write page
+    localStorage.setItem('inspiration_prompt', prompt);
+    window.location.href = '{{ url_for("main.new_entry") }}';
+}
+
+// Like an entry
+async function likeEntry(entryId) {
+    try {
+        const response = await fetch(`/api/community/like/${entryId}`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const likeBtn = document.querySelector(`.like-btn`);
+            const likeCount = likeBtn.querySelector('.like-count');
+            likeCount.textContent = data.total_likes;
+            likeBtn.classList.add('text-danger');
+        }
+    } catch (error) {
+        console.log('Error liking entry:', error);
+    }
+}
+
+// Report an entry
+async function reportEntry(entryId) {
+    if (!confirm('Are you sure you want to report this entry?')) return;
+    
+    try {
+        const response = await fetch(`/api/community/report/${entryId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                reason: 'Inappropriate content'
+            })
+        });
+        
+        if (response.ok) {
+            alert('Entry reported for review. Thank you for helping keep the community safe.');
+        }
+    } catch (error) {
+        console.log('Error reporting entry:', error);
+    }
+}
+
+// Load inspiration on page load
+document.addEventListener('DOMContentLoaded', loadInspirationPrompts);
+</script>
+{% endblock %}

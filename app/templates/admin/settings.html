@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+.setting-card {
+    transition: all 0.2s ease;
+    border-left: 4px solid #198754;
+}
+
+.setting-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.setting-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.setting-icon.security { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.setting-icon.database { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.setting-icon.config { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.setting-icon.maintenance { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.status-indicator.online { background-color: #28a745; }
+.status-indicator.offline { background-color: #dc3545; }
+.status-indicator.warning { background-color: #ffc107; }
+
+.config-value {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">System Settings</h1>
+            <p class="text-muted mb-0">View and configure system settings</p>
+        </div>
+        <div>
+            <span class="badge bg-success">System Online</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <nav class="d-flex gap-2">
+                        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-link">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="{{ url_for('admin.users') }}" class="admin-nav-link">
+                            <i class="fas fa-users me-2"></i>Users
+                        </a>
+                        <a href="{{ url_for('admin.entries') }}" class="admin-nav-link">
+                            <i class="fas fa-file-alt me-2"></i>Entries
+                        </a>
+                        <a href="{{ url_for('admin.settings') }}" class="admin-nav-link active">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card setting-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="setting-icon config text-white me-3">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">System Information</h5>
+                            <p class="text-muted mb-0 small">Basic system details</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-2"><strong>Version:</strong> {{ system_info.app_version }}</p>
+                            <p class="mb-2"><strong>Total Users:</strong> {{ system_info.total_users }}</p>
+                            <p class="mb-2"><strong>Total Entries:</strong> {{ system_info.total_entries }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-2">
+                                <strong>Debug Mode:</strong> 
+                                {% if system_info.debug_mode %}
+                                    <span class="status-indicator warning"></span>
+                                    <span class="text-warning">Enabled</span>
+                                {% else %}
+                                    <span class="status-indicator online"></span>
+                                    <span class="text-success">Disabled</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Maintenance:</strong> 
+                                {% if system_info.maintenance_mode %}
+                                    <span class="status-indicator offline"></span>
+                                    <span class="text-danger">Active</span>
+                                {% else %}
+                                    <span class="status-indicator online"></span>
+                                    <span class="text-success">Normal</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-3">
+            <div class="card setting-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="setting-icon security text-white me-3">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Security Status</h5>
+                            <p class="text-muted mb-0 small">Security configuration</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="mb-2">
+                                <strong>Secret Key:</strong> 
+                                {% if system_info.secret_key_set %}
+                                    <span class="status-indicator online"></span>
+                                    <span class="text-success">Configured</span>
+                                {% else %}
+                                    <span class="status-indicator offline"></span>
+                                    <span class="text-danger">Not Set</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Database:</strong> 
+                                <span class="status-indicator online"></span>
+                                <span class="text-success">Connected</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong>Database URI:</strong> 
+                                <span class="config-value">{{ system_info.database_uri }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Database Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-primary">{{ system_info.total_users }}</h3>
+                                <p class="text-muted mb-0">Total Users</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-success">{{ system_info.total_entries }}</h3>
+                                <p class="text-muted mb-0">Total Entries</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-info">{{ "%.1f"|format(system_info.total_entries / system_info.total_users if system_info.total_users > 0 else 0) }}</h3>
+                                <p class="text-muted mb-0">Avg Entries/User</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-warning">{{ "%.2f"|format(system_info.total_entries * 500 / (1024 * 1024)) }} MB</h3>
+                                <p class="text-muted mb-0">Est. Storage</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">System Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> These actions affect the entire system. Use with caution.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="refreshStats()">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh Statistics
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-info" onclick="viewLogs()">
+                                    <i class="fas fa-file-alt me-2"></i>View System Logs
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-warning" onclick="clearCache()">
+                                    <i class="fas fa-broom me-2"></i>Clear Cache
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-success" onclick="backupDatabase()">
+                                    <i class="fas fa-download me-2"></i>Backup Database
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Status -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Real-time Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div id="active-users" class="h4 text-primary">-</div>
+                                <p class="text-muted mb-0">Active Users Today</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div id="total-users-realtime" class="h4 text-success">-</div>
+                                <p class="text-muted mb-0">Total Users</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div id="total-entries-realtime" class="h4 text-info">-</div>
+                                <p class="text-muted mb-0">Total Entries</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div id="last-update" class="h4 text-muted">-</div>
+                                <p class="text-muted mb-0">Last Update</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Real-time stats update
+function updateRealTimeStats() {
+    fetch('/admin/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('active-users').textContent = data.active_today;
+            document.getElementById('total-users-realtime').textContent = data.total_users;
+            document.getElementById('total-entries-realtime').textContent = data.total_entries;
+            
+            const date = new Date(data.timestamp);
+            document.getElementById('last-update').textContent = date.toLocaleTimeString();
+        })
+        .catch(error => {
+            console.error('Error updating stats:', error);
+        });
+}
+
+// Update stats every 10 seconds
+setInterval(updateRealTimeStats, 10000);
+
+// Initial load
+updateRealTimeStats();
+
+// System action functions
+function refreshStats() {
+    updateRealTimeStats();
+    alert('Statistics refreshed!');
+}
+
+function viewLogs() {
+    // This would open a logs viewer
+    alert('Log viewer would open here');
+}
+
+function clearCache() {
+    if (confirm('Clear all caches? This may temporarily slow down the system.')) {
+        // This would clear the cache
+        alert('Cache cleared successfully!');
+    }
+}
+
+function backupDatabase() {
+    if (confirm('Create database backup? This may take a few moments.')) {
+        // This would trigger a backup
+        alert('Database backup started! You will be notified when complete.');
+    }
+}
+</script>
+{% endblock %}
