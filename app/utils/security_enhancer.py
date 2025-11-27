@@ -57,10 +57,15 @@ class SecurityEnhancer:
     
     def setup_security_logging(self, app):
         """Setup security-specific logging"""
+        # Ensure logs directory exists
+        import os
+        logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        
         security_logger = logging.getLogger('security')
         
         if not security_logger.handlers:
-            handler = logging.FileHandler('logs/security.log')
+            handler = logging.FileHandler(os.path.join(logs_dir, 'security.log'))
             handler.setFormatter(logging.Formatter(
                 '%(asctime)s - SECURITY - %(levelname)s - %(message)s'
             ))

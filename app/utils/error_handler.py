@@ -6,11 +6,13 @@ Provides comprehensive error handling, logging, and user feedback
 import logging
 import traceback
 import sys
+import os
 from datetime import datetime
 from functools import wraps
 from flask import current_app, request, session, jsonify, render_template
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
+from logging.handlers import RotatingFileHandler
 
 class ErrorHandler:
     """Centralized error handling system"""
@@ -33,26 +35,42 @@ class ErrorHandler:
         self.setup_logging(app)
     
     def setup_logging(self, app):
-        """Setup enhanced logging configuration"""
-        if not app.debug and not app.testing:
-            # File logging for production
-            if not app.config.get('LOG_TO_STDERR', False):
-                from logging.handlers import RotatingFileHandler
-                
-                log_file = app.config.get('LOG_FILE', 'logs/my_diary.log')
-                file_handler = RotatingFileHandler(
-                    log_file, 
-                    maxBytes=10240000,  # 10MB
-                    backupCount=10
-                )
-                file_handler.setFormatter(logging.Formatter(
-                    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-                ))
-                file_handler.setLevel(logging.INFO)
-                app.logger.addHandler(file_handler)
+        """Setup enhanced logging with rotation."""
+        # Ensure logs directory exists
+        import os
+        logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Configure main app logger
+        if not app.debug:
+            # File logging with rotation
+            log_file = os.path.join(logs_dir, 'my_diary.log')
+            file_handler = RotatingFileHandler(
+                log_file,
+                maxBytes=10240000,  # 10MB
+                backupCount=10
+            )
+            file_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+            ))
+            file_handler.setLevel(logging.INFO)
+            app.logger.addHandler(file_handler)
             
-            app.logger.setLevel(logging.INFO)
-            app.logger.info('My Diary startup')
+            # Error log file
+            error_log_file = os.path.join(logs_dir, 'errors.log')
+            error_handler = RotatingFileHandler(
+                error_log_file,
+                maxBytes=10240000,  # 10MB
+                backupCount=5
+            )
+            error_handler.setFormatter(logging.Formatter(
+                '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+            ))
+            error_handler.setLevel(logging.ERROR)
+            app.logger.addHandler(error_handler)
+        
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('My Diary startup')
     
     def log_error(self, error, context=None):
         """Enhanced error logging with context"""

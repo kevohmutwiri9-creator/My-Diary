@@ -77,10 +77,15 @@ class PerformanceOptimizer:
     
     def setup_performance_logging(self, app):
         """Setup performance-specific logging"""
+        # Ensure logs directory exists
+        import os
+        logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        
         perf_logger = logging.getLogger('performance')
         
         if not perf_logger.handlers:
-            handler = logging.FileHandler('logs/performance.log')
+            handler = logging.FileHandler(os.path.join(logs_dir, 'performance.log'))
             handler.setFormatter(logging.Formatter(
                 '%(asctime)s - PERF - %(levelname)s - %(message)s'
             ))
