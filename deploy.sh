@@ -39,7 +39,11 @@ echo "🗄️ Running database migrations..."
 if [[ "$DATABASE_URL" == *"mssql+pyodbc"* ]]; then
     echo "🪣 SQL Server detected, running setup script..."
     python setup_sql_server.py
+elif [[ "$DATABASE_URL" == *"postgresql"* ]]; then
+    echo "🐘 PostgreSQL detected, running setup script..."
+    python setup_postgresql.py
 else
+    echo "📄 Using Flask migrations..."
     flask db upgrade
 fi
 

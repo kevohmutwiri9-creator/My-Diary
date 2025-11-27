@@ -59,11 +59,17 @@ htmlcov/
 *.key
 *.crt
 
+# NEVER commit environment files
+.env.example
+.env.production
+.env.staging
+
 # Temporary scripts
 *_admin*.py
 *check_user*.py
 *reset_*.py
 *make_*.py
+setup_postgresql.py
 
 # Temporary files
 *.tmp
