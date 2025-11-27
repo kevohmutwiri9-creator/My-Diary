@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn btn-light dropdown-toggle" type="button" id="newEntryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-plus-circle-fill me-2"></i> Write New Entry
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="newEntryDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="newEntryDropdown" style="z-index: 1050;">
                             <li><a class="dropdown-item" href="{{ url_for('main.new_entry') }}">
                                 <i class="bi bi-pencil-fill me-2"></i> Blank Entry
                             </a></li>
@@ -556,6 +556,28 @@ document.addEventListener('DOMContentLoaded', function() {
                             <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='daily_reflection') }}">
                                 <i class="bi bi-lightbulb-fill text-warning me-2"></i> Daily Reflection
                             </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='goal_setting') }}">
+                                <i class="bi bi-bullseye me-2"></i> Goal Setting
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='mood_check_in') }}">
+                                <i class="bi bi-emoji-smile me-2"></i> Mood Check-in
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='creative_writing') }}">
+                                <i class="bi bi-brush me-2"></i> Creative Writing
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='learning_growth') }}">
+                                <i class="bi bi-book me-2"></i> Learning & Growth
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='dream_journal') }}">
+                                <i class="bi bi-moon-stars me-2"></i> Dream Journal
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='quick_notes') }}">
+                                <i class="bi bi-lightning me-2"></i> Quick Notes
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_entry') }}#template-section">
+                                <i class="bi bi-grid me-2"></i> Browse All Templates
+                            </a></li>
                         </ul>
                     </div>
                 </div>
@@ -565,41 +587,20 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <div class="container">
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='goal_setting') }}">
-                        <i class="bi bi-bullseye"></i> Goal Setting
-                    </a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='mood_check_in') }}">
-                        <i class="bi bi-emoji-smile"></i> Mood Check-in
-                    </a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='creative_writing') }}">
-                        <i class="bi bi-brush"></i> Creative Writing
-                    </a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='learning_growth') }}">
-                        <i class="bi bi-book"></i> Learning & Growth
-                    </a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='dream_journal') }}">
-                        <i class="bi bi-moon-stars"></i> Dream Journal
-                    </a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry', template='quick_notes') }}">
-                        <i class="bi bi-lightning"></i> Quick Notes
-                    </a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.new_entry') }}#template-section">
-                        <i class="bi bi-grid"></i> Browse All Templates
-                    </a></li>
-                </ul>
-            </div>
-            <a href="{{ url_for('main.calendar_view') }}" class="btn btn-outline-info">
-                <i class="bi bi-calendar"></i> Calendar View
-            </a>
-            <div class="dropdown">
-                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-download"></i> Export
-                    {% if search_query or mood_filter or tag_filter %}
-                        <span class="badge bg-primary ms-1">{{ entries.total }}</span>
-                    {% endif %}
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('main.calendar_view') }}" class="btn btn-outline-info">
+                    <i class="bi bi-calendar"></i> Calendar View
+                </a>
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-download"></i> Export
+                        {% if search_query or mood_filter or tag_filter %}
+                            <span class="badge bg-primary ms-1">{{ entries.total }}</span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown" style="z-index: 1050;">
                     <li><a class="dropdown-item" href="{{ url_for('main.export_entries_json', search=search_query, mood=mood_filter, tag=tag_filter) }}">
                         <i class="bi bi-filetype-json"></i> Export as JSON
                         {% if search_query or mood_filter or tag_filter %}
