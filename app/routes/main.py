@@ -29,6 +29,10 @@ from app.services.i18n_service import (
 )
 from app.utils.cookie_consent import CookieConsent
 from app.utils.error_handler import handle_errors, safe_operation, DatabaseError, ValidationError
+from app.utils.performance_optimizer import (
+    monitor_performance, cache_function_result, 
+    PaginationOptimizer, LazyLoader
+)
 from markdown import markdown
 import os
 import bleach
@@ -96,6 +100,7 @@ def log_request_info():
         current_app.logger.info(f"User: {current_user.username} (ID: {current_user.id})")
 
 @main_bp.route('/')
+@monitor_performance(threshold=1.0)
 def index():
     """Home page route."""
     current_app.logger.info('Rendering index page')
@@ -106,6 +111,8 @@ def index():
 
 @main_bp.route('/dashboard')
 @login_required
+@monitor_performance(threshold=2.0)
+@cache_function_result(timeout=300, key_func=lambda: f"dashboard_data:{current_user.id}")
 def dashboard():
     """User dashboard showing recent entries."""
     try:
@@ -222,8 +229,9 @@ def dashboard():
         else:  # date_desc (default)
             query = query.order_by(Entry.created_at.desc())
 
-        # Paginate results
-        entries = query.paginate(page=page, per_page=10, error_out=False)
+        # Paginate results using optimized pagination
+        pagination_data = PaginationOptimizer.get_paginated_query(query, page, per_page=10)
+        entries = pagination_data
 
         analytics = build_dashboard_analytics(current_user.id)
 
