@@ -19,6 +19,7 @@ from app.utils.filters import markdown_to_html, zip_filter, datetimefilter
 from app.utils.error_handler import ErrorHandler
 from app.utils.security_enhancer import SecurityEnhancer
 from app.utils.performance_optimizer import PerformanceOptimizer
+from app.utils.ui_enhancer import UIEnhancer
 
 # Initialize extensions without app
 db = SQLAlchemy()
@@ -35,6 +36,7 @@ mail = Mail()
 error_handler = ErrorHandler()
 security_enhancer = SecurityEnhancer()
 performance_optimizer = PerformanceOptimizer()
+ui_enhancer = UIEnhancer()
 
 def create_app(config_class=Config):
     """Application factory function."""
@@ -123,6 +125,9 @@ def create_app(config_class=Config):
     
     # Initialize performance optimizer
     performance_optimizer.init_app(app)
+    
+    # Initialize UI enhancer
+    ui_enhancer.init_app(app)
     
     # Initialize rate limiter
     def get_identifier():

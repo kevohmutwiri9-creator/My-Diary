@@ -1,0 +1,719 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - My Diary{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Enhanced Dashboard Styles */
+.dashboard-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 1rem 0;
+}
+
+.dashboard-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    animation: slideDown 0.6s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+.stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-secondary));
+}
+
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.entries-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.8s ease-out 0.5s both;
+}
+
+.entry-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.entry-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.mood-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+}
+
+.search-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+    border: 2px solid transparent;
+    border-radius: 15px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.search-input:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    background: white;
+}
+
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.filter-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.filter-tag:hover {
+    background: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+}
+
+.filter-tag.active {
+    background: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.quick-action-btn {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    color: white;
+    text-decoration: none;
+}
+
+.quick-action-btn i {
+    font-size: 1.5rem;
+}
+
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 10px;
+    height: 20px;
+    margin-bottom: 0.5rem;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0.5rem 0;
+    }
+    
+    .dashboard-header {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .entries-container {
+        padding: 1rem;
+    }
+    
+    .entry-card {
+        padding: 1rem;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .dashboard-container {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+    
+    .dashboard-header,
+    .stats-card,
+    .entries-container,
+    .search-container {
+        background: rgba(45, 55, 72, 0.95);
+        color: white;
+    }
+    
+    .entry-card {
+        background: rgba(26, 32, 44, 0.95);
+        color: white;
+    }
+    
+    .search-input {
+        background: rgba(26, 32, 44, 0.8);
+        color: white;
+        border-color: rgba(74, 85, 104, 0.5);
+    }
+    
+    .filter-tag {
+        background: rgba(74, 85, 104, 0.5);
+        color: white;
+        border-color: rgba(74, 85, 104, 0.8);
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.focus-visible:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        Welcome back, {{ current_user.username }}! 👋
+                    </h1>
+                    <p class="lead mb-0">
+                        {{ ui_helper.format_date_ago(latest_entry.created_at) if latest_entry else 'Start your journaling journey today!' }}
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="d-flex gap-2 justify-content-md-end">
+                        <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary btn-lg rounded-pill">
+                            <i class="bi bi-plus-circle me-2"></i>New Entry
+                        </a>
+                        <button class="btn btn-outline-secondary btn-lg rounded-pill" onclick="toggleTheme()">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="{{ url_for('main.new_entry') }}" class="quick-action-btn">
+                <i class="bi bi-journal-plus"></i>
+                <span>Write Entry</span>
+            </a>
+            <a href="{{ url_for('main.calendar_view') }}" class="quick-action-btn">
+                <i class="bi bi-calendar3"></i>
+                <span>Calendar</span>
+            </a>
+            <a href="{{ url_for('main.search') }}" class="quick-action-btn">
+                <i class="bi bi-search"></i>
+                <span>Search</span>
+            </a>
+            <a href="{{ url_for('main.productivity_dashboard') }}" class="quick-action-btn">
+                <i class="bi bi-graph-up"></i>
+                <span>Analytics</span>
+            </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="stats-icon bg-primary bg-gradient text-white">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="stats-number">{{ stats.total_entries or 0 }}</div>
+                <div class="text-muted">Total Entries</div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon bg-success bg-gradient text-white">
+                    <i class="bi bi-fire"></i>
+                </div>
+                <div class="stats-number">{{ stats.streak_count or 0 }}</div>
+                <div class="text-muted">Current Streak</div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon bg-info bg-gradient text-white">
+                    <i class="bi bi-calendar-week"></i>
+                </div>
+                <div class="stats-number">{{ stats.recent_entries or 0 }}</div>
+                <div class="text-muted">This Week</div>
+            </div>
+            
+            <div class="stats-card">
+                <div class="stats-icon bg-warning bg-gradient text-white">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <div class="stats-number">{{ stats.best_streak or 0 }}</div>
+                <div class="text-muted">Best Streak</div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-container">
+            <form method="GET" class="mb-0">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" name="search" class="form-control search-input" 
+                               placeholder="Search your entries..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="search_type" class="form-select search-input">
+                            <option value="all" {% if search_type == 'all' %}selected{% endif %}>All</option>
+                            <option value="title" {% if search_type == 'title' %}selected{% endif %}>Title</option>
+                            <option value="content" {% if search_type == 'content' %}selected{% endif %}>Content</option>
+                            <option value="semantic" {% if search_type == 'semantic' %}selected{% endif %}>Semantic</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filter-tags">
+                    <span class="filter-tag {% if not mood_filter %}active{% endif %}" onclick="toggleFilter('mood', '')">
+                        All Moods
+                    </span>
+                    {% for mood in ['happy', 'sad', 'excited', 'grateful', 'peaceful'] %}
+                    <span class="filter-tag {% if mood_filter == mood %}active{% endif %}" 
+                          onclick="toggleFilter('mood', '{{ mood }}')">
+                        {{ ui_helper.get_mood_emoji(mood) }} {{ mood.title() }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Entries Container -->
+        <div class="entries-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0">Recent Entries</h2>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" onchange="sortEntries(this.value)">
+                        <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
+                        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Oldest First</option>
+                        <option value="title_asc" {% if sort_by == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                        <option value="words_desc" {% if sort_by == 'words_desc' %}selected{% endif %}>Most Words</option>
+                    </select>
+                </div>
+            </div>
+            
+            {% if entries.items %}
+                {% for entry in entries.items %}
+                <div class="entry-card" style="border-left-color: var(--bs-{{ ui_helper.get_mood_color(entry.mood) }});">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h3 class="h5 mb-0">{{ entry.title }}</h3>
+                        <div class="mood-indicator bg-{{ ui_helper.get_mood_color(entry.mood) }} bg-opacity-10 text-{{ ui_helper.get_mood_color(entry.mood) }}">
+                            {{ ui_helper.get_mood_emoji(entry.mood) }} {{ entry.mood.title() }}
+                        </div>
+                    </div>
+                    
+                    <p class="mb-2">
+                        {{ ui_helper.truncate_text(entry.content, 150) }}
+                    </p>
+                    
+                    <div class="entry-meta">
+                        <span>
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ entry.created_at.strftime('%b %d, %Y') }}
+                        </span>
+                        <span>
+                            <i class="bi bi-clock me-1"></i>
+                            {{ ui_helper.format_date_ago(entry.created_at) }}
+                        </span>
+                        <span>
+                            <i class="bi bi-file-text me-1"></i>
+                            {{ entry.word_count }} words
+                        </span>
+                        <span>
+                            <i class="bi bi-hourglass me-1"></i>
+                            {{ ui_helper.reading_time(entry.content) }}
+                        </span>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('main.view_entry', entry_id=entry.id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                            <i class="bi bi-eye me-1"></i>Read More
+                        </a>
+                        <a href="{{ url_for('main.edit_entry', entry_id=entry.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                    </div>
+                    
+                    {% if entry.tags %}
+                    <div class="mt-2">
+                        {{ ui_helper.get_entry_tags_html(entry.tags)|safe }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <!-- Pagination -->
+                {% if entries.pages > 1 %}
+                <nav aria-label="Entry pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if entries.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.dashboard', page=entries.prev_num, **request.args) }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in entries.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != entries.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('main.dashboard', page=page_num, **request.args) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if entries.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.dashboard', page=entries.next_num, **request.args) }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-journal text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="h5 text-muted mb-3">No entries yet</h3>
+                    <p class="text-muted mb-4">Start writing your first entry to begin your journaling journey!</p>
+                    <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary rounded-pill">
+                        <i class="bi bi-plus-circle me-2"></i>Write First Entry
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Theme Toggle
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update button icon
+    const themeBtn = document.querySelector('[onclick="toggleTheme()"] i');
+    themeBtn.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+}
+
+// Load saved theme
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Update button icon
+    const themeBtn = document.querySelector('[onclick="toggleTheme()"] i');
+    themeBtn.className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+});
+
+// Filter Toggle
+function toggleFilter(type, value) {
+    const url = new URL(window.location);
+    if (value === '') {
+        url.searchParams.delete(type);
+    } else {
+        url.searchParams.set(type, value);
+    }
+    url.searchParams.delete('page'); // Reset to first page
+    window.location.href = url.toString();
+}
+
+// Sort Entries
+function sortEntries(sortBy) {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', sortBy);
+    url.searchParams.delete('page'); // Reset to first page
+    window.location.href = url.toString();
+}
+
+// Search on Enter (if not in search input)
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.form.submit();
+            }
+        });
+    }
+});
+
+// Auto-save draft functionality
+let draftTimeout;
+const draftKey = 'dashboard_draft';
+
+function saveDraft() {
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput && searchInput.value) {
+        localStorage.setItem(draftKey, searchInput.value);
+    }
+}
+
+function loadDraft() {
+    const savedDraft = localStorage.getItem(draftKey);
+    const searchInput = document.querySelector('input[name="search"]');
+    if (savedDraft && searchInput && !searchInput.value) {
+        searchInput.value = savedDraft;
+    }
+}
+
+// Auto-save after 1 second of inactivity
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        loadDraft();
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(draftTimeout);
+            draftTimeout = setTimeout(saveDraft, 1000);
+        });
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + K for search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.querySelector('input[name="search"]').focus();
+    }
+    
+    // Ctrl/Cmd + N for new entry
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        window.location.href = '{{ url_for("main.new_entry") }}';
+    }
+});
+
+// Accessibility: Announce page changes for screen readers
+function announcePageChange(message) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 1000);
+}
+
+// Performance: Lazy load images
+document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('img[data-src]');
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+                observer.unobserve(img);
+            }
+        });
+    });
+    
+    images.forEach(img => imageObserver.observe(img));
+});
+</script>
+{% endblock %}

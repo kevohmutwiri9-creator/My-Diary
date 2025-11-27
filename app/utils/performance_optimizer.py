@@ -9,9 +9,17 @@ import logging
 from datetime import datetime, timedelta
 from flask import current_app, request, g
 from flask_login import current_user
-import redis
-import json
 from typing import Dict, List, Any, Optional
+
+# Optional Redis dependency
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    redis = None
+
+import json
 
 class PerformanceOptimizer:
     """Comprehensive performance optimization system"""
@@ -26,16 +34,21 @@ class PerformanceOptimizer:
     def init_app(self, app):
         """Initialize performance optimization features"""
         # Setup Redis if available
-        try:
-            self.redis_client = redis.from_url(
-                app.config.get('REDIS_URL', 'redis://localhost:6379'),
-                decode_responses=True
-            )
-            # Test connection
-            self.redis_client.ping()
-            app.logger.info("Redis connected for performance optimization")
-        except Exception as e:
-            app.logger.warning(f"Redis not available for performance optimization: {e}")
+        if REDIS_AVAILABLE:
+            try:
+                self.redis_client = redis.from_url(
+                    app.config.get('REDIS_URL', 'redis://localhost:6379'),
+                    decode_responses=True
+                )
+                # Test connection
+                self.redis_client.ping()
+                app.logger.info("Redis connected for performance optimization")
+            except Exception as e:
+                app.logger.warning(f"Redis not available for performance optimization: {e}")
+                self.redis_client = None
+        else:
+            app.logger.info("Redis not installed, using in-memory caching")
+            self.redis_client = None
         
         # Add performance monitoring to all requests
         @app.before_request
@@ -93,11 +106,22 @@ class PerformanceOptimizer:
             'ip': request.remote_addr
         }
         
-        # Store in Redis if available
+        # Store in Redis if available, otherwise use in-memory storage
         if self.redis_client:
             key = f"perf:{endpoint}:{method}"
             self.redis_client.lpush(key, json.dumps(metric))
             self.redis_client.expire(key, 3600)  # Keep 1 hour of data
+        else:
+            # Fallback to in-memory storage (not persistent)
+            if not hasattr(self, '_memory_cache'):
+                self._memory_cache = {}
+            key = f"perf:{endpoint}:{method}"
+            if key not in self._memory_cache:
+                self._memory_cache[key] = []
+            self._memory_cache[key].append(metric)
+            # Keep only last 100 items in memory
+            if len(self._memory_cache[key]) > 100:
+                self._memory_cache[key] = self._memory_cache[key][-100:]
         
         # Log slow requests
         if duration > 2.0:  # Requests over 2 seconds
@@ -108,9 +132,6 @@ class PerformanceOptimizer:
     
     def get_performance_stats(self, endpoint=None, hours=1):
         """Get performance statistics"""
-        if not self.redis_client:
-            return {}
-        
         stats = {}
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=hours)
@@ -118,15 +139,32 @@ class PerformanceOptimizer:
         if endpoint:
             endpoints = [endpoint]
         else:
-            # Get all endpoints
+            # Get all endpoints from cache
             endpoints = []
-            for key in self.redis_client.scan_iter("perf:*"):
-                endpoints.append(key.decode().split(':')[-2])
+            if self.redis_client:
+                for key in self.redis_client.scan_iter("perf:*"):
+                    parts = key.decode().split(':') if isinstance(key, bytes) else key.split(':')
+                    if len(parts) >= 3:
+                        endpoints.append(parts[-2])
+            elif hasattr(self, '_memory_cache'):
+                for key in self._memory_cache.keys():
+                    parts = key.split(':')
+                    if len(parts) >= 3:
+                        endpoints.append(parts[-2])
         
         for ep in endpoints:
             for method in ['GET', 'POST', 'PUT', 'DELETE']:
                 key = f"perf:{ep}:{method}"
-                data = self.redis_client.lrange(key, 0, -1)
+                data = []
+                
+                if self.redis_client:
+                    try:
+                        raw_data = self.redis_client.lrange(key, 0, -1)
+                        data = [json.loads(item) for item in raw_data]
+                    except:
+                        continue
+                elif hasattr(self, '_memory_cache') and key in self._memory_cache:
+                    data = self._memory_cache[key]
                 
                 if data:
                     durations = []
@@ -134,12 +172,11 @@ class PerformanceOptimizer:
                     
                     for item in data:
                         try:
-                            metric = json.loads(item)
-                            metric_time = datetime.fromisoformat(metric['timestamp'])
+                            metric_time = datetime.fromisoformat(item['timestamp'])
                             
                             if metric_time >= start_time:
-                                durations.append(metric['duration'])
-                                status_code = metric['status_code']
+                                durations.append(item['duration'])
+                                status_code = item['status_code']
                                 status_codes[status_code] = status_codes.get(status_code, 0) + 1
                         except:
                             continue
