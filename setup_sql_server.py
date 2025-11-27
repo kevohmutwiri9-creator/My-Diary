@@ -49,20 +49,22 @@ def setup_sql_server_database():
             from app.models import User
             admin_user = User.query.filter_by(email='admin@example.com').first()
             
-            if not admin_user:
+            if admin_user:
+                print("👤 Admin user already exists, resetting password...")
+                admin_user.set_password('Admin123!')  # Reset to 8 characters
+                db.session.commit()
+                print("✅ Admin password reset (email: admin@example.com, password: Admin123!)")
+            else:
                 print("👤 Creating default admin user...")
                 admin_user = User(
                     email='admin@example.com',
                     username='admin',
-                    is_admin=True,
-                    is_verified=True
+                    is_admin=True
                 )
-                admin_user.set_password('admin123')
+                admin_user.set_password('Admin123!')  # 8 characters with special chars
                 db.session.add(admin_user)
                 db.session.commit()
-                print("✅ Admin user created (email: admin@example.com, password: admin123)")
-            else:
-                print("👤 Admin user already exists")
+                print("✅ Admin user created (email: admin@example.com, password: Admin123!)")
             
             print("🎉 SQL Server database setup complete!")
             

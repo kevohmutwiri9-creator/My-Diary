@@ -37,7 +37,7 @@ class ProductionConfig:
     WTF_CSRF_TIME_LIMIT = 3600
     
     # Password policy
-    PASSWORD_MIN_LENGTH = 12
+    PASSWORD_MIN_LENGTH = 8
     PASSWORD_REQUIRE_UPPERCASE = True
     PASSWORD_REQUIRE_LOWERCASE = True
     PASSWORD_REQUIRE_NUMBER = True
