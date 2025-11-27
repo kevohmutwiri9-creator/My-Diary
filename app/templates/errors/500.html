@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h1 class="display-4 fw-bold text-danger mb-3">500</h1>
+                    <h2 class="h4 mb-4">Oops! Something went wrong</h2>
+                    
+                    <p class="text-muted mb-4">
+                        We're sorry, but something unexpected happened. Our team has been notified and is working to fix this issue.
+                    </p>
+                    
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                            <i class="bi bi-house-fill me-2"></i>Go to Dashboard
+                        </a>
+                        <button onclick="history.back()" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Go Back
+                        </button>
+                    </div>
+                    
+                    {% if error and config.DEBUG %}
+                    <div class="mt-4 text-start">
+                        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#debugInfo">
+                            <i class="bi bi-bug-fill me-2"></i>Show Debug Info
+                        </button>
+                        <div class="collapse mt-3" id="debugInfo">
+                            <div class="card card-body bg-light">
+                                <h6 class="fw-bold">Error Details:</h6>
+                                <pre class="small">{{ error.error_type }}: {{ error.error_message }}</pre>
+                                
+                                {% if error.request %}
+                                <h6 class="fw-bold mt-3">Request Info:</h6>
+                                <ul class="small">
+                                    <li><strong>Method:</strong> {{ error.request.method }}</li>
+                                    <li><strong>URL:</strong> {{ error.request.url }}</li>
+                                    <li><strong>User Agent:</strong> {{ error.request.user_agent }}</li>
+                                    <li><strong>IP:</strong> {{ error.request.ip }}</li>
+                                </ul>
+                                {% endif %}
+                                
+                                {% if error.user %}
+                                <h6 class="fw-bold mt-3">User Info:</h6>
+                                <ul class="small">
+                                    <li><strong>ID:</strong> {{ error.user.id }}</li>
+                                    <li><strong>Email:</strong> {{ error.user.email }}</li>
+                                </ul>
+                                {% endif %}
+                                
+                                {% if error.traceback %}
+                                <h6 class="fw-bold mt-3">Traceback:</h6>
+                                <pre class="small">{{ error.traceback }}</pre>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    If this problem persists, please contact support or try again later.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh after 30 seconds if it's a temporary server error
+setTimeout(() => {
+    if (confirm('Would you like to try refreshing the page?')) {
+        window.location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}

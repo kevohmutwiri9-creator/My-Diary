@@ -14,8 +14,9 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from config import Config
 
-# Import custom filters
+# Import custom filters and error handler
 from app.utils.filters import markdown_to_html, zip_filter, datetimefilter
+from app.utils.error_handler import ErrorHandler
 
 # Initialize extensions without app
 db = SQLAlchemy()
@@ -29,6 +30,7 @@ login_manager.login_message_category = 'info'
 login_manager.refresh_view = 'auth.login'
 login_manager.needs_refresh_message = "Session timed out, please re-login to continue."
 mail = Mail()
+error_handler = ErrorHandler()
 
 def create_app(config_class=Config):
     """Application factory function."""
@@ -108,6 +110,9 @@ def create_app(config_class=Config):
     )
     login_manager.init_app(app)
     mail.init_app(app)
+    
+    # Initialize error handler
+    error_handler.init_app(app)
     
     # Initialize rate limiter
     def get_identifier():

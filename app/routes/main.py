@@ -28,6 +28,7 @@ from app.services.i18n_service import (
     get_language_direction, format_date, format_number
 )
 from app.utils.cookie_consent import CookieConsent
+from app.utils.error_handler import handle_errors, safe_operation, DatabaseError, ValidationError
 from markdown import markdown
 import os
 import bleach
@@ -1212,25 +1213,20 @@ def productivity_dashboard():
 
 @main_bp.route('/productivity/goals', methods=['POST'])
 @login_required
+@handle_errors("Unable to update goals. Please try again.", log_error=True)
 def update_goals():
     """Update user's writing goals."""
-    try:
-        daily_goal = request.form.get('daily_goal', type=int)
-        weekly_goal = request.form.get('weekly_goal', type=int)
-        
-        success = update_user_goals(current_user.id, daily_goal, weekly_goal)
-        
-        if success:
-            flash('Goals updated successfully!', 'success')
-        else:
-            flash('Error updating goals', 'danger')
-            
-        return redirect(url_for('main.productivity_dashboard'))
-        
-    except Exception as e:
-        current_app.logger.error(f'Error updating goals: {str(e)}', exc_info=True)
+    daily_goal = request.form.get('daily_goal', type=int)
+    weekly_goal = request.form.get('weekly_goal', type=int)
+    
+    success = update_user_goals(current_user.id, daily_goal, weekly_goal)
+    
+    if success:
+        flash('Goals updated successfully!', 'success')
+    else:
         flash('Error updating goals', 'danger')
-        return redirect(url_for('main.productivity_dashboard'))
+        
+    return redirect(url_for('main.productivity_dashboard'))
 
 @main_bp.route('/api/productivity/stats')
 @login_required
