@@ -42,9 +42,13 @@ if [[ "$DATABASE_URL" == *"mssql+pyodbc"* ]]; then
 elif [[ "$DATABASE_URL" == *"postgresql"* ]]; then
     echo "🐘 PostgreSQL detected, running setup script..."
     python setup_postgresql.py
+elif [[ "$DATABASE_URL" == *"sqlite"* ]]; then
+    echo "📄 SQLite detected, running setup script..."
+    python setup_sqlite.py
 else
-    echo "📄 Using Flask migrations..."
-    flask db upgrade
+    echo "⚠️ Unknown database type, using SQLite fallback..."
+    export DATABASE_URL="sqlite:///my_diary.db"
+    python setup_sqlite.py
 fi
 
 # Collect static files (if needed)
