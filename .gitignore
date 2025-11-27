@@ -58,3 +58,15 @@ htmlcov/
 *.pem
 *.key
 *.crt
+
+# Temporary scripts
+*_admin*.py
+*check_user*.py
+*reset_*.py
+*make_*.py
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.orig
