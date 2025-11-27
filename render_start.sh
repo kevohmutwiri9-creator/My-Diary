@@ -6,13 +6,13 @@ echo "🚀 Starting My Diary application..."
 # Set Flask environment
 export FLASK_ENV=production
 
-# Check if DATABASE_URL is set, if not use SQLite as fallback
-if [ -z "$DATABASE_URL" ]; then
-    echo "⚠️ DATABASE_URL not set, using SQLite fallback"
-    export DATABASE_URL="sqlite:///my_diary.db"
-fi
+# Force SQLite as database for Render (to avoid SQL Server ODBC issues)
+export DATABASE_URL="sqlite:///my_diary.db"
 
-echo "📡 Database URL: ${DATABASE_URL:0:50}..."
+echo "📡 Using SQLite database: my_diary.db"
+
+# Create database and tables before starting the app
+python setup_sqlite.py
 
 # Start the application with Gunicorn
 exec gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 3 --threads 2 --timeout 120
