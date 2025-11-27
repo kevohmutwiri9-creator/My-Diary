@@ -59,7 +59,7 @@ class SecurityEnhancer:
         """Setup security-specific logging"""
         # Ensure logs directory exists
         import os
-        logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'logs')
+        logs_dir = os.path.join(os.getcwd(), 'logs')
         os.makedirs(logs_dir, exist_ok=True)
         
         security_logger = logging.getLogger('security')

@@ -11,6 +11,12 @@ export DATABASE_URL="sqlite:///my_diary.db"
 
 echo "📡 Using SQLite database: my_diary.db"
 
+# Create necessary directories
+mkdir -p logs
+mkdir -p instance
+
+echo "📁 Created necessary directories"
+
 # Create database and tables before starting the app
 python setup_sqlite.py
 
