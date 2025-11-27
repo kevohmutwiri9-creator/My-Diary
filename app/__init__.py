@@ -17,6 +17,7 @@ from config import Config
 # Import custom filters and error handler
 from app.utils.filters import markdown_to_html, zip_filter, datetimefilter
 from app.utils.error_handler import ErrorHandler
+from app.utils.security_enhancer import SecurityEnhancer
 
 # Initialize extensions without app
 db = SQLAlchemy()
@@ -31,6 +32,7 @@ login_manager.refresh_view = 'auth.login'
 login_manager.needs_refresh_message = "Session timed out, please re-login to continue."
 mail = Mail()
 error_handler = ErrorHandler()
+security_enhancer = SecurityEnhancer()
 
 def create_app(config_class=Config):
     """Application factory function."""
@@ -113,6 +115,9 @@ def create_app(config_class=Config):
     
     # Initialize error handler
     error_handler.init_app(app)
+    
+    # Initialize security enhancer
+    security_enhancer.init_app(app)
     
     # Initialize rate limiter
     def get_identifier():

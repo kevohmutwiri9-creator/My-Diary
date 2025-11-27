@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -6,11 +6,19 @@ from flask_mail import Message
 from app import db, mail
 from app.models.user import User
 from app.forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm
+from app.utils.error_handler import handle_errors, AuthenticationError, ValidationError
+from app.utils.security_enhancer import (
+    PasswordSecurity, InputValidator, RateLimiter, 
+    SecurityMonitor, require_csrf_token, rate_limit, validate_input
+)
 from datetime import datetime
 import logging
 
 # Create blueprint
 auth_bp = Blueprint('auth', __name__)
+
+# Initialize security monitor
+security_monitor = SecurityMonitor()
 
 def _get_serializer():
     return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -44,6 +52,13 @@ def log_auth_request():
         current_app.logger.info(f"Authenticated User: {current_user.username}")
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@rate_limit(limit=3, window=600)  # 3 registrations per 10 minutes
+@validate_input({
+    'username': {'required': True, 'type': 'username', 'min_length': 3, 'max_length': 30},
+    'email': {'required': True, 'type': 'email', 'max_length': 120},
+    'password': {'required': True, 'min_length': 8, 'max_length': 128}
+})
+@handle_errors("Registration failed. Please try again.", log_error=True)
 def register():
     """Handle user registration."""
     if current_user.is_authenticated:
@@ -54,6 +69,23 @@ def register():
     
     if form.validate_on_submit():
         current_app.logger.info('Processing registration request')
+        
+        # Enhanced password strength validation
+        password_validation = PasswordSecurity.validate_password_strength(
+            form.password.data,
+            {'username': form.username.data, 'email': form.email.data}
+        )
+        
+        if not password_validation['is_strong']:
+            for error in password_validation['errors']:
+                flash(error, 'danger')
+            return render_template('auth/register.html', title='Register', form=form)
+        
+        # Check for mass registration attempts
+        if security_monitor.detect_mass_registration(request.remote_addr):
+            current_app.security_logger.warning(f"Mass registration attempt from {request.remote_addr}")
+            flash('Too many registration attempts. Please try again later.', 'danger')
+            return render_template('auth/register.html', title='Register', form=form)
         
         # Create new user using model's password helper to ensure consistent hashing
         user = User(
@@ -66,6 +98,11 @@ def register():
             db.session.add(user)
             db.session.commit()
             current_app.logger.info(f'New user registered: {user.username} ({user.email})')
+            
+            # Log successful registration for security monitoring
+            if hasattr(current_app, 'security_logger'):
+                current_app.security_logger.info(f"User registration: {user.email} from {request.remote_addr}")
+            
             flash('Registration successful! Please login.', 'success')
             return redirect(url_for('auth.login'))
         except Exception as e:
@@ -76,6 +113,12 @@ def register():
     return render_template('auth/register.html', title='Register', form=form)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@rate_limit(limit=10, window=900)  # 10 login attempts per 15 minutes
+@validate_input({
+    'email': {'required': True, 'type': 'email', 'max_length': 120},
+    'password': {'required': True, 'min_length': 1, 'max_length': 128}
+})
+@handle_errors("Login failed. Please try again.", log_error=True)
 def login():
     """Handle user login."""
     if current_user.is_authenticated:
@@ -86,12 +129,24 @@ def login():
     
     if form.validate_on_submit():
         current_app.logger.info(f'Login attempt for email: {form.email.data}')
+        
+        # Check for brute force attempts
+        if security_monitor.detect_brute_force(request.remote_addr, form.email.data):
+            current_app.security_logger.warning(f"Brute force attempt detected for {form.email.data} from {request.remote_addr}")
+            flash('Too many failed login attempts. Please try again later.', 'danger')
+            return render_template('auth/login.html', title='Sign In', form=form)
+        
         user = User.query.filter_by(email=form.email.data).first()
         
         if user is None or not user.check_password(form.password.data):
             current_app.logger.warning(f'Failed login attempt for email: {form.email.data}')
+            
+            # Log failed login attempt for security monitoring
+            if hasattr(current_app, 'security_logger'):
+                current_app.security_logger.warning(f"Failed login: {form.email.data} from {request.remote_addr}")
+            
             flash('Invalid email or password', 'danger')
-            return redirect(url_for('auth.login'))
+            return render_template('auth/login.html', title='Sign In', form=form)
         
         # Check if user has 2FA enabled
         if user.two_factor_enabled:
