@@ -369,9 +369,9 @@ def new_entry():
                 from app.models.tag import Tag
                 tag_names = [tag.strip() for tag in tags.split(',') if tag.strip()]
                 for tag_name in tag_names:
-                    tag = Tag.query.filter_by(name=tag_name, user_id=current_user.id).first()
+                    tag = Tag.query.filter_by(name=tag_name).first()
                     if not tag:
-                        tag = Tag(name=tag_name, user_id=current_user.id)
+                        tag = Tag(name=tag_name)
                         db.session.add(tag)
                     entry.tags.append(tag)
             
@@ -575,9 +575,9 @@ def edit_entry(entry_id):
             tag_names = [tag.strip() for tag in tags.split(',') if tag.strip()]
             entry.tags.clear()
             for tag_name in tag_names:
-                tag = Tag.query.filter_by(name=tag_name, user_id=current_user.id).first()
+                tag = Tag.query.filter_by(name=tag_name).first()
                 if not tag:
-                    tag = Tag(name=tag_name, user_id=current_user.id)
+                    tag = Tag(name=tag_name)
                     db.session.add(tag)
                 entry.tags.append(tag)
         
