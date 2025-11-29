@@ -22,7 +22,7 @@ def ensure_user_exists():
         # Your preferred login credentials
         email = "kevohmutwiri9@gmail.com"
         username = "kevohmu"
-        password = "Admin123!"  # Change this to your preferred password
+        password = "kevoh2071M@6309"  # Change this to your preferred password
         
         print(f"🔧 Ensuring user exists: {email}")
         
