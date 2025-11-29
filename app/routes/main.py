@@ -334,6 +334,7 @@ def new_entry():
             title = request.form.get('title', '').strip()
             content = request.form.get('content', '').strip()
             mood = request.form.get('mood', '').strip()
+            tags = request.form.get('tags', '').strip()
             is_private = 'is_private' in request.form
             media_ids = request.form.getlist('media_ids')  # Get media IDs from form
             
@@ -362,6 +363,17 @@ def new_entry():
                 if error:
                     current_app.logger.error(f'Error linking media to entry: {error}')
             
+            # Handle tags
+            if tags:
+                from app.models.tag import Tag
+                tag_names = [tag.strip() for tag in tags.split(',') if tag.strip()]
+                for tag_name in tag_names:
+                    tag = Tag.query.filter_by(name=tag_name, user_id=current_user.id).first()
+                    if not tag:
+                        tag = Tag(name=tag_name, user_id=current_user.id)
+                        db.session.add(tag)
+                    entry.tags.append(tag)
+            
             if current_user.mark_onboarding_task('first_entry_written'):
                 db.session.add(current_user)
             db.session.commit()
@@ -371,7 +383,7 @@ def new_entry():
             return redirect(url_for('main.view_entry', entry_id=entry.id))
         
         # For GET requests, render the form with current time
-        return render_template('entry.html', 
+        return render_template('write.html', 
                            template=template_type, 
                            selected_template=selected_template,
                            now=datetime.utcnow())
@@ -542,16 +554,12 @@ def edit_entry(entry_id):
         title = request.form.get('title', '').strip()
         content = request.form.get('content', '').strip()
         mood = request.form.get('mood', '').strip()
+        tags = request.form.get('tags', '').strip()
         is_private = 'is_private' in request.form
         
         if not content:
             flash('Content is required.', 'danger')
-            return render_template('write.html', 
-                               title=entry.title, 
-                               content=entry.content, 
-                               mood=entry.mood, 
-                               is_private=entry.is_private,
-                               entry=entry)
+            return render_template('edit_entry.html', entry=entry)
         
         # Update entry
         entry.title = title if title else None
@@ -560,17 +568,24 @@ def edit_entry(entry_id):
         entry.is_private = is_private
         entry.updated_at = datetime.utcnow()
         
+        # Handle tags
+        if tags:
+            from app.models.tag import Tag
+            tag_names = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            entry.tags.clear()
+            for tag_name in tag_names:
+                tag = Tag.query.filter_by(name=tag_name, user_id=current_user.id).first()
+                if not tag:
+                    tag = Tag(name=tag_name, user_id=current_user.id)
+                    db.session.add(tag)
+                entry.tags.append(tag)
+        
         db.session.commit()
         
         flash('Your changes have been saved!', 'success')
         return redirect(url_for('main.view_entry', entry_id=entry.id))
     
-    return render_template('write.html', 
-                       title=entry.title, 
-                       content=entry.content, 
-                       mood=entry.mood, 
-                       is_private=entry.is_private,
-                       entry=entry)
+    return render_template('edit_entry.html', entry=entry)
 
 @main_bp.route('/entry/<int:entry_id>/delete', methods=['POST'])
 @login_required
