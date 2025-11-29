@@ -20,5 +20,9 @@ echo "📁 Created necessary directories"
 # Create database and tables before starting the app
 python setup_sqlite.py
 
+# Maintain user account after deployment
+echo "👤 Maintaining user account..."
+python maintain_user.py
+
 # Start the application with Gunicorn
 exec gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 3 --threads 2 --timeout 120
