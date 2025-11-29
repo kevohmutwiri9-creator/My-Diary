@@ -4,12 +4,14 @@ Provides comprehensive performance monitoring and optimization
 """
 
 import time
+import json
+import hashlib
 import functools
-import logging
 from datetime import datetime, timedelta
 from flask import current_app, request, g
 from flask_login import current_user
 from typing import Dict, List, Any, Optional
+import logging
 
 # Optional Redis dependency
 try:
@@ -18,8 +20,6 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
     redis = None
-
-import json
 
 class PerformanceOptimizer:
     """Comprehensive performance optimization system"""
@@ -388,10 +388,17 @@ def cache_function_result(timeout=300, key_func=None):
         @functools.wraps(f)
         def decorated_function(*args, **kwargs):
             from flask import current_app
-            cache = current_app.extensions.get('cache')
             
+            # Try to get cache (Redis or Flask-Cache)
+            cache = current_app.extensions.get('cache')
             if not cache:
-                return f(*args, **kwargs)
+                # Fallback to performance optimizer's memory cache
+                perf_optimizer = current_app.extensions.get('performance_optimizer')
+                if perf_optimizer and hasattr(perf_optimizer, '_memory_cache'):
+                    cache = perf_optimizer._memory_cache
+                else:
+                    # No cache available, just execute function
+                    return f(*args, **kwargs)
             
             # Generate cache key
             if key_func:
@@ -400,13 +407,24 @@ def cache_function_result(timeout=300, key_func=None):
                 cache_key = f"func:{f.__name__}:{hash(str(args) + str(kwargs))}"
             
             # Try to get cached result
-            cached_result = cache.get(cache_key)
-            if cached_result is not None:
-                return cached_result
+            try:
+                cached_result = cache.get(cache_key)
+                if cached_result is not None:
+                    return cached_result
+            except (AttributeError, TypeError):
+                # Cache doesn't have get method, skip caching
+                return f(*args, **kwargs)
             
             # Generate and cache result
             result = f(*args, **kwargs)
-            cache.set(cache_key, result, timeout=timeout)
+            try:
+                cache.set(cache_key, result, timeout=timeout)
+            except (AttributeError, TypeError):
+                # Cache doesn't have set method, just store in dict
+                try:
+                    cache[cache_key] = result
+                except:
+                    pass  # Skip caching if it fails
             
             return result
         

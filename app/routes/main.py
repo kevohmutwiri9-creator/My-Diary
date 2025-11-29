@@ -246,7 +246,7 @@ def dashboard():
         else:
             stats['last_entry_at'] = None
 
-        current_app.logger.debug(f'Found {entries.total} entries for user {current_user.username}')
+        current_app.logger.debug(f'Found {entries.get("total", 0)} entries for user {current_user.username}')
         onboarding_tasks = _build_onboarding_tasks(current_user, stats)
         available_tags = []
         if not search_query:
