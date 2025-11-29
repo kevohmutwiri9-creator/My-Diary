@@ -357,6 +357,10 @@ def validate_input(validation_rules):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            # Only validate on POST/PUT requests to avoid redirect loops on GET requests
+            if request.method not in ['POST', 'PUT']:
+                return f(*args, **kwargs)
+                
             errors = {}
             
             for field, rules in validation_rules.items():
@@ -389,7 +393,7 @@ def validate_input(validation_rules):
                     from flask import flash
                     for field, error in errors.items():
                         flash(error, 'danger')
-                    return redirect(request.url or '/')
+                    return redirect(request.referrer or url_for('main.index'))
             
             return f(*args, **kwargs)
         return decorated_function
