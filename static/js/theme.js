@@ -39,6 +39,9 @@
         currentTheme = theme;
         localStorage.setItem('theme', theme);
         
+        // Sync with server if user is logged in
+        syncThemeWithServer(theme);
+        
         // Update the UI to reflect the current theme
         updateThemeUI(theme);
         updateThemeIcon(theme);
@@ -60,6 +63,36 @@
             document.body.classList.remove('theme-transitioning');
             isTransitioning = false;
         }, 300);
+    }
+
+    function syncThemeWithServer(theme) {
+        // Only sync if user is logged in (check for login token or user data)
+        if (document.querySelector('[data-user-logged-in="true"]') || 
+            localStorage.getItem('userLoggedIn') === 'true') {
+            
+            fetch('/theme/set', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ theme: theme })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.warn('Failed to sync theme with server:', data.message);
+                }
+            })
+            .catch(error => {
+                console.warn('Theme sync error:', error);
+            });
+        }
+    }
+
+    function getCSRFToken() {
+        const token = document.querySelector('meta[name="csrf-token"]');
+        return token ? token.getAttribute('content') : '';
     }
 
     function updateThemeUI(theme) {

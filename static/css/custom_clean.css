@@ -6,6 +6,101 @@ html, body {
     max-width: 100%;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px !important;
+        max-width: 100% !important;
+    }
+    
+    .navbar {
+        padding: 0.5rem 1rem !important;
+    }
+    
+    .navbar-brand {
+        font-size: 1.25rem !important;
+    }
+    
+    .card {
+        margin-bottom: 1rem !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    .btn {
+        font-size: 0.9rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+    
+    .form-control {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+    
+    /* Dashboard mobile adjustments */
+    .dashboard-stats {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .entry-card {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Write page mobile */
+    .ql-toolbar {
+        border-radius: 0.375rem 0.375rem 0 0 !important;
+        padding: 8px !important;
+    }
+    
+    .ql-editor {
+        min-height: 250px !important;
+        padding: 12px !important;
+        font-size: 16px !important;
+    }
+    
+    /* Theme selector mobile */
+    .theme-selector {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .theme-btn {
+        width: 100% !important;
+        text-align: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 10px !important;
+    }
+    
+    .navbar {
+        padding: 0.5rem !important;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem !important;
+    }
+    
+    .btn {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .ql-toolbar {
+        padding: 6px !important;
+    }
+    
+    .ql-editor {
+        min-height: 200px !important;
+        padding: 10px !important;
+    }
+}
+
 /* Quill Editor Dropdown Fix - Prevent Overlapping */
 .ql-toolbar .ql-picker-options {
     z-index: 1050 !important;

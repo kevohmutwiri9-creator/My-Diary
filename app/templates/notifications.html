@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.notifications-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.notifications-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.notifications-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.settings-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.settings-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--bs-heading-color);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-switch {
+    padding-left: 3rem;
+}
+
+.form-check-input {
+    width: 2.5rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.time-input-group {
+    max-width: 200px;
+}
+
+.days-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.day-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.day-checkbox:hover {
+    background: var(--bs-light);
+    border-color: var(--bs-primary);
+}
+
+.day-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.day-checkbox.selected {
+    background: var(--bs-primary-subtle);
+    border-color: var(--bs-primary);
+}
+
+.notifications-list {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.list-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--bs-heading-color);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.notification-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--bs-primary);
+}
+
+.notification-item.reminder::before { background: #ffc107; }
+.notification-item.achievement::before { background: #28a745; }
+.notification-item.milestone::before { background: #dc3545; }
+
+.notification-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bs-light);
+    flex-shrink: 0;
+}
+
+.notification-icon.warning { background: #fff3cd; color: #856404; }
+.notification-icon.success { background: #d4edda; color: #155724; }
+.notification-icon.danger { background: #f8d7da; color: #721c24; }
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--bs-heading-color);
+}
+
+.notification-message {
+    color: var(--bs-secondary);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    color: var(--bs-text-muted);
+    font-size: 0.85rem;
+}
+
+.notification-action {
+    margin-top: 10px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--bs-secondary);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.status-card {
+    background: var(--bs-light);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.status-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bs-primary);
+    color: white;
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--bs-heading-color);
+}
+
+.status-description {
+    color: var(--bs-secondary);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .notifications-container {
+        padding: 15px;
+    }
+    
+    .settings-card {
+        padding: 20px;
+    }
+    
+    .days-selector {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 8px;
+    }
+    
+    .day-checkbox {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .notification-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .notification-item::before {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        height: 4px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>
+            <i class="bi bi-bell me-3"></i>
+            Notifications & Reminders
+        </h1>
+        <p class="mb-0">Stay motivated and never miss a journaling session</p>
+    </div>
+    
+    <!-- Daily Status -->
+    <div class="status-card">
+        <div class="status-icon">
+            {% if today_entry %}
+            <i class="bi bi-check-circle"></i>
+            {% else %}
+            <i class="bi bi-journal-x"></i>
+            {% endif %}
+        </div>
+        <div class="status-content">
+            <div class="status-title">
+                {% if today_entry %}
+                Great job today!
+                {% else %}
+                Haven't written today yet
+                {% endif %}
+            </div>
+            <div class="status-description">
+                {% if today_entry %}
+                You've already written in your diary today. Keep up the good work!
+                {% else %}
+                Take a few minutes to reflect on your day and write in your diary.
+                {% endif %}
+            </div>
+        </div>
+        {% if not today_entry %}
+        <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>
+            Write Now
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- Notification Settings -->
+    <div class="settings-card">
+        <h3 class="settings-title">
+            <i class="bi bi-gear"></i>
+            Reminder Settings
+        </h3>
+        
+        <form method="POST" action="{{ url_for('main.update_notifications') }}">
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="reminderEnabled" 
+                           name="reminder_enabled" {% if reminder_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="reminderEnabled">
+                        <strong>Enable Daily Reminders</strong>
+                        <div class="text-muted small">Get notified when you haven't written today</div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="reminderTime" class="form-label">Reminder Time</label>
+                        <div class="time-input-group">
+                            <input type="time" class="form-control" id="reminderTime" 
+                                   name="reminder_time" value="{{ reminder_time }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">Reminder Days</label>
+                <div class="days-selector">
+                    <div class="day-checkbox {% if 0 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="0" 
+                               {% if 0 in selected_days %}checked{% endif %}>
+                        <label>Monday</label>
+                    </div>
+                    <div class="day-checkbox {% if 1 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="1" 
+                               {% if 1 in selected_days %}checked{% endif %}>
+                        <label>Tuesday</label>
+                    </div>
+                    <div class="day-checkbox {% if 2 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="2" 
+                               {% if 2 in selected_days %}checked{% endif %}>
+                        <label>Wednesday</label>
+                    </div>
+                    <div class="day-checkbox {% if 3 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="3" 
+                               {% if 3 in selected_days %}checked{% endif %}>
+                        <label>Thursday</label>
+                    </div>
+                    <div class="day-checkbox {% if 4 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="4" 
+                               {% if 4 in selected_days %}checked{% endif %}>
+                        <label>Friday</label>
+                    </div>
+                    <div class="day-checkbox {% if 5 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="5" 
+                               {% if 5 in selected_days %}checked{% endif %}>
+                        <label>Saturday</label>
+                    </div>
+                    <div class="day-checkbox {% if 6 in selected_days %}selected{% endif %}">
+                        <input type="checkbox" name="reminder_days" value="6" 
+                               {% if 6 in selected_days %}checked{% endif %}>
+                        <label>Sunday</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-2"></i>
+                Save Settings
+            </button>
+        </form>
+    </div>
+    
+    <!-- Recent Notifications -->
+    <div class="notifications-list">
+        <h3 class="list-title">
+            <i class="bi bi-clock-history"></i>
+            Recent Notifications
+        </h3>
+        
+        {% if recent_notifications %}
+        {% for notification in recent_notifications %}
+        <div class="notification-item {{ notification.type }}" 
+             {% if notification.action_url %}onclick="window.location.href='{{ notification.action_url }}'"{% endif %}>
+            <div class="notification-icon {{ notification.color }}">
+                <i class="bi {{ notification.icon }}"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">{{ notification.title }}</div>
+                <div class="notification-message">{{ notification.message }}</div>
+                <div class="notification-time">{{ notification.time }}</div>
+                {% if notification.action_url %}
+                <div class="notification-action">
+                    <a href="{{ notification.action_url }}" class="btn btn-sm btn-outline-primary">
+                        Take Action
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-bell-slash"></i>
+            </div>
+            <h4>No Recent Notifications</h4>
+            <p>You're all caught up! Check back later for updates and reminders.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Notification Tips -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Reminder Tips
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Set a consistent reminder time
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Choose days that fit your schedule
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Write at the same time daily
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Start with just 5 minutes
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-trophy me-2"></i>
+                        Build the Habit
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-calendar-check text-primary me-2"></i>
+                            Consistency beats quantity
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-heart text-danger me-2"></i>
+                            Be honest with yourself
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-star text-warning me-2"></i>
+                            Celebrate small wins
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-graph-up text-success me-2"></i>
+                            Track your progress
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Day checkbox interactions
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox input[type="checkbox"]');
+    const dayContainers = document.querySelectorAll('.day-checkbox');
+    
+    dayCheckboxes.forEach((checkbox, index) => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                dayContainers[index].classList.add('selected');
+            } else {
+                dayContainers[index].classList.remove('selected');
+            }
+        });
+        
+        // Set initial state
+        if (checkbox.checked) {
+            dayContainers[index].classList.add('selected');
+        }
+    });
+    
+    // Enable/disable settings based on reminder toggle
+    const reminderToggle = document.getElementById('reminderEnabled');
+    const settingsFields = document.querySelectorAll('#reminderTime, .days-selector');
+    
+    function toggleSettings() {
+        const enabled = reminderToggle.checked;
+        settingsFields.forEach(field => {
+            field.style.opacity = enabled ? '1' : '0.5';
+            field.style.pointerEvents = enabled ? 'auto' : 'none';
+        });
+    }
+    
+    reminderToggle.addEventListener('change', toggleSettings);
+    toggleSettings(); // Set initial state
+    
+    // Animate notification items
+    const notificationItems = document.querySelectorAll('.notification-item');
+    notificationItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        setTimeout(() => {
+            item.style.transition = 'all 0.5s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, index * 100);
+    });
+    
+    // Check for new notifications periodically (every 5 minutes)
+    setInterval(async function() {
+        try {
+            const response = await fetch('/api/notifications/check');
+            const data = await response.json();
+            
+            if (data.success && data.count > 0) {
+                // Update notification badge if it exists
+                const badge = document.querySelector('.notification-badge');
+                if (badge) {
+                    badge.textContent = data.count;
+                    badge.style.display = data.count > 0 ? 'block' : 'none';
+                }
+            }
+        } catch (error) {
+            console.log('Error checking notifications:', error);
+        }
+    }, 300000); // 5 minutes
+});
+</script>
+{% endblock %}

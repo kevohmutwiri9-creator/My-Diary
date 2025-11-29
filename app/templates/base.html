@@ -132,6 +132,9 @@
                             <a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.analytics') }}">Analytics</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('main.productivity_dashboard') }}">Productivity</a>
                         </li>
                         <li class="nav-item">
@@ -142,6 +145,35 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('main.new_entry') }}">New Entry</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.search_entries') }}">Search</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.goals') }}">Goals</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="toolsDropdown" role="button" data-bs-toggle="dropdown">
+                                Tools
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('main.backup_data') }}">
+                                    <i class="bi bi-download me-2"></i>Backup Data
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.restore_data') }}">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>Restore Data
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.mood_insights') }}">
+                                    <i class="bi bi-emoji-smile me-2"></i>Mood Insights
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.notifications') }}">
+                                    <i class="bi bi-bell me-2"></i>Notifications
+                                    {% if current_user.is_authenticated %}
+                                    <span class="badge bg-warning ms-1 notification-badge" style="display: none;">0</span>
+                                    {% endif %}
+                                </a></li>
+                            </ul>
                         </li>
                     {% endif %}
                 </ul>

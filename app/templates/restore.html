@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Restore Data - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.restore-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.restore-header {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.restore-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.restore-form {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-left: 4px solid #f39c12;
+}
+
+.warning-box h5 {
+    color: #856404;
+    margin-bottom: 15px;
+}
+
+.warning-box ul {
+    color: #856404;
+    margin-bottom: 0;
+}
+
+.file-upload-area {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.file-upload-area:hover {
+    border-color: var(--bs-primary);
+    background: var(--bs-light);
+}
+
+.file-upload-area.dragover {
+    border-color: var(--bs-primary);
+    background: var(--bs-primary-subtle);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--bs-primary);
+    margin-bottom: 15px;
+}
+
+.upload-text {
+    color: var(--bs-heading-color);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.upload-subtext {
+    color: var(--bs-secondary);
+    font-size: 0.9rem;
+}
+
+.file-input {
+    display: none;
+}
+
+.restore-info {
+    background: var(--bs-light);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-icon {
+    color: var(--bs-primary);
+    font-size: 1.2rem;
+}
+
+.steps-section {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.step-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bs-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-weight: 700;
+    color: var(--bs-heading-color);
+    margin-bottom: 8px;
+}
+
+.step-description {
+    color: var(--bs-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .restore-container {
+        padding: 15px;
+    }
+    
+    .restore-form {
+        padding: 20px;
+    }
+    
+    .file-upload-area {
+        padding: 30px 20px;
+    }
+    
+    .step-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .step-number {
+        align-self: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="restore-container">
+    <div class="restore-header">
+        <h1>
+            <i class="bi bi-arrow-clockwise me-3"></i>
+            Restore Your Diary Data
+        </h1>
+        <p class="mb-0">Import your backup and restore all entries, settings, and preferences</p>
+    </div>
+    
+    <!-- Warning Notice -->
+    <div class="warning-box">
+        <h5>
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Important Notice
+        </h5>
+        <ul class="mb-0">
+            <li>Restore can only be performed on the same user account that created the backup</li>
+            <li>Existing entries with the same ID will be updated with backup content</li>
+            <li>New entries from the backup will be added to your diary</li>
+            <li>Make sure you have a current backup before restoring</li>
+            <li>This process cannot be undone - proceed with caution</li>
+        </ul>
+    </div>
+    
+    <!-- Restore Form -->
+    <div class="restore-form">
+        <form method="POST" enctype="multipart/form-data" id="restoreForm">
+            <div class="file-upload-area" id="dropZone">
+                <div class="upload-icon">
+                    <i class="bi bi-cloud-upload"></i>
+                </div>
+                <div class="upload-text">Drop your backup file here or click to browse</div>
+                <div class="upload-subtext">Select the ZIP backup file created by My Diary</div>
+                <input type="file" name="backup_file" id="backupFile" class="file-input" accept=".zip" required>
+            </div>
+            
+            <div class="restore-info" id="fileInfo" style="display: none;">
+                <div class="info-item">
+                    <i class="bi bi-file-zip info-icon"></i>
+                    <span id="fileName"></span>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-hdd info-icon"></i>
+                    <span id="fileSize"></span>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-danger" id="restoreBtn" disabled>
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    Restore Data
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="clearBtn">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Clear
+                </button>
+                <a href="{{ url_for('main.backup_data') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-download me-2"></i>
+                    Create Backup First
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- How to Restore Steps -->
+    <div class="steps-section">
+        <h3 class="mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            How to Restore Your Data
+        </h3>
+        
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <div class="step-title">Create a Current Backup</div>
+                <div class="step-description">
+                    Before restoring, create a backup of your current data. This ensures you have a fallback option if something goes wrong.
+                </div>
+            </div>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <div class="step-title">Select Your Backup File</div>
+                <div class="step-description">
+                    Choose the ZIP backup file you want to restore. This file must be created by the same user account you're currently logged into.
+                </div>
+            </div>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <div class="step-title">Review and Confirm</div>
+                <div class="step-description">
+                    The system will validate the backup file and check if it belongs to your account. Review the information before proceeding.
+                </div>
+            </div>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <div class="step-title">Restore Process</div>
+                <div class="step-description">
+                    The system will restore your entries, settings, and preferences. Existing entries may be updated and new ones added.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Backup Information -->
+    <div class="card border-0 bg-light">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="bi bi-question-circle me-2"></i>
+                About Backups
+            </h5>
+            <p class="card-text mb-3">
+                My Diary backups are comprehensive ZIP files containing:
+            </p>
+            <ul class="list-unstyled">
+                <li class="mb-2">
+                    <i class="bi bi-filetype-json text-primary me-2"></i>
+                    <strong>JSON Backup:</strong> Complete data in structured format
+                </li>
+                <li class="mb-2">
+                    <i class="bi bi-filetype-txt text-success me-2"></i>
+                    <strong>Text Backup:</strong> Human-readable format for easy viewing
+                </li>
+                <li class="mb-2">
+                    <i class="bi bi-filetype-csv text-info me-2"></i>
+                    <strong>CSV Export:</strong> Entries in spreadsheet format
+                </li>
+                <li class="mb-0">
+                    <i class="bi bi-file-text text-warning me-2"></i>
+                    <strong>README:</strong> Instructions and information about the backup
+                </li>
+            </ul>
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-lightbulb me-2"></i>
+                <strong>Tip:</strong> Regular backups are recommended. Create backups weekly or after important entries.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('backupFile');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const restoreBtn = document.getElementById('restoreBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const restoreForm = document.getElementById('restoreForm');
+    
+    // Click to upload
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // Drag and drop
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+    
+    // Handle file selection
+    function handleFile(file) {
+        // Check file type
+        if (!file.name.endsWith('.zip')) {
+            alert('Please select a ZIP backup file.');
+            return;
+        }
+        
+        // Check file size (max 50MB)
+        if (file.size > 50 * 1024 * 1024) {
+            alert('Backup file is too large. Maximum size is 50MB.');
+            return;
+        }
+        
+        // Display file info
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.style.display = 'block';
+        restoreBtn.disabled = false;
+        
+        // Update drop zone text
+        dropZone.querySelector('.upload-text').textContent = 'File selected: ' + file.name;
+        dropZone.querySelector('.upload-subtext').textContent = 'Click to select a different file';
+    }
+    
+    // Clear button
+    clearBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        restoreBtn.disabled = true;
+        dropZone.querySelector('.upload-text').textContent = 'Drop your backup file here or click to browse';
+        dropZone.querySelector('.upload-subtext').textContent = 'Select the ZIP backup file created by My Diary';
+    });
+    
+    // Form submission
+    restoreForm.addEventListener('submit', function(e) {
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            alert('Please select a backup file.');
+            return;
+        }
+        
+        // Show confirmation
+        if (!confirm('Are you sure you want to restore this backup? This will update your diary data and cannot be undone.')) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Show loading state
+        restoreBtn.disabled = true;
+        restoreBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i><span class="spinner-border spinner-border-sm me-2"></span>Restoring...';
+    });
+    
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
+{% endblock %}

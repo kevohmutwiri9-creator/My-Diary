@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Search Entries - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.search-form {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.search-input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    padding-left: 45px;
+    border-radius: 8px;
+    border: 2px solid var(--bs-border-color);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bs-secondary);
+    z-index: 10;
+}
+
+.filters-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--bs-secondary);
+    font-size: 0.9rem;
+}
+
+.search-results {
+    margin-top: 30px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--bs-border-color);
+}
+
+.result-count {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
+.entry-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.entry-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.entry-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--bs-heading-color);
+    margin-bottom: 10px;
+    text-decoration: none;
+}
+
+.entry-title:hover {
+    color: var(--bs-primary);
+}
+
+.entry-meta {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    color: var(--bs-secondary);
+}
+
+.entry-preview {
+    color: var(--bs-text-color);
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.entry-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.tag {
+    background: var(--bs-primary);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.tag:hover {
+    background: var(--bs-primary-hover, var(--bs-primary));
+    color: white;
+}
+
+.mood-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.mood-happy { background: #28a745; color: white; }
+.mood-sad { background: #6c757d; color: white; }
+.mood-anxious { background: #ffc107; color: black; }
+.mood-excited { background: #fd7e14; color: white; }
+.mood-calm { background: #17a2b8; color: white; }
+.mood-angry { background: #dc3545; color: white; }
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--bs-secondary);
+}
+
+.no-results-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.pagination .page-link {
+    padding: 8px 16px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    color: var(--bs-text-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination .page-link:hover {
+    background: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 15px;
+    }
+    
+    .search-form {
+        padding: 20px;
+    }
+    
+    .filters-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .result-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .entry-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <div class="search-form">
+        <h2 class="mb-4">
+            <i class="bi bi-search me-2"></i>
+            Search Your Diary
+        </h2>
+        
+        <form method="GET" action="{{ url_for('main.search_entries') }}">
+            <div class="search-input-group">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" 
+                       name="q" 
+                       class="form-control search-input" 
+                       placeholder="Search by title or content..." 
+                       value="{{ query }}">
+            </div>
+            
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label">Mood</label>
+                    <select name="mood" class="form-select">
+                        <option value="">All Moods</option>
+                        {% for mood in available_moods %}
+                        <option value="{{ mood }}" {% if mood_filter == mood %}selected{% endif %}>
+                            {{ mood.title() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">From Date</label>
+                    <input type="date" 
+                           name="date_from" 
+                           class="form-control" 
+                           value="{{ date_from }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">To Date</label>
+                    <input type="date" 
+                           name="date_to" 
+                           class="form-control" 
+                           value="{{ date_to }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Tags (comma separated)</label>
+                    <input type="text" 
+                           name="tags" 
+                           class="form-control" 
+                           placeholder="e.g., work, family, health" 
+                           value="{{ tags_filter }}">
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>
+                    Search
+                </button>
+                <a href="{{ url_for('main.search_entries') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    {% if query or mood_filter or date_from or date_to or tags_filter %}
+    <div class="search-results">
+        <div class="result-header">
+            <div class="result-count">
+                {% if total_results > 0 %}
+                    Found {{ total_results }} result{{ 's' if total_results != 1 else '' }}
+                {% else %}
+                    No results found
+                {% endif %}
+            </div>
+            {% if query %}
+            <div class="text-muted">
+                Searching for: <strong>"{{ query }}"</strong>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if entries %}
+        {% for entry in entries %}
+        <div class="entry-card" onclick="window.location.href='{{ url_for('main.view_entry', id=entry.id) }}'">
+            <a href="{{ url_for('main.view_entry', id=entry.id) }}" class="entry-title">
+                {{ entry.title or 'Untitled Entry' }}
+            </a>
+            
+            <div class="entry-meta">
+                <div class="meta-item">
+                    <i class="bi bi-calendar"></i>
+                    {{ entry.created_at.strftime('%B %d, %Y') }}
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-clock"></i>
+                    {{ entry.created_at.strftime('%I:%M %p') }}
+                </div>
+                {% if entry.mood %}
+                <div class="meta-item">
+                    <div class="mood-indicator mood-{{ entry.mood.lower() }}">
+                        <i class="bi bi-emoji-smile"></i>
+                        {{ entry.mood.title() }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="entry-preview">
+                {{ entry.content[:200] }}{% if entry.content|length > 200 %}...{% endif %}
+            </div>
+            
+            {% if entry.tags %}
+            <div class="entry-tags">
+                {% for tag in entry.tags %}
+                <a href="{{ url_for('main.search_entries', tags=tag.name) }}" class="tag">
+                    #{{ tag.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('main.search_entries', page=pagination.prev_num, q=query, mood=mood_filter, date_from=date_from, date_to=date_to, tags=tags_filter) }}" 
+               class="page-link">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != pagination.page %}
+                    <a href="{{ url_for('main.search_entries', page=page_num, q=query, mood=mood_filter, date_from=date_from, date_to=date_to, tags=tags_filter) }}" 
+                       class="page-link">
+                        {{ page_num }}
+                    </a>
+                    {% else %}
+                    <span class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </span>
+                    {% endif %}
+                {% else %}
+                <span class="page-link">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <a href="{{ url_for('main.search_entries', page=pagination.next_num, q=query, mood=mood_filter, date_from=date_from, date_to=date_to, tags=tags_filter) }}" 
+               class="page-link">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="bi bi-search"></i>
+            </div>
+            <h3>No entries found</h3>
+            <p>Try adjusting your search terms or filters to find what you're looking for.</p>
+            <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-2"></i>
+                Write a New Entry
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit form on filter changes
+document.querySelectorAll('.filter-group select, .filter-group input').forEach(element => {
+    if (element.type !== 'text') {
+        element.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
+});
+
+// Clear form functionality
+document.querySelector('.btn-outline-secondary')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    window.location.href = '{{ url_for("main.search_entries") }}';
+});
+</script>
+{% endblock %}

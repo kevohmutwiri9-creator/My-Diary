@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}Goals & Streaks - My Diary{% endblock %}
+
+{% block extra_css %}
+<style>
+.goals-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.goals-header {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-secondary));
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.goals-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.streak-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.streak-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff);
+}
+
+.streak-number {
+    font-size: 4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ff6b6b, #4d96ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+    line-height: 1;
+}
+
+.streak-label {
+    font-size: 1.2rem;
+    color: var(--bs-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.streak-fire {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    animation: fire 2s ease-in-out infinite;
+}
+
+@keyframes fire {
+    0%, 100% { transform: scale(1) rotate(-5deg); }
+    50% { transform: scale(1.1) rotate(5deg); }
+}
+
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.goal-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+.goal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-success));
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.goal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--bs-heading-color);
+}
+
+.goal-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--bs-primary);
+}
+
+.progress-container {
+    margin-bottom: 20px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--bs-secondary);
+}
+
+.progress-bar {
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bs-light);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-success));
+    transition: width 0.6s ease;
+    border-radius: 6px;
+}
+
+.goal-form {
+    background: var(--bs-light);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.achievements-section {
+    margin-top: 30px;
+}
+
+.achievement-card {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.achievement-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.achievement-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bs-light);
+}
+
+.achievement-content {
+    flex: 1;
+}
+
+.achievement-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--bs-heading-color);
+}
+
+.achievement-description {
+    color: var(--bs-secondary);
+    font-size: 0.9rem;
+}
+
+.history-chart {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.chart-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--bs-heading-color);
+    margin-bottom: 20px;
+}
+
+.chart-container {
+    height: 200px;
+    position: relative;
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 200px;
+    padding: 10px 0;
+}
+
+.bar-item {
+    flex: 1;
+    background: var(--bs-primary);
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 2px;
+}
+
+.bar-item:hover {
+    background: var(--bs-primary-hover, var(--bs-primary));
+    transform: translateY(-2px);
+}
+
+.bar-item.achieved {
+    background: var(--bs-success);
+}
+
+.bar-item.exceeded {
+    background: var(--bs-warning);
+}
+
+@media (max-width: 768px) {
+    .goals-container {
+        padding: 15px;
+    }
+    
+    .streak-number {
+        font-size: 3rem;
+    }
+    
+    .goals-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .goal-card {
+        padding: 20px;
+    }
+    
+    .achievement-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .bar-chart {
+        gap: 2px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="goals-container">
+    <div class="goals-header">
+        <h1>
+            <i class="bi bi-trophy me-3"></i>
+            Goals & Writing Streaks
+        </h1>
+        <p class="mb-0">Track your progress, build habits, and achieve your writing goals</p>
+    </div>
+    
+    <!-- Current Streak -->
+    <div class="streak-card">
+        <div class="streak-fire">🔥</div>
+        <div class="streak-number">{{ current_streak }}</div>
+        <div class="streak-label">Current Streak</div>
+        <div class="mt-3">
+            <small class="text-muted">Longest streak: {{ longest_streak }} days</small>
+        </div>
+    </div>
+    
+    <!-- Goals Grid -->
+    <div class="goals-grid">
+        <!-- Daily Goal -->
+        <div class="goal-card">
+            <div class="goal-header">
+                <div class="goal-title">
+                    <i class="bi bi-calendar-day me-2"></i>
+                    Daily Goal
+                </div>
+                <div class="goal-value">{{ today_entries }}/{{ daily_goal }}</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>Progress</span>
+                    <span>{{ (today_entries / daily_goal * 100) | round(0) }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (today_entries / daily_goal * 100) | round(0) }}%"></div>
+                </div>
+            </div>
+            
+            <div class="goal-form">
+                <form method="POST" action="{{ url_for('main.update_goals') }}">
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <input type="number" 
+                                   name="daily_goal" 
+                                   class="form-control" 
+                                   value="{{ daily_goal }}" 
+                                   min="1" 
+                                   max="10"
+                                   placeholder="Daily entries">
+                        </div>
+                        <div class="col-4">
+                            <button type="submit" class="btn btn-primary w-100">Update</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Weekly Goal -->
+        <div class="goal-card">
+            <div class="goal-header">
+                <div class="goal-title">
+                    <i class="bi bi-calendar-week me-2"></i>
+                    Weekly Goal
+                </div>
+                <div class="goal-value">{{ week_entries }}/{{ weekly_goal }}</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>Progress</span>
+                    <span>{{ (week_entries / weekly_goal * 100) | round(0) }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (week_entries / weekly_goal * 100) | round(0) }}%"></div>
+                </div>
+            </div>
+            
+            <div class="goal-form">
+                <form method="POST" action="{{ url_for('main.update_goals') }}">
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <input type="number" 
+                                   name="weekly_goal" 
+                                   class="form-control" 
+                                   value="{{ weekly_goal }}" 
+                                   min="1" 
+                                   max="50"
+                                   placeholder="Weekly entries">
+                        </div>
+                        <div class="col-4">
+                            <button type="submit" class="btn btn-primary w-100">Update</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Achievements -->
+    {% if recent_achievements %}
+    <div class="achievements-section">
+        <h3 class="mb-4">
+            <i class="bi bi-award me-2"></i>
+            Recent Achievements
+        </h3>
+        
+        {% for achievement in recent_achievements %}
+        <div class="achievement-card">
+            <div class="achievement-icon text-{{ achievement.color }}">
+                <i class="bi {{ achievement.icon }}"></i>
+            </div>
+            <div class="achievement-content">
+                <div class="achievement-title">{{ achievement.title }}</div>
+                <div class="achievement-description">{{ achievement.description }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Goal History Chart -->
+    <div class="history-chart">
+        <h3 class="chart-title">
+            <i class="bi bi-graph-up me-2"></i>
+            30-Day Goal History
+        </h3>
+        <div class="chart-container">
+            <div class="bar-chart">
+                {% for day in goal_history %}
+                <div class="bar-item 
+                    {% if day.daily_entries >= daily_goal %}achieved{% endif %}
+                    {% if day.daily_entries > daily_goal * 1.5 %}exceeded{% endif %}"
+                     style="height: {{ (day.daily_entries / max([d.daily_entries for d in goal_history] + [daily_goal]) * 100) if goal_history else 0 }}%"
+                     title="{{ day.date.strftime('%b %d') }}: {{ day.daily_entries }} entries">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mt-3 text-center">
+            <small class="text-muted">Last 30 days - Green: Goal achieved, Yellow: Goal exceeded</small>
+        </div>
+    </div>
+    
+    <!-- Goal Tips -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Goal Tips
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Start with small, achievable goals
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Write at the same time each day
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Don't break the chain!
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Focus on consistency over quantity
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-graph-up-arrow me-2"></i>
+                        Progress Milestones
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-fire text-danger me-2"></i>
+                            <strong>7 days</strong> - One week streak
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-star text-primary me-2"></i>
+                            <strong>30 days</strong> - One month streak
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-trophy text-warning me-2"></i>
+                            <strong>100 days</strong> - Century streak
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-award text-success me-2"></i>
+                            <strong>365 days</strong> - Year streak
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars on page load
+    const progressFills = document.querySelectorAll('.progress-fill');
+    progressFills.forEach(fill => {
+        const width = fill.style.width;
+        fill.style.width = '0';
+        setTimeout(() => {
+            fill.style.width = width;
+        }, 100);
+    });
+    
+    // Animate streak number
+    const streakNumber = document.querySelector('.streak-number');
+    if (streakNumber) {
+        const finalValue = parseInt(streakNumber.textContent);
+        let currentValue = 0;
+        const increment = finalValue / 50;
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                currentValue = finalValue;
+                clearInterval(timer);
+            }
+            streakNumber.textContent = Math.floor(currentValue);
+        }, 20);
+    }
+    
+    // Add hover effects to achievement cards
+    const achievementCards = document.querySelectorAll('.achievement-card');
+    achievementCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Bar chart interactions
+    const barItems = document.querySelectorAll('.bar-item');
+    barItems.forEach(bar => {
+        bar.addEventListener('mouseenter', function() {
+            const title = this.getAttribute('title');
+            if (title) {
+                this.setAttribute('data-bs-toggle', 'tooltip');
+                this.setAttribute('data-bs-placement', 'top');
+                new bootstrap.Tooltip(this);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -28,6 +28,7 @@ class User(UserMixin, db.Model):
     reminder_opt_in = db.Column(db.Boolean, default=False)
     reminder_frequency = db.Column(db.String(20), default='weekly')
     reminder_last_sent = db.Column(db.DateTime, nullable=True)
+    theme_preference = db.Column(db.String(20), default='system')  # system, light, dark, high-contrast, ocean-blue, forest-green
     daily_goal = db.Column(db.Integer, default=1)
     weekly_goal = db.Column(db.Integer, default=7)
     # Social features

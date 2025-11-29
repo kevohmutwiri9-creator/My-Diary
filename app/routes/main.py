@@ -1853,3 +1853,1347 @@ def api_community_report(entry_id):
     except Exception as e:
         current_app.logger.error(f'Error reporting entry {entry_id}: {str(e)}', exc_info=True)
         return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@main_bp.route('/theme/set', methods=['POST'])
+@login_required
+def set_theme():
+    """Set user theme preference"""
+    try:
+        theme = request.json.get('theme', 'system')
+        
+        # Validate theme
+        valid_themes = ['system', 'light', 'dark', 'high-contrast', 'ocean-blue', 'forest-green']
+        if theme not in valid_themes:
+            return jsonify({'success': False, 'message': 'Invalid theme'}), 400
+        
+        # Update user preference
+        current_user.theme_preference = theme
+        db.session.commit()
+        
+        return jsonify({'success': True, 'theme': theme})
+        
+    except Exception as e:
+        current_app.logger.error(f'Error setting theme: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@main_bp.route('/search')
+@login_required
+def search_entries():
+    """Search diary entries with filters"""
+    query = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Filter options
+    mood_filter = request.args.get('mood', '')
+    date_from = request.args.get('date_from', '')
+    date_to = request.args.get('date_to', '')
+    tags_filter = request.args.get('tags', '').strip()
+    
+    try:
+        # Base query
+        entries_query = Entry.query.filter_by(user_id=current_user.id)
+        
+        # Apply text search
+        if query:
+            search_filter = db.or_(
+                Entry.title.contains(query),
+                Entry.content.contains(query)
+            )
+            entries_query = entries_query.filter(search_filter)
+        
+        # Apply mood filter
+        if mood_filter:
+            entries_query = entries_query.filter(Entry.mood == mood_filter)
+        
+        # Apply date filters
+        if date_from:
+            try:
+                from datetime import datetime
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+                entries_query = entries_query.filter(Entry.created_at >= date_from_obj)
+            except ValueError:
+                pass  # Invalid date format, ignore
+        
+        if date_to:
+            try:
+                from datetime import datetime
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+                # Add one day to include the end date
+                date_to_obj = date_to_obj.replace(hour=23, minute=59, second=59)
+                entries_query = entries_query.filter(Entry.created_at <= date_to_obj)
+            except ValueError:
+                pass  # Invalid date format, ignore
+        
+        # Apply tags filter
+        if tags_filter:
+            tag_names = [tag.strip() for tag in tags_filter.split(',') if tag.strip()]
+            for tag_name in tag_names:
+                entries_query = entries_query.filter(Entry.tags.any(Tag.name.contains(tag_name)))
+        
+        # Order by latest first
+        entries_query = entries_query.order_by(Entry.created_at.desc())
+        
+        # Paginate
+        pagination = entries_query.paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Get available moods for filter dropdown
+        available_moods = db.session.query(Entry.mood).filter(
+            Entry.user_id == current_user.id,
+            Entry.mood.isnot(None)
+        ).distinct().all()
+        available_moods = [mood[0] for mood in available_moods if mood[0]]
+        
+        return render_template('search.html',
+                             entries=pagination.items,
+                             pagination=pagination,
+                             query=query,
+                             mood_filter=mood_filter,
+                             date_from=date_from,
+                             date_to=date_to,
+                             tags_filter=tags_filter,
+                             available_moods=available_moods,
+                             total_results=pagination.total)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error searching entries: {str(e)}', exc_info=True)
+        flash('Search failed. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/analytics')
+@login_required
+def analytics():
+    """Analytics dashboard with writing statistics and insights"""
+    try:
+        from datetime import datetime, timedelta
+        from sqlalchemy import func, extract
+        
+        # Basic stats
+        total_entries = Entry.query.filter_by(user_id=current_user.id).count()
+        total_words = db.session.query(func.sum(func.length(Entry.content))).filter_by(user_id=current_user.id).scalar() or 0
+        avg_words_per_entry = total_words // total_entries if total_entries > 0 else 0
+        
+        # This month's entries
+        current_month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        this_month_entries = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            Entry.created_at >= current_month_start
+        ).count()
+        
+        # Writing streak
+        entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).limit(30).all()
+        current_streak = calculate_writing_streak(entries)
+        
+        # Mood analysis
+        mood_data = db.session.query(
+            Entry.mood,
+            func.count(Entry.id).label('count')
+        ).filter(
+            Entry.user_id == current_user.id,
+            Entry.mood.isnot(None)
+        ).group_by(Entry.mood).all()
+        
+        # Daily writing pattern (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        daily_data = db.session.query(
+            func.date(Entry.created_at).label('date'),
+            func.count(Entry.id).label('count')
+        ).filter(
+            Entry.user_id == current_user.id,
+            Entry.created_at >= thirty_days_ago
+        ).group_by(func.date(Entry.created_at)).all()
+        
+        # Most used tags
+        tag_data = db.session.query(
+            Tag.name,
+            func.count(Entry.id).label('count')
+        ).join(Entry.tags).filter(
+            Entry.user_id == current_user.id
+        ).group_by(Tag.name).order_by(func.count(Entry.id).desc()).limit(10).all()
+        
+        # Recent activity
+        recent_entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).limit(5).all()
+        
+        # Monthly progress (last 6 months)
+        monthly_data = []
+        for i in range(6):
+            month_start = (datetime.now().replace(day=1) - timedelta(days=30*i)).replace(day=1)
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            
+            entries_count = Entry.query.filter(
+                Entry.user_id == current_user.id,
+                Entry.created_at >= month_start,
+                Entry.created_at <= month_end
+            ).count()
+            
+            monthly_data.append({
+                'month': month_start.strftime('%b'),
+                'count': entries_count
+            })
+        
+        monthly_data.reverse()
+        
+        return render_template('analytics.html',
+                             total_entries=total_entries,
+                             total_words=total_words,
+                             avg_words_per_entry=avg_words_per_entry,
+                             this_month_entries=this_month_entries,
+                             current_streak=current_streak,
+                             mood_data=mood_data,
+                             daily_data=daily_data,
+                             tag_data=tag_data,
+                             recent_entries=recent_entries,
+                             monthly_data=monthly_data)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading analytics: {str(e)}', exc_info=True)
+        flash('Analytics data unavailable. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+def calculate_writing_streak(entries):
+    """Calculate current writing streak from entries"""
+    if not entries:
+        return 0
+    
+    streak = 0
+    current_date = datetime.now().date()
+    
+    for entry in entries:
+        entry_date = entry.created_at.date()
+        
+        if entry_date == current_date - timedelta(days=streak):
+            streak += 1
+        else:
+            break
+    
+    return streak
+
+@main_bp.route('/export')
+@login_required
+def export_entries():
+    """Export diary entries in various formats"""
+    export_format = request.args.get('format', 'json').lower()
+    date_from = request.args.get('date_from', '')
+    date_to = request.args.get('date_to', '')
+    
+    try:
+        from datetime import datetime
+        import json
+        from io import BytesIO
+        import zipfile
+        
+        # Base query
+        entries_query = Entry.query.filter_by(user_id=current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+                entries_query = entries_query.filter(Entry.created_at >= date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+                date_to_obj = date_to_obj.replace(hour=23, minute=59, second=59)
+                entries_query = entries_query.filter(Entry.created_at <= date_to_obj)
+            except ValueError:
+                pass
+        
+        # Get entries
+        entries = entries_query.order_by(Entry.created_at.desc()).all()
+        
+        if export_format == 'json':
+            return export_as_json(entries)
+        elif export_format == 'pdf':
+            return export_as_pdf(entries)
+        elif export_format == 'txt':
+            return export_as_txt(entries)
+        elif export_format == 'zip':
+            return export_as_zip(entries)
+        else:
+            flash('Invalid export format', 'error')
+            return redirect(url_for('main.dashboard'))
+            
+    except Exception as e:
+        current_app.logger.error(f'Error exporting entries: {str(e)}', exc_info=True)
+        flash('Export failed. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+def export_as_json(entries):
+    """Export entries as JSON"""
+    import json
+    from datetime import datetime
+    
+    export_data = {
+        'export_date': datetime.utcnow().isoformat(),
+        'user': {
+            'username': current_user.username,
+            'email': current_user.email
+        },
+        'total_entries': len(entries),
+        'entries': []
+    }
+    
+    for entry in entries:
+        entry_data = {
+            'id': entry.id,
+            'title': entry.title,
+            'content': entry.content,
+            'mood': entry.mood,
+            'created_at': entry.created_at.isoformat(),
+            'updated_at': entry.updated_at.isoformat() if entry.updated_at else None,
+            'tags': [tag.name for tag in entry.tags]
+        }
+        export_data['entries'].append(entry_data)
+    
+    # Create JSON response
+    json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+    
+    response = current_app.response_class(
+        json_str,
+        mimetype='application/json',
+        direct_passthrough=True
+    )
+    
+    filename = f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    response.headers.set('Content-Disposition', f'attachment; filename={filename}')
+    
+    return response
+
+def export_as_txt(entries):
+    """Export entries as plain text"""
+    from datetime import datetime
+    
+    content_lines = []
+    content_lines.append(f"My Diary Export")
+    content_lines.append(f"Export Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    content_lines.append(f"User: {current_user.username} ({current_user.email})")
+    content_lines.append(f"Total Entries: {len(entries)}")
+    content_lines.append("=" * 50)
+    content_lines.append("")
+    
+    for entry in entries:
+        content_lines.append(f"Title: {entry.title or 'Untitled'}")
+        content_lines.append(f"Date: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+        if entry.mood:
+            content_lines.append(f"Mood: {entry.mood}")
+        if entry.tags:
+            content_lines.append(f"Tags: {', '.join([tag.name for tag in entry.tags])}")
+        content_lines.append("-" * 30)
+        content_lines.append(entry.content)
+        content_lines.append("")
+        content_lines.append("=" * 50)
+        content_lines.append("")
+    
+    content = "\n".join(content_lines)
+    
+    response = current_app.response_class(
+        content,
+        mimetype='text/plain',
+        direct_passthrough=True
+    )
+    
+    filename = f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    response.headers.set('Content-Disposition', f'attachment; filename={filename}')
+    
+    return response
+
+def export_as_pdf(entries):
+    """Export entries as PDF"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib.colors import black, blue
+        from datetime import datetime
+        
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            spaceAfter=12,
+            textColor=black
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=12,
+            spaceAfter=6,
+            textColor=blue
+        )
+        
+        content_style = ParagraphStyle(
+            'CustomContent',
+            parent=styles['Normal'],
+            fontSize=10,
+            spaceAfter=12,
+            leading=14
+        )
+        
+        story = []
+        
+        # Header
+        story.append(Paragraph("My Diary Export", title_style))
+        story.append(Paragraph(f"Export Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", content_style))
+        story.append(Paragraph(f"User: {current_user.username}", content_style))
+        story.append(Paragraph(f"Total Entries: {len(entries)}", content_style))
+        story.append(Spacer(1, 0.2*inch))
+        
+        for entry in entries:
+            story.append(PageBreak())
+            story.append(Paragraph(entry.title or 'Untitled', title_style))
+            story.append(Paragraph(f"Date: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}", heading_style))
+            
+            if entry.mood:
+                story.append(Paragraph(f"Mood: {entry.mood}", heading_style))
+            
+            if entry.tags:
+                tags_str = ', '.join([tag.name for tag in entry.tags])
+                story.append(Paragraph(f"Tags: {tags_str}", heading_style))
+            
+            story.append(Spacer(1, 0.1*inch))
+            
+            # Clean content for PDF
+            content = entry.content.replace('\n', '<br/>')
+            story.append(Paragraph(content, content_style))
+        
+        doc.build(story)
+        
+        buffer.seek(0)
+        
+        response = current_app.response_class(
+            buffer.getvalue(),
+            mimetype='application/pdf',
+            direct_passthrough=True
+        )
+        
+        filename = f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        response.headers.set('Content-Disposition', f'attachment; filename={filename}')
+        
+        return response
+        
+    except ImportError:
+        flash('PDF export not available. Please install reportlab library.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+def export_as_zip(entries):
+    """Export entries as ZIP with multiple formats"""
+    import zipfile
+    from io import BytesIO
+    from datetime import datetime
+    
+    buffer = BytesIO()
+    
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # Add JSON export
+        json_response = export_as_json(entries)
+        zip_file.writestr(f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", 
+                          json_response.get_data())
+        
+        # Add TXT export
+        txt_response = export_as_txt(entries)
+        zip_file.writestr(f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt", 
+                          txt_response.get_data())
+        
+        # Try to add PDF export
+        try:
+            pdf_response = export_as_pdf(entries)
+            zip_file.writestr(f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf", 
+                              pdf_response.get_data())
+        except:
+            pass  # Skip PDF if not available
+    
+    buffer.seek(0)
+    
+    response = current_app.response_class(
+        buffer.getvalue(),
+        mimetype='application/zip',
+        direct_passthrough=True
+    )
+    
+    filename = f"diary_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+    response.headers.set('Content-Disposition', f'attachment; filename={filename}')
+    
+    return response
+
+@main_bp.route('/goals')
+@login_required
+def goals():
+    """Goal tracking and writing streaks management"""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Get current goals
+        daily_goal = current_user.daily_goal or 1
+        weekly_goal = current_user.weekly_goal or 7
+        
+        # Calculate current progress
+        today = datetime.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        
+        # Daily progress
+        today_entries = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            func.date(Entry.created_at) == today
+        ).count()
+        
+        # Weekly progress
+        week_entries = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            func.date(Entry.created_at) >= week_start
+        ).count()
+        
+        # Current streak (already implemented)
+        entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).limit(30).all()
+        current_streak = calculate_writing_streak(entries)
+        
+        # Longest streak
+        all_entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.asc()).all()
+        longest_streak = calculate_longest_streak(all_entries)
+        
+        # Goal achievement history
+        goal_history = get_goal_achievement_history(current_user.id)
+        
+        # Recent achievements
+        recent_achievements = check_recent_achievements(current_user, today_entries, week_entries, current_streak)
+        
+        return render_template('goals.html',
+                             daily_goal=daily_goal,
+                             weekly_goal=weekly_goal,
+                             today_entries=today_entries,
+                             week_entries=week_entries,
+                             current_streak=current_streak,
+                             longest_streak=longest_streak,
+                             goal_history=goal_history,
+                             recent_achievements=recent_achievements)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading goals: {str(e)}', exc_info=True)
+        flash('Goals data unavailable. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/goals/update', methods=['POST'])
+@login_required
+def update_goals():
+    """Update user goals"""
+    try:
+        daily_goal = request.form.get('daily_goal', type=int)
+        weekly_goal = request.form.get('weekly_goal', type=int)
+        
+        # Validate goals
+        if daily_goal and (daily_goal < 1 or daily_goal > 10):
+            flash('Daily goal must be between 1 and 10 entries', 'error')
+            return redirect(url_for('main.goals'))
+        
+        if weekly_goal and (weekly_goal < 1 or weekly_goal > 50):
+            flash('Weekly goal must be between 1 and 50 entries', 'error')
+            return redirect(url_for('main.goals'))
+        
+        # Update user goals
+        current_user.daily_goal = daily_goal or 1
+        current_user.weekly_goal = weekly_goal or 7
+        db.session.commit()
+        
+        flash('Goals updated successfully!', 'success')
+        return redirect(url_for('main.goals'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error updating goals: {str(e)}', exc_info=True)
+        flash('Failed to update goals. Please try again.', 'error')
+        return redirect(url_for('main.goals'))
+
+def calculate_longest_streak(entries):
+    """Calculate the longest writing streak from all entries"""
+    if not entries:
+        return 0
+    
+    longest_streak = 0
+    current_streak = 1
+    
+    for i in range(1, len(entries)):
+        current_date = entries[i].created_at.date()
+        prev_date = entries[i-1].created_at.date()
+        
+        if current_date == prev_date + timedelta(days=1):
+            current_streak += 1
+        elif current_date != prev_date:
+            current_streak = 1
+        
+        longest_streak = max(longest_streak, current_streak)
+    
+    return max(longest_streak, 1)
+
+def get_goal_achievement_history(user_id):
+    """Get goal achievement history for the last 30 days"""
+    from datetime import datetime, timedelta
+    
+    history = []
+    today = datetime.now().date()
+    
+    for i in range(30):
+        date = today - timedelta(days=i)
+        
+        # Daily entries on this date
+        daily_entries = Entry.query.filter(
+            Entry.user_id == user_id,
+            func.date(Entry.created_at) == date
+        ).count()
+        
+        # Week entries for this date's week
+        week_start = date - timedelta(days=date.weekday())
+        week_entries = Entry.query.filter(
+            Entry.user_id == user_id,
+            func.date(Entry.created_at) >= week_start,
+            func.date(Entry.created_at) <= date
+        ).count()
+        
+        history.append({
+            'date': date,
+            'daily_entries': daily_entries,
+            'week_entries': week_entries
+        })
+    
+    return history
+
+def check_recent_achievements(user, today_entries, week_entries, current_streak):
+    """Check for recent achievements and milestones"""
+    achievements = []
+    
+    # Daily goal achievements
+    if today_entries >= user.daily_goal:
+        if today_entries == user.daily_goal:
+            achievements.append({
+                'type': 'daily_goal',
+                'title': f'Daily Goal Achieved!',
+                'description': f'You wrote {today_entries} entries today',
+                'icon': 'bi-calendar-check',
+                'color': 'success'
+            })
+        elif today_entries > user.daily_goal * 2:
+            achievements.append({
+                'type': 'daily_exceeded',
+                'title': f'Amazing Progress!',
+                'description': f'You wrote {today_entries} entries today - double your goal!',
+                'icon': 'bi-trophy',
+                'color': 'warning'
+            })
+    
+    # Weekly goal achievements
+    if week_entries >= user.weekly_goal:
+        achievements.append({
+            'type': 'weekly_goal',
+            'title': f'Weekly Goal Achieved!',
+            'description': f'You wrote {week_entries} entries this week',
+            'icon': 'bi-calendar-week',
+            'color': 'info'
+        })
+    
+    # Streak achievements
+    if current_streak == 7:
+        achievements.append({
+            'type': 'streak_week',
+            'title': 'One Week Streak!',
+            'description': 'You have written for 7 consecutive days',
+            'icon': 'bi-fire',
+            'color': 'danger'
+        })
+    elif current_streak == 30:
+        achievements.append({
+            'type': 'streak_month',
+            'title': 'One Month Streak!',
+            'description': 'You have written for 30 consecutive days',
+            'icon': 'bi-star',
+            'color': 'primary'
+        })
+    elif current_streak > 0 and current_streak % 10 == 0:
+        achievements.append({
+            'type': 'streak_milestone',
+            'title': f'{current_streak} Day Streak!',
+            'description': f'You have written for {current_streak} consecutive days',
+            'icon': 'bi-award',
+            'color': 'success'
+        })
+    
+    return achievements
+
+@main_bp.route('/mood-insights')
+@login_required
+def mood_insights():
+    """Mood tracking with emotional insights and patterns"""
+    try:
+        from datetime import datetime, timedelta
+        from sqlalchemy import func
+        
+        # Get mood distribution
+        mood_data = db.session.query(
+            Entry.mood,
+            func.count(Entry.id).label('count')
+        ).filter(
+            Entry.user_id == current_user.id,
+            Entry.mood.isnot(None)
+        ).group_by(Entry.mood).all()
+        
+        # Mood trends over time (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        mood_trends = db.session.query(
+            func.date(Entry.created_at).label('date'),
+            Entry.mood,
+            func.count(Entry.id).label('count')
+        ).filter(
+            Entry.user_id == current_user.id,
+            Entry.created_at >= thirty_days_ago,
+            Entry.mood.isnot(None)
+        ).group_by(func.date(Entry.created_at), Entry.mood).all()
+        
+        # Organize mood trends by date
+        mood_by_date = {}
+        for trend in mood_trends:
+            date_str = trend.date.strftime('%Y-%m-%d')
+            if date_str not in mood_by_date:
+                mood_by_date[date_str] = {}
+            mood_by_date[date_str][trend.mood] = trend.count
+        
+        # Mood patterns by day of week
+        mood_by_weekday = db.session.query(
+            extract('dow', Entry.created_at).label('weekday'),
+            Entry.mood,
+            func.count(Entry.id).label('count')
+        ).filter(
+            Entry.user_id == current_user.id,
+            Entry.mood.isnot(None)
+        ).group_by(extract('dow', Entry.created_at), Entry.mood).all()
+        
+        # Organize by weekday
+        weekday_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        mood_weekday_data = {i: {} for i in range(7)}
+        for data in mood_by_weekday:
+            weekday = int(data.weekday)
+            mood_weekday_data[weekday][data.mood] = data.count
+        
+        # Recent mood entries
+        recent_mood_entries = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            Entry.mood.isnot(None)
+        ).order_by(Entry.created_at.desc()).limit(10).all()
+        
+        # Mood insights and recommendations
+        insights = generate_mood_insights(mood_data, mood_trends, mood_by_date)
+        
+        return render_template('mood_insights.html',
+                             mood_data=mood_data,
+                             mood_by_date=mood_by_date,
+                             mood_weekday_data=mood_weekday_data,
+                             weekday_names=weekday_names,
+                             recent_mood_entries=recent_mood_entries,
+                             insights=insights)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading mood insights: {str(e)}', exc_info=True)
+        flash('Mood insights unavailable. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+def generate_mood_insights(mood_data, mood_trends, mood_by_date):
+    """Generate personalized mood insights and recommendations"""
+    insights = []
+    
+    # Most common mood
+    if mood_data:
+        most_common = max(mood_data, key=lambda x: x.count)
+        insights.append({
+            'type': 'pattern',
+            'title': 'Your Most Common Mood',
+            'description': f'You most often feel {most_common.mood.lower()} ({most_common.count} times)',
+            'icon': 'bi-graph-up',
+            'color': 'primary'
+        })
+    
+    # Mood stability
+    if len(mood_data) > 1:
+        mood_counts = [mood.count for mood in mood_data]
+        avg_count = sum(mood_counts) / len(mood_counts)
+        variance = sum((count - avg_count) ** 2 for count in mood_counts) / len(mood_counts)
+        
+        if variance < avg_count * 0.5:
+            insights.append({
+                'type': 'stability',
+                'title': 'Emotionally Balanced',
+                'description': 'Your moods are quite balanced and stable',
+                'icon': 'bi-balance-scale',
+                'color': 'success'
+            })
+        else:
+            insights.append({
+                'type': 'variability',
+                'title': 'Emotionally Dynamic',
+                'description': 'You experience a wide range of emotions',
+                'icon': 'bi-rainbow',
+                'color': 'info'
+            })
+    
+    # Recent mood trend
+    if mood_by_date:
+        recent_dates = sorted(mood_by_date.keys())[-7:]  # Last 7 days
+        recent_moods = []
+        for date in recent_dates:
+            if mood_by_date[date]:
+                most_common_mood = max(mood_by_date[date].items(), key=lambda x: x[1])[0]
+                recent_moods.append(most_common_mood)
+        
+        if len(set(recent_moods)) == 1 and recent_moods:
+            insights.append({
+                'type': 'trend',
+                'title': 'Consistent Mood Pattern',
+                'description': f'You\'ve been feeling {recent_moods[0].lower()} consistently lately',
+                'icon': 'bi-arrow-right-circle',
+                'color': 'warning'
+            })
+    
+    # Recommendations based on mood patterns
+    positive_moods = ['happy', 'excited', 'calm']
+    negative_moods = ['sad', 'anxious', 'angry']
+    
+    positive_count = sum(mood.count for mood in mood_data if mood.mood in positive_moods)
+    negative_count = sum(mood.count for mood in mood_data if mood.mood in negative_moods)
+    
+    if negative_count > positive_count * 1.5:
+        insights.append({
+            'type': 'recommendation',
+            'title': 'Self-Care Recommendation',
+            'description': 'Consider focusing on activities that bring you joy and relaxation',
+            'icon': 'bi-heart',
+            'color': 'danger'
+        })
+    elif positive_count > negative_count * 1.5:
+        insights.append({
+            'type': 'positive',
+            'title': 'Great Emotional Health',
+            'description': 'You maintain a positive outlook on life',
+            'icon': 'bi-sunshine',
+            'color': 'success'
+        })
+    
+    return insights
+
+@main_bp.route('/backup')
+@login_required
+def backup_data():
+    """Create backup of user data and settings"""
+    try:
+        from datetime import datetime
+        import json
+        from io import BytesIO
+        import zipfile
+        
+        # Get all user data
+        entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).all()
+        
+        # Create comprehensive backup data
+        backup_data = {
+            'backup_info': {
+                'created_at': datetime.utcnow().isoformat(),
+                'version': '1.0',
+                'user_email': current_user.email,
+                'user_username': current_user.username
+            },
+            'user_settings': {
+                'theme_preference': getattr(current_user, 'theme_preference', 'system'),
+                'daily_goal': getattr(current_user, 'daily_goal', 1),
+                'weekly_goal': getattr(current_user, 'weekly_goal', 7),
+                'created_at': current_user.created_at.isoformat()
+            },
+            'entries': [],
+            'tags': [],
+            'statistics': {
+                'total_entries': len(entries),
+                'total_words': sum(len(entry.content.split()) for entry in entries),
+                'date_range': {
+                    'first_entry': entries[-1].created_at.isoformat() if entries else None,
+                    'last_entry': entries[0].created_at.isoformat() if entries else None
+                }
+            }
+        }
+        
+        # Add entries with full data
+        for entry in entries:
+            entry_data = {
+                'id': entry.id,
+                'title': entry.title,
+                'content': entry.content,
+                'mood': entry.mood,
+                'created_at': entry.created_at.isoformat(),
+                'updated_at': entry.updated_at.isoformat() if entry.updated_at else None,
+                'tags': [tag.name for tag in entry.tags]
+            }
+            backup_data['entries'].append(entry_data)
+        
+        # Get all tags used by user
+        user_tags = set()
+        for entry in entries:
+            user_tags.update(tag.name for tag in entry.tags)
+        
+        backup_data['tags'] = sorted(list(user_tags))
+        
+        # Create ZIP file with multiple formats
+        buffer = BytesIO()
+        
+        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Add JSON backup
+            json_str = json.dumps(backup_data, indent=2, ensure_ascii=False)
+            zip_file.writestr(f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", json_str)
+            
+            # Add plain text export
+            txt_content = generate_text_backup(backup_data)
+            zip_file.writestr(f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt", txt_content)
+            
+            # Add CSV export for entries
+            csv_content = generate_csv_backup(backup_data['entries'])
+            zip_file.writestr(f"entries_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", csv_content)
+            
+            # Add README file
+            readme_content = generate_backup_readme()
+            zip_file.writestr("README.txt", readme_content)
+        
+        buffer.seek(0)
+        
+        response = current_app.response_class(
+            buffer.getvalue(),
+            mimetype='application/zip',
+            direct_passthrough=True
+        )
+        
+        filename = f"my_diary_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        response.headers.set('Content-Disposition', f'attachment; filename={filename}')
+        
+        return response
+        
+    except Exception as e:
+        current_app.logger.error(f'Error creating backup: {str(e)}', exc_info=True)
+        flash('Backup failed. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/restore', methods=['GET', 'POST'])
+@login_required
+def restore_data():
+    """Restore user data from backup"""
+    if request.method == 'GET':
+        return render_template('restore.html')
+    
+    try:
+        if 'backup_file' not in request.files:
+            flash('No backup file selected', 'error')
+            return redirect(url_for('main.restore'))
+        
+        file = request.files['backup_file']
+        if file.filename == '':
+            flash('No backup file selected', 'error')
+            return redirect(url_for('main.restore'))
+        
+        if not file.filename.endswith('.zip'):
+            flash('Invalid backup file. Please select a ZIP backup file.', 'error')
+            return redirect(url_for('main.restore'))
+        
+        # Read ZIP file
+        import zipfile
+        import json
+        from io import BytesIO
+        
+        buffer = BytesIO()
+        file.save(buffer)
+        buffer.seek(0)
+        
+        with zipfile.ZipFile(buffer, 'r') as zip_file:
+            # Find JSON backup file
+            json_files = [f for f in zip_file.namelist() if f.endswith('.json')]
+            if not json_files:
+                flash('Invalid backup file format', 'error')
+                return redirect(url_for('main.restore'))
+            
+            # Read backup data
+            with zip_file.open(json_files[0]) as json_file:
+                backup_data = json.load(json_file)
+        
+        # Validate backup data
+        if not validate_backup_data(backup_data):
+            flash('Invalid backup data format', 'error')
+            return redirect(url_for('main.restore'))
+        
+        # Check if this is the correct user
+        if backup_data['backup_info']['user_email'] != current_user.email:
+            flash('This backup belongs to a different user account', 'error')
+            return redirect(url_for('main.restore'))
+        
+        # Restore data
+        restore_success = perform_restore(backup_data, current_user.id)
+        
+        if restore_success:
+            flash('Data restored successfully! Your diary has been updated.', 'success')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Restore completed with some warnings. Check your entries.', 'warning')
+            return redirect(url_for('main.dashboard'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error restoring backup: {str(e)}', exc_info=True)
+        flash('Restore failed. Please check your backup file and try again.', 'error')
+        return redirect(url_for('main.restore'))
+
+def generate_text_backup(backup_data):
+    """Generate plain text backup"""
+    lines = []
+    lines.append("=" * 60)
+    lines.append("MY DIARY BACKUP")
+    lines.append("=" * 60)
+    lines.append(f"Created: {backup_data['backup_info']['created_at']}")
+    lines.append(f"User: {backup_data['backup_info']['user_username']} ({backup_data['backup_info']['user_email']})")
+    lines.append(f"Total Entries: {backup_data['statistics']['total_entries']}")
+    lines.append("")
+    
+    lines.append("USER SETTINGS")
+    lines.append("-" * 30)
+    settings = backup_data['user_settings']
+    lines.append(f"Theme: {settings.get('theme_preference', 'system')}")
+    lines.append(f"Daily Goal: {settings.get('daily_goal', 1)} entries")
+    lines.append(f"Weekly Goal: {settings.get('weekly_goal', 7)} entries")
+    lines.append("")
+    
+    lines.append("TAGS USED")
+    lines.append("-" * 30)
+    for tag in backup_data['tags']:
+        lines.append(f"#{tag}")
+    lines.append("")
+    
+    lines.append("ENTRIES")
+    lines.append("=" * 60)
+    
+    for entry in backup_data['entries']:
+        lines.append(f"Title: {entry['title'] or 'Untitled'}")
+        lines.append(f"Date: {entry['created_at']}")
+        if entry['mood']:
+            lines.append(f"Mood: {entry['mood']}")
+        if entry['tags']:
+            lines.append(f"Tags: {', '.join(entry['tags'])}")
+        lines.append("-" * 40)
+        lines.append(entry['content'])
+        lines.append("")
+        lines.append("=" * 60)
+        lines.append("")
+    
+    return "\n".join(lines)
+
+def generate_csv_backup(entries):
+    """Generate CSV backup of entries"""
+    import csv
+    from io import StringIO
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(['ID', 'Title', 'Content', 'Mood', 'Created At', 'Updated At', 'Tags'])
+    
+    # Write entries
+    for entry in entries:
+        writer.writerow([
+            entry['id'],
+            entry['title'] or '',
+            entry['content'],
+            entry['mood'] or '',
+            entry['created_at'],
+            entry['updated_at'] or '',
+            ', '.join(entry['tags'])
+        ])
+    
+    return output.getvalue()
+
+def generate_backup_readme():
+    """Generate README file for backup"""
+    content = """MY DIARY BACKUP README
+==================
+
+This backup contains your complete diary data and settings.
+
+FILES INCLUDED:
+- backup_YYYYMMDD_HHMMSS.json: Complete backup in JSON format
+- backup_YYYYMMDD_HHMMSS.txt: Human-readable text backup
+- entries_YYYYMMDD_HHMMSS.csv: Entries in CSV format
+- README.txt: This file
+
+BACKUP FORMAT:
+The JSON backup contains:
+- Backup information (creation date, version, user info)
+- User settings (theme, goals, preferences)
+- All entries with content, metadata, and tags
+- Statistics and summary information
+
+RESTORING:
+To restore this backup, use the Restore feature in your diary application.
+The backup can only be restored to the same user account it was created from.
+
+IMPORTANT:
+- Keep this backup file safe and secure
+- It contains your personal thoughts and feelings
+- Store it in a secure location
+- Regular backups are recommended
+
+Created with My Diary App
+"""
+    return content
+
+def validate_backup_data(backup_data):
+    """Validate backup data structure"""
+    required_keys = ['backup_info', 'user_settings', 'entries', 'tags', 'statistics']
+    
+    for key in required_keys:
+        if key not in backup_data:
+            return False
+    
+    # Check backup info
+    backup_info = backup_data['backup_info']
+    if not all(k in backup_info for k in ['created_at', 'user_email', 'user_username']):
+        return False
+    
+    # Check entries structure
+    entries = backup_data['entries']
+    for entry in entries:
+        if not all(k in entry for k in ['id', 'title', 'content', 'created_at']):
+            return False
+    
+    return True
+
+def perform_restore(backup_data, user_id):
+    """Perform the actual data restoration"""
+    try:
+        from app.models.tag import Tag
+        from datetime import datetime
+        
+        # Restore user settings
+        settings = backup_data['user_settings']
+        user = User.query.get(user_id)
+        
+        if hasattr(user, 'theme_preference'):
+            user.theme_preference = settings.get('theme_preference', 'system')
+        if hasattr(user, 'daily_goal'):
+            user.daily_goal = settings.get('daily_goal', 1)
+        if hasattr(user, 'weekly_goal'):
+            user.weekly_goal = settings.get('weekly_goal', 7)
+        
+        # Restore entries
+        for entry_data in backup_data['entries']:
+            # Check if entry already exists
+            existing_entry = Entry.query.filter_by(id=entry_data['id'], user_id=user_id).first()
+            
+            if existing_entry:
+                # Update existing entry
+                existing_entry.title = entry_data['title']
+                existing_entry.content = entry_data['content']
+                existing_entry.mood = entry_data['mood']
+                existing_entry.updated_at = datetime.utcnow()
+            else:
+                # Create new entry
+                entry = Entry(
+                    id=entry_data['id'],
+                    user_id=user_id,
+                    title=entry_data['title'],
+                    content=entry_data['content'],
+                    mood=entry_data['mood'],
+                    created_at=datetime.fromisoformat(entry_data['created_at'])
+                )
+                db.session.add(entry)
+            
+            # Handle tags
+            if entry_data['tags']:
+                for tag_name in entry_data['tags']:
+                    tag = Tag.query.filter_by(name=tag_name).first()
+                    if not tag:
+                        tag = Tag(name=tag_name)
+                        db.session.add(tag)
+                    
+                    # Add tag to entry (this will be handled by the relationship)
+        
+        db.session.commit()
+        return True
+        
+    except Exception as e:
+        current_app.logger.error(f'Restore error: {str(e)}', exc_info=True)
+        db.session.rollback()
+        return False
+
+@main_bp.route('/notifications')
+@login_required
+def notifications():
+    """Notification and reminder management"""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Get user notification preferences
+        reminder_enabled = getattr(current_user, 'reminder_enabled', False)
+        reminder_time = getattr(current_user, 'reminder_time', '09:00')
+        reminder_days = getattr(current_user, 'reminder_days', '0,1,2,3,4')  # Mon-Fri default
+        
+        # Parse reminder days
+        selected_days = [int(day.strip()) for day in reminder_days.split(',') if day.strip()]
+        
+        # Check if user wrote today
+        today = datetime.now().date()
+        today_entry = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            func.date(Entry.created_at) == today
+        ).first()
+        
+        # Recent notifications
+        recent_notifications = []
+        
+        # Generate reminder notifications
+        if reminder_enabled and not today_entry:
+            current_time = datetime.now().time()
+            reminder_hour, reminder_min = map(int, reminder_time.split(':'))
+            reminder_time_obj = datetime.strptime(reminder_time, '%H:%M').time()
+            
+            # Check if it's past reminder time and user hasn't written today
+            if datetime.now().time() > reminder_time_obj:
+                current_weekday = datetime.now().weekday()
+                if current_weekday in selected_days:
+                    recent_notifications.append({
+                        'type': 'reminder',
+                        'title': 'Daily Journal Reminder',
+                        'message': f'You haven\'t written today. Take a moment to reflect on your day!',
+                        'time': datetime.now().strftime('%I:%M %p'),
+                        'icon': 'bi-bell',
+                        'color': 'warning',
+                        'action_url': url_for('main.new_entry')
+                    })
+        
+        # Achievement notifications
+        entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).limit(5).all()
+        for entry in entries:
+            if entry.created_at.date() == today:
+                recent_notifications.append({
+                    'type': 'achievement',
+                    'title': 'Great Job!',
+                    'message': f'You wrote "{entry.title or "an entry"}" today',
+                    'time': entry.created_at.strftime('%I:%M %p'),
+                    'icon': 'bi-trophy',
+                    'color': 'success',
+                    'action_url': url_for('main.view_entry', id=entry.id)
+                })
+                break
+        
+        # Goal progress notifications
+        current_streak = calculate_writing_streak(entries)
+        if current_streak >= 7:
+            recent_notifications.append({
+                'type': 'milestone',
+                'title': f'{current_streak} Day Streak!',
+                'message': 'Keep up the amazing work with your journaling habit!',
+                'time': datetime.now().strftime('%I:%M %p'),
+                'icon': 'bi-fire',
+                'color': 'danger',
+                'action_url': url_for('main.goals')
+            })
+        
+        return render_template('notifications.html',
+                             reminder_enabled=reminder_enabled,
+                             reminder_time=reminder_time,
+                             selected_days=selected_days,
+                             today_entry=today_entry,
+                             recent_notifications=recent_notifications)
+        
+    except Exception as e:
+        current_app.logger.error(f'Error loading notifications: {str(e)}', exc_info=True)
+        flash('Notifications unavailable. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/notifications/update', methods=['POST'])
+@login_required
+def update_notifications():
+    """Update notification preferences"""
+    try:
+        reminder_enabled = request.form.get('reminder_enabled') == 'on'
+        reminder_time = request.form.get('reminder_time', '09:00')
+        reminder_days = request.form.getlist('reminder_days')
+        
+        # Validate reminder time
+        try:
+            datetime.strptime(reminder_time, '%H:%M')
+        except ValueError:
+            flash('Invalid reminder time format', 'error')
+            return redirect(url_for('main.notifications'))
+        
+        # Update user preferences
+        if hasattr(current_user, 'reminder_enabled'):
+            current_user.reminder_enabled = reminder_enabled
+        if hasattr(current_user, 'reminder_time'):
+            current_user.reminder_time = reminder_time
+        if hasattr(current_user, 'reminder_days'):
+            current_user.reminder_days = ','.join(reminder_days)
+        
+        db.session.commit()
+        
+        flash('Notification preferences updated successfully!', 'success')
+        return redirect(url_for('main.notifications'))
+        
+    except Exception as e:
+        current_app.logger.error(f'Error updating notifications: {str(e)}', exc_info=True)
+        flash('Failed to update preferences. Please try again.', 'error')
+        return redirect(url_for('main.notifications'))
+
+@main_bp.route('/api/notifications/check')
+@login_required
+def check_notifications():
+    """API endpoint to check for new notifications"""
+    try:
+        from datetime import datetime
+        
+        notifications = []
+        
+        # Check if user wrote today
+        today = datetime.now().date()
+        today_entry = Entry.query.filter(
+            Entry.user_id == current_user.id,
+            func.date(Entry.created_at) == today
+        ).first()
+        
+        # Check reminder settings
+        reminder_enabled = getattr(current_user, 'reminder_enabled', False)
+        reminder_time = getattr(current_user, 'reminder_time', '09:00')
+        reminder_days = getattr(current_user, 'reminder_days', '0,1,2,3,4')
+        
+        if reminder_enabled and not today_entry:
+            current_time = datetime.now().time()
+            reminder_time_obj = datetime.strptime(reminder_time, '%H:%M').time()
+            
+            # Check if it's past reminder time
+            if datetime.now().time() > reminder_time_obj:
+                current_weekday = datetime.now().weekday()
+                selected_days = [int(day.strip()) for day in reminder_days.split(',') if day.strip()]
+                
+                if current_weekday in selected_days:
+                    notifications.append({
+                        'type': 'reminder',
+                        'title': 'Daily Journal Reminder',
+                        'message': 'You haven\'t written today. Take a moment to reflect!',
+                        'icon': 'bi-bell',
+                        'color': 'warning',
+                        'action_url': url_for('main.new_entry')
+                    })
+        
+        return jsonify({
+            'success': True,
+            'notifications': notifications,
+            'count': len(notifications)
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error checking notifications: {str(e)}', exc_info=True)
+        return jsonify({'success': False, 'message': 'Error checking notifications'}), 500

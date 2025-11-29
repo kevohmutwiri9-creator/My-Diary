@@ -601,17 +601,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% endif %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown" style="z-index: 1050;">
-                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries_json', search=search_query, mood=mood_filter, tag=tag_filter) }}">
+                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries', format='json') }}">
                         <i class="bi bi-filetype-json"></i> Export as JSON
-                        {% if search_query or mood_filter or tag_filter %}
-                            <small class="text-muted d-block">({{ entries.total }} filtered entries)</small>
-                        {% endif %}
+                        <small class="text-muted d-block">All entries with metadata</small>
                     </a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries_markdown', search=search_query, mood=mood_filter, tag=tag_filter) }}">
-                        <i class="bi bi-markdown"></i> Export as Markdown
-                        {% if search_query or mood_filter or tag_filter %}
-                            <small class="text-muted d-block">({{ entries.total }} filtered entries)</small>
-                        {% endif %}
+                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries', format='txt') }}">
+                        <i class="bi bi-filetype-txt"></i> Export as Text
+                        <small class="text-muted d-block">Plain text format</small>
+                    </a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries', format='pdf') }}">
+                        <i class="bi bi-filetype-pdf"></i> Export as PDF
+                        <small class="text-muted d-block">Formatted document</small>
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.export_entries', format='zip') }}">
+                        <i class="bi bi-file-zip"></i> Export All Formats
+                        <small class="text-muted d-block">JSON, TXT, PDF in ZIP</small>
                     </a></li>
                 </ul>
             </div>
