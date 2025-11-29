@@ -3,18 +3,18 @@ Security Enhancement System
 Provides comprehensive security measures and protection
 """
 
-import hashlib
-import hmac
-import secrets
 import time
+import hashlib
+import re
+import logging
+import os
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import current_app, request, session, abort, jsonify
+from flask import current_app, request, session, redirect, url_for, flash, jsonify
 from flask_login import current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-import re
+from werkzeug.security import generate_password_hash
 import bleach
-import logging
+import secrets
 
 class SecurityEnhancer:
     """Enhanced security protection system"""
@@ -58,7 +58,6 @@ class SecurityEnhancer:
     def setup_security_logging(self, app):
         """Setup security-specific logging"""
         # Ensure logs directory exists
-        import os
         logs_dir = os.path.join(os.getcwd(), 'logs')
         os.makedirs(logs_dir, exist_ok=True)
         
