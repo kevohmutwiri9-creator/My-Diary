@@ -34,8 +34,6 @@ def ensure_admin_user():
             # Update password if needed
             existing_user.set_password(password)
             existing_user.is_active = True
-            existing_user.is_verified = True
-            existing_user.email_verified_at = datetime.utcnow()
             db.session.commit()
             print(f"🔄 Admin password updated")
         else:
@@ -43,13 +41,11 @@ def ensure_admin_user():
             try:
                 user = User(
                     username=username,
-                    email=email,
-                    email_verified_at=datetime.utcnow()
+                    email=email
                 )
                 
                 user.set_password(password)
                 user.is_active = True
-                user.is_verified = True
                 
                 db.session.add(user)
                 db.session.commit()
@@ -61,6 +57,52 @@ def ensure_admin_user():
                 
             except Exception as e:
                 print(f"❌ Error creating admin user: {str(e)}")
+                db.session.rollback()
+
+def ensure_biko_user():
+    """Ensure bikoafrikana@gmail.com user exists."""
+    app = create_app()
+    
+    with app.app_context():
+        # Biko user credentials
+        email = "bikoafrikana@gmail.com"
+        username = "bikoafrikana"
+        password = "User123!"  # Default password
+        
+        print(f"🔧 Ensuring biko user exists: {email}")
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        
+        if existing_user:
+            print(f"✅ Biko user '{existing_user.username}' already exists")
+            # Update password if needed
+            existing_user.set_password(password)
+            existing_user.is_active = True
+            db.session.commit()
+            print(f"🔄 Biko user password updated")
+        else:
+            # Create user if doesn't exist
+            try:
+                user = User(
+                    username=username,
+                    email=email
+                )
+                
+                user.set_password(password)
+                user.is_active = True
+                
+                db.session.add(user)
+                db.session.commit()
+                
+                print(f"✅ Biko user created:")
+                print(f"   Username: {user.username}")
+                print(f"   Email: {user.email}")
+                print(f"   Password: {password}")
+                print(f"   ID: {user.id}")
+                
+            except Exception as e:
+                print(f"❌ Error creating biko user: {str(e)}")
                 db.session.rollback()
 
 def preserve_all_users():
@@ -123,12 +165,15 @@ if __name__ == '__main__':
             database_health_check()
         elif command == "admin":
             ensure_admin_user()
+        elif command == "biko":
+            ensure_biko_user()
         elif command == "preserve":
             preserve_all_users()
         else:
             print("Usage:")
             print("  python database_maintenance.py health    # Check database health")
             print("  python database_maintenance.py admin     # Ensure admin user")
+            print("  python database_maintenance.py biko      # Ensure biko user")
             print("  python database_maintenance.py preserve  # Preserve all users")
     else:
         # Default: full maintenance
@@ -136,12 +181,14 @@ if __name__ == '__main__':
         print("=" * 40)
         
         ensure_admin_user()
+        ensure_biko_user()
         preserve_all_users()
         database_health_check()
         
         print(f"\n✅ Database maintenance complete!")
         print(f"\n📝 Notes:")
         print(f"   - Admin user: kevohmutwiri9@gmail.com")
+        print(f"   - Biko user: bikoafrikana@gmail.com (password: User123!)")
         print(f"   - All existing users preserved")
         print(f"   - New users can register normally")
         print(f"   - Database ready for production")

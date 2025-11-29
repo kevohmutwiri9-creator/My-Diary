@@ -18,41 +18,38 @@ def check_all_users():
     app = create_app()
     
     with app.app_context():
-        print("🔍 Diagnosing User Accounts")
+        print("Diagnosing User Accounts")
         print("=" * 50)
         
         # Get all users
         users = User.query.all()
         
-        print(f"📊 Total users in database: {len(users)}")
+        print(f"Total users in database: {len(users)}")
         print("-" * 50)
         
         for user in users:
-            print(f"👤 User: {user.email}")
+            print(f"User: {user.email}")
             print(f"   Username: {user.username}")
             print(f"   ID: {user.id}")
             print(f"   Active: {user.is_active}")
-            print(f"   Verified: {user.is_verified}")
             print(f"   Admin: {user.is_admin}")
             print(f"   Created: {user.created_at}")
-            print(f"   Last login: {user.last_login}")
             print("-" * 50)
         
         # Check specific user
         target_email = "bikoafrikana@gmail.com"
         target_user = User.query.filter_by(email=target_email).first()
         
-        print(f"\n🎯 Checking specific user: {target_email}")
+        print(f"\nChecking specific user: {target_email}")
         if target_user:
-            print(f"✅ User found:")
+            print(f"User found:")
             print(f"   Username: {target_user.username}")
             print(f"   ID: {target_user.id}")
             print(f"   Active: {target_user.is_active}")
-            print(f"   Verified: {target_user.is_verified}")
+            print(f"   Admin: {target_user.is_admin}")
             print(f"   Created: {target_user.created_at}")
-            print(f"   Last login: {target_user.last_login}")
         else:
-            print(f"❌ User NOT found in database!")
+            print(f"User NOT found in database!")
             print(f"   This user needs to be recreated")
         
         return users, target_user
@@ -67,7 +64,7 @@ def create_missing_user():
         # Check if user exists
         existing_user = User.query.filter_by(email=target_email).first()
         if existing_user:
-            print(f"✅ User {target_email} already exists")
+            print(f"User {target_email} already exists")
             return existing_user
         
         # Create user with default password
@@ -81,12 +78,11 @@ def create_missing_user():
             # Set default password - they can change it later
             user.set_password("User123!")
             user.is_active = True
-            user.is_verified = True
             
             db.session.add(user)
             db.session.commit()
             
-            print(f"✅ Created missing user:")
+            print(f"Created missing user:")
             print(f"   Email: {user.email}")
             print(f"   Username: {user.username}")
             print(f"   Password: User123!")
@@ -96,7 +92,7 @@ def create_missing_user():
             return user
             
         except Exception as e:
-            print(f"❌ Error creating user: {str(e)}")
+            print(f"Error creating user: {str(e)}")
             db.session.rollback()
             return None
 
@@ -108,7 +104,7 @@ if __name__ == '__main__':
     else:
         check_all_users()
         
-        print(f"\n🔧 To create missing user:")
+        print(f"\nTo create missing user:")
         print(f"   python diagnose_users.py create")
-        print(f"\n📝 Default password will be: User123!")
+        print(f"\nDefault password will be: User123!")
         print(f"   User should change this after login")
