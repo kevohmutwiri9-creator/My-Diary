@@ -61,6 +61,8 @@ def ensure_client_users():
                 
                 # Update password if needed
                 existing_user.set_password(password)
+                
+                # Set is_active and is_verified directly
                 existing_user.is_active = True
                 existing_user.is_verified = True
                 existing_user.email_verified_at = datetime.utcnow()
@@ -73,12 +75,14 @@ def ensure_client_users():
                     user = User(
                         username=username,
                         email=email,
-                        is_active=True,
-                        is_verified=True,
                         email_verified_at=datetime.utcnow()
                     )
                     
                     user.set_password(password)
+                    
+                    # Set is_active and is_verified directly (these are database columns)
+                    user.is_active = True
+                    user.is_verified = True
                     
                     db.session.add(user)
                     db.session.commit()
@@ -137,12 +141,14 @@ def create_user_interactive():
             user = User(
                 username=username,
                 email=email,
-                is_active=True,
-                is_verified=True,
                 email_verified_at=datetime.utcnow()
             )
             
             user.set_password(password)
+            
+            # Set is_active and is_verified directly
+            user.is_active = True
+            user.is_verified = True
             
             db.session.add(user)
             db.session.commit()
