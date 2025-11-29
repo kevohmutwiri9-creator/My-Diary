@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file, abort, session
+from flask_wtf.csrf import csrf, CSRFError
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from dataclasses import asdict
@@ -605,6 +606,7 @@ def delete_entry(entry_id):
     return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/preview', methods=['POST'])
+@csrf.exempt  # Exempt from CSRF protection for AJAX preview
 @login_required
 def preview_markdown():
     """Preview markdown content as HTML."""
@@ -1729,6 +1731,7 @@ def cookie_consent():
         return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/cookie-consent/save', methods=['POST'])
+@csrf.exempt  # Exempt from CSRF protection for cookie consent
 def save_cookie_consent():
     """Save cookie consent preferences."""
     try:
