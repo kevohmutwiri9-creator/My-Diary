@@ -43,6 +43,7 @@ def setup_sqlite_database():
             
             # Check if admin user exists
             from app.models import User
+            from app.models.template import EntryTemplate
             admin_user = User.query.filter_by(email='admin@example.com').first()
             
             if not admin_user:
@@ -75,6 +76,27 @@ def setup_sqlite_database():
                 print("✅ Kevoh admin user created (email: kevohmutwiri35@gmail.com, password: Admin123!)")
             else:
                 print("👤 Kevoh user already exists")
+            
+            # Create default templates
+            print("📋 Creating default templates...")
+            default_templates = EntryTemplate.get_default_templates()
+            
+            for template_data in default_templates:
+                existing_template = EntryTemplate.query.filter_by(name=template_data['name'], user_id=None).first()
+                if not existing_template:
+                    template = EntryTemplate(
+                        name=template_data['name'],
+                        description=template_data['description'],
+                        category=template_data['category'],
+                        template_content=template_data['template_content'],
+                        icon=template_data['icon'],
+                        is_default=True,
+                        user_id=None  # System template
+                    )
+                    db.session.add(template)
+            
+            db.session.commit()
+            print("✅ Default templates created!")
             
             print("🎉 SQLite database setup complete!")
             

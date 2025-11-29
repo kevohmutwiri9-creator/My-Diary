@@ -1160,6 +1160,8 @@ def upload_media():
             'media': media.to_dict()
         })
         
+    except CSRFError:
+        return jsonify({'success': False, 'error': 'CSRF token missing or invalid'}), 400
     except Exception as e:
         current_app.logger.error(f'Error uploading media: {str(e)}', exc_info=True)
         return jsonify({'success': False, 'error': 'Upload failed'}), 500
