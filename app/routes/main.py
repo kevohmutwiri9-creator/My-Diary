@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, send_file, abort, session
-from flask_wtf.csrf import csrf, CSRFError
 from flask_login import login_required, current_user
+from flask_wtf.csrf import CSRFError
 from datetime import datetime, timedelta
 from dataclasses import asdict
 from werkzeug.utils import secure_filename
@@ -606,16 +606,19 @@ def delete_entry(entry_id):
     return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/preview', methods=['POST'])
-@csrf.exempt  # Exempt from CSRF protection for AJAX preview
 @login_required
 def preview_markdown():
     """Preview markdown content as HTML."""
-    content = request.form.get('content', '')
-    if not content:
-        return jsonify({'html': ''})
+    try:
+        content = request.form.get('content', '')
+        if not content:
+            return jsonify({'html': ''})
 
-    html = markdown_to_html(content)
-    return jsonify({'html': html})
+        html = markdown_to_html(content)
+        return jsonify({'html': html})
+    except CSRFError:
+        # Handle CSRF error gracefully for AJAX requests
+        return jsonify({'error': 'CSRF token missing or invalid', 'html': ''}), 400
 
 @main_bp.route('/export/json')
 @login_required
@@ -1731,7 +1734,6 @@ def cookie_consent():
         return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/cookie-consent/save', methods=['POST'])
-@csrf.exempt  # Exempt from CSRF protection for cookie consent
 def save_cookie_consent():
     """Save cookie consent preferences."""
     try:
@@ -1747,6 +1749,11 @@ def save_cookie_consent():
         # Redirect back to where they came from
         next_page = request.form.get('next', url_for('main.dashboard'))
         return redirect(next_page)
+        
+    except CSRFError:
+        # Handle CSRF error gracefully - redirect back with message
+        flash('Security token expired. Please try again.', 'warning')
+        return redirect(request.referrer or url_for('main.dashboard'))
         
     except Exception as e:
         current_app.logger.error(f'Error saving cookie consent: {str(e)}', exc_info=True)
