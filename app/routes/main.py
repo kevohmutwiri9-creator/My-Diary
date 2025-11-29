@@ -2385,7 +2385,7 @@ def goals():
 
 @main_bp.route('/goals/update', methods=['POST'])
 @login_required
-def update_goals():
+def update_goals_settings():
     """Update user goals"""
     try:
         daily_goal = request.form.get('daily_goal', type=int)
