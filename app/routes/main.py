@@ -256,7 +256,8 @@ def dashboard():
         # Pass all filter parameters to template for form persistence
         return render_template(
             'dashboard.html',
-            entries=entries,
+            entries=entries.get('items', []),  # Extract items from pagination dict
+            pagination=entries,  # Pass pagination info separately
             search_query=search_query,
             search_type=search_type,
             mood_filter=mood_filter,
