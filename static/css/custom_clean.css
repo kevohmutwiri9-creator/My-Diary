@@ -6,6 +6,51 @@ html, body {
     max-width: 100%;
 }
 
+/* Quill Editor Dropdown Fix - Prevent Overlapping */
+.ql-toolbar .ql-picker-options {
+    z-index: 1050 !important;
+    position: absolute !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
+
+.ql-toolbar .ql-picker {
+    position: relative !important;
+}
+
+.ql-toolbar .ql-picker-label {
+    position: relative !important;
+    z-index: 1001 !important;
+}
+
+/* Quill Editor Container Fix */
+.ql-toolbar {
+    position: relative !important;
+    z-index: 1000 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-bottom: none !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+.ql-container {
+    border: 1px solid #ccc !important;
+    border-radius: 0 0 4px 4px !important;
+}
+
+/* Ensure dropdowns appear above other content */
+.ql-tooltip {
+    z-index: 1051 !important;
+}
+
+.ql-editing {
+    z-index: 1052 !important;
+}
+
 /* Let Bootstrap handle everything naturally */
 /* Remove all aggressive !important overrides */
 
