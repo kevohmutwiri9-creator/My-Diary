@@ -72,7 +72,8 @@ def create_app(config_class=Config):
             'https://cdn.jsdelivr.net',
             'https://pagead2.googlesyndication.com',
             'https://googleads.g.doubleclick.net',
-            'https://cdn.quilljs.com'
+            'https://cdn.quilljs.com',
+            'https://ep2.adtrafficquality.google'
         ],
         'style-src': [
             "'self'",
@@ -98,7 +99,8 @@ def create_app(config_class=Config):
             'https://cdn.jsdelivr.net',
             'https://pagead2.googlesyndication.com',
             'https://googleads.g.doubleclick.net',
-            'https://ep1.adtrafficquality.google'
+            'https://ep1.adtrafficquality.google',
+            'https://ep2.adtrafficquality.google'
         ],
         'frame-src': [
             "'self'",
