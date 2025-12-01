@@ -43,8 +43,12 @@ class User(UserMixin, db.Model):
     encryption_enabled = db.Column(db.Boolean, default=False)
     encryption_key = db.Column(db.String(64), nullable=True)
     # Internationalization
-    preferred_language = db.Column(db.String(5), default='en')
+    language_preference = db.Column(db.String(5), default='en')  # en, es, fr, de, etc.
     timezone = db.Column(db.String(50), default='UTC')
+    date_format = db.Column(db.String(10), default='medium')  # short, medium, long, full
+    time_format = db.Column(db.String(5), default='24h')  # 12h, 24h
+    currency = db.Column(db.String(3), default='USD')  # USD, EUR, GBP, etc.
+    number_format = db.Column(db.String(10), default='decimal')  # decimal, comma, space
     
     # Profile
     profile_picture = db.Column(db.String(255), nullable=True)

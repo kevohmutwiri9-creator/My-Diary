@@ -1,404 +1,595 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="{{ session.get('language', 'en') }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta name="google-adsense-account" content="ca-pub-2396098605485959">
-    <meta name="google-adsense-platform" content="google.com, pub-2396098605485959, DIRECT, f08c47fec0942fa0">
+    <title>{% block title %}{{ _('common.app_name') }}{% endblock %}</title>
     
-    <!-- Google AdSense Verification -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2396098605485959"
-            crossorigin="anonymous"></script>
-    <title>{% block title %}My Diary{% endblock %}</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon/diary.png') }}">
-    
-    <!-- Google Analytics -->
-    {% if config.GOOGLE_ANALYTICS_ID and can_use_analytics %}
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GOOGLE_ANALYTICS_ID }}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '{{ config.GOOGLE_ANALYTICS_ID }}', {
-        'anonymize_ip': true,
-        'cookie_flags': 'SameSite=Lax;Secure'
-      });
-      
-      // Custom event tracking
-      window.trackEvent = function(category, action, label, value) {
-        gtag('event', action, {
-          'event_category': category,
-          'event_label': label,
-          'value': value
-        });
-      };
-      
-      // Track page performance
-      window.addEventListener('load', function() {
-        if (window.performance && window.performance.timing) {
-          var loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
-          gtag('event', 'page_load_time', {
-            'event_category': 'performance',
-            'value': Math.round(loadTime)
-          });
-        }
-      });
-      
-      // Track user interactions
-      document.addEventListener('click', function(e) {
-        var target = e.target.closest('[data-track]');
-        if (target) {
-          var category = target.dataset.track || 'interaction';
-          var action = target.dataset.action || 'click';
-          var label = target.dataset.label || target.textContent.trim();
-          trackEvent(category, action, label);
-        }
-      });
-    </script>
-    {% endif %}
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom_clean.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
-    {% if current_user.is_authenticated and current_user.allow_ads and config.ADSENSE_CLIENT_ID and can_use_marketing %}
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config.ADSENSE_CLIENT_ID }}"
-            crossorigin="anonymous"></script>
-    {% endif %}
-    {% block extra_head %}{% endblock %}
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    
     <style>
-        /* Theme loading states */
-        .theme-loading {
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
         }
-
-        .theme-loaded {
-            opacity: 1;
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            transition: var(--transition);
         }
-
-        /* Theme selector styles */
-        .theme-selector .btn {
-            font-size: 0.875rem;
-            padding: 0.375rem 0.75rem;
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-
-        .theme-option {
-            cursor: pointer;
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background-color: rgba(255,255,255,0.95);
         }
-
-        .theme-option.active {
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1.5rem;
             font-weight: 600;
+            transition: var(--transition);
         }
-
-        .theme-check {
-            color: #28a745;
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: calc(100vh - 56px);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 0.25rem 0;
+            transition: var(--transition);
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #6c757d;
+            margin: 0;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-card .label {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .mood-indicator {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+            line-height: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .mood-happy { background-color: #28a745; }
+        .mood-sad { background-color: #6c757d; }
+        .mood-angry { background-color: #dc3545; }
+        .mood-anxious { background-color: #ffc107; color: #333; }
+        .mood-excited { background-color: #17a2b8; }
+        .mood-grateful { background-color: #667eea; }
+        .mood-tired { background-color: #6f42c1; }
+        .mood-motivated { background-color: #fd7e14; }
+        
+        .entry-card {
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+        
+        .entry-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        
+        .entry-meta {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .entry-content {
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            font-size: 1.5rem;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+        
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        .dark-mode .navbar {
+            background-color: rgba(26, 26, 26, 0.95);
+        }
+        
+        .dark-mode .card {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+        }
+        
+        .dark-mode .sidebar {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+        
+        .dark-mode .page-header h1 {
+            color: #e0e0e0;
+        }
+        
+        .dark-mode .entry-card {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+        }
+        
+        .language-switcher-container {
+            margin-left: auto;
+            margin-right: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+                border-radius: 0;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .floating-btn {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
         }
     </style>
-    {% if current_user.is_authenticated and current_user.allow_ads and config.ADSENSE_CLIENT_ID %}
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config.ADSENSE_CLIENT_ID }}" crossorigin="anonymous"></script>
-    {% endif %}
 </head>
-<body class="theme-loading">
-    <!-- Animated Background -->
-    <div class="animated-bg">
-        <div class="bg-gradient"></div>
-        <div class="floating-shapes">
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-            <div class="shape shape-4"></div>
-        </div>
-    </div>
-    
-    <nav class="navbar navbar-expand-lg mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">My Diary</a>
+<body class="{% if current_user and current_user.theme == 'dark' %}dark-mode{% endif %}">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+                {{ _('common.app_name') }}
+            </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.analytics') }}">Analytics</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.productivity_dashboard') }}">Productivity</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.community_feed') }}">Community</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.calendar_view') }}">Calendar</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.new_entry') }}">New Entry</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.search_entries') }}">Search</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.goals') }}">Goals</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="toolsDropdown" role="button" data-bs-toggle="dropdown">
-                                Tools
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('main.backup_data') }}">
-                                    <i class="bi bi-download me-2"></i>Backup Data
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.restore_data') }}">
-                                    <i class="bi bi-arrow-clockwise me-2"></i>Restore Data
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.mood_insights') }}">
-                                    <i class="bi bi-emoji-smile me-2"></i>Mood Insights
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.notifications') }}">
-                                    <i class="bi bi-bell me-2"></i>Notifications
-                                    {% if current_user.is_authenticated %}
-                                    <span class="badge bg-warning ms-1 notification-badge" style="display: none;">0</span>
-                                    {% endif %}
-                                </a></li>
-                            </ul>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                            <i class="fas fa-home"></i> {{ _('common.dashboard') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.entries') }}">
+                            <i class="fas fa-book"></i> {{ _('navigation.entries') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('analytics.analytics') }}">
+                            <i class="fas fa-chart-line"></i> {{ _('navigation.analytics') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('goals.goals') }}">
+                            <i class="fas fa-bullseye"></i> {{ _('navigation.goals') }}
+                        </a>
+                    </li>
+                    
+                    <!-- Tools Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="toolsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tools"></i> {{ _('common.tools') if _('common.tools') else 'Tools' }}
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="toolsDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('community.community') }}">
+                                <i class="fas fa-users"></i> {{ _('navigation.community') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('templates.templates') }}">
+                                <i class="fas fa-file-alt"></i> {{ _('navigation.templates') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('templates.prompts') }}">
+                                <i class="fas fa-lightbulb"></i> {{ _('navigation.prompts') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('media.voice_entry') }}">
+                                <i class="fas fa-microphone"></i> {{ _('navigation.voice_entry') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('media.photo_entry') }}">
+                                <i class="fas fa-camera"></i> {{ _('navigation.photo_entry') }}
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('security.security') }}">
+                                <i class="fas fa-shield-alt"></i> {{ _('navigation.security') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('performance.performance') }}">
+                                <i class="fas fa-tachometer-alt"></i> {{ _('navigation.performance') }}
+                            </a></li>
+                        </ul>
+                    </li>
                 </ul>
+                
+                <!-- Language Switcher -->
+                <div class="language-switcher-container">
+                    {% include 'i18n/language_switcher.html' %}
+                </div>
+                
+                <!-- User Menu -->
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                {{ current_user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                {% if current_user.is_admin %}
-                                <li><h6 class="dropdown-header">Admin</h6></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
-                                    <i class="fas fa-users me-2"></i>User Management
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.entries') }}">
-                                    <i class="fas fa-file-alt me-2"></i>Content Moderation
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.audit_log') }}">
-                                    <i class="fas fa-history me-2"></i>Audit Log
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin.settings') }}">
-                                    <i class="fas fa-cog me-2"></i>System Settings
-                                </a></li>
-                                {% if current_user.two_factor_enabled %}
-                                <li><a class="dropdown-item" href="{{ url_for('two_factor.manage') }}">
-                                    <i class="fas fa-shield-alt me-2"></i>2FA Settings
-                                </a></li>
-                                {% else %}
-                                <li><a class="dropdown-item" href="{{ url_for('two_factor.setup') }}">
-                                    <i class="fas fa-shield-alt me-2"></i>Setup 2FA
-                                </a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                {% endif %}
-                                <li><a class="dropdown-item" href="{{ url_for('main.language_settings') }}">Language Settings</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.privacy_settings') }}">Privacy Settings</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.security_settings') }}">Security Settings</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.account_settings') }}">Settings</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
-                            </ul>
-                        </li>
-                        <div class="dropdown theme-selector me-2">
-    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center theme-toggle-btn" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="bi bi-palette-fill theme-icon me-1"></i>
-        <span class="theme-text">Theme</span>
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end theme-menu" id="themeMenu" aria-labelledby="themeDropdown">
-        <li><h6 class="dropdown-header d-flex align-items-center">
-            <i class="bi bi-rainbow me-2"></i>Choose Your Theme
-        </h6></li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="system">
-                <span><i class="bi bi-laptop me-2 theme-option-icon"></i>System</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="light">
-                <span><i class="bi bi-brightness-high-fill me-2 theme-option-icon"></i>Light</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="dark">
-                <span><i class="bi bi-moon-stars-fill me-2 theme-option-icon"></i>Dark</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="high-contrast">
-                <span><i class="bi bi-circle-half me-2 theme-option-icon"></i>High Contrast</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="blue">
-                <span><i class="bi bi-droplet-fill me-2 theme-option-icon"></i>Ocean Blue</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="green">
-                <span><i class="bi bi-tree-fill me-2 theme-option-icon"></i>Forest Green</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-    </ul>
-</div>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('profile.profile') }}">
+                                <i class="fas fa-user"></i> {{ _('common.profile') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('i18n.preferences') }}">
+                                <i class="fas fa-globe"></i> {{ _('settings.title') }}
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.settings') }}">
+                                <i class="fas fa-cog"></i> {{ _('common.settings') }}
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> {{ _('common.logout') }}
+                            </a></li>
+                        </ul>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
-                        </li>
-                        <div class="dropdown theme-selector me-2">
-    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center theme-toggle-btn" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="bi bi-palette-fill theme-icon me-1"></i>
-        <span class="theme-text">Theme</span>
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end theme-menu" id="themeMenu" aria-labelledby="themeDropdown">
-        <li><h6 class="dropdown-header d-flex align-items-center">
-            <i class="bi bi-rainbow me-2"></i>Choose Your Theme
-        </h6></li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="system">
-                <span><i class="bi bi-laptop me-2 theme-option-icon"></i>System</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="light">
-                <span><i class="bi bi-brightness-high-fill me-2 theme-option-icon"></i>Light</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="dark">
-                <span><i class="bi bi-moon-stars-fill me-2 theme-option-icon"></i>Dark</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="high-contrast">
-                <span><i class="bi bi-circle-half me-2 theme-option-icon"></i>High Contrast</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="blue">
-                <span><i class="bi bi-droplet-fill me-2 theme-option-icon"></i>Ocean Blue</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item theme-option d-flex justify-content-between align-items-center" href="#" data-theme="green">
-                <span><i class="bi bi-tree-fill me-2 theme-option-icon"></i>Forest Green</span>
-                <i class="bi bi-check-circle-fill theme-check" style="display: none;"></i>
-            </a>
-        </li>
-    </ul>
-</div>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt"></i> {{ _('common.login') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus"></i> {{ _('common.register') }}
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="container mb-5 flex-grow-1">
-        <!-- Cookie Consent Banner - Disabled -->
-        {% if false %}
-        {% include 'simple_cookie_banner.html' %}
-        {% endif %}
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            {% if current_user.is_authenticated %}
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                                <i class="fas fa-home"></i> {{ _('common.dashboard') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.new_entry') }}">
+                                <i class="fas fa-plus"></i> {{ _('entries.create_entry') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.entries') }}">
+                                <i class="fas fa-book"></i> {{ _('navigation.entries') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('analytics.analytics') }}">
+                                <i class="fas fa-chart-line"></i> {{ _('navigation.analytics') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('goals.goals') }}">
+                                <i class="fas fa-bullseye"></i> {{ _('navigation.goals') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('community.community') }}">
+                                <i class="fas fa-users"></i> {{ _('navigation.community') }}
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <hr class="text-white-50">
+                    
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>{{ _('common.tools') if _('common.tools') else 'Tools' }}</span>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('templates.templates') }}">
+                                <i class="fas fa-file-alt"></i> {{ _('navigation.templates') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('media.voice_entry') }}">
+                                <i class="fas fa-microphone"></i> {{ _('navigation.voice_entry') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('security.security') }}">
+                                <i class="fas fa-shield-alt"></i> {{ _('navigation.security') }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
             {% endif %}
-        {% endwith %}
 
-        {% block content %}{% endblock %}
-    </main>
+            <!-- Main Content Area -->
+            <main class="{% if current_user.is_authenticated %}col-md-10{% else %}col-12{% endif %} main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show fade-in" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
 
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2025 My Diary. A simple personal journal.</p>
-            {% if current_user.is_authenticated and current_user.allow_ads and config.ADSENSE_CLIENT_ID and can_use_marketing %}
-            <div class="mt-3">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="{{ config.ADSENSE_CLIENT_ID }}"
-                     data-ad-slot="footer-banner"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script nonce="{{ csp_nonce() }}">
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-            {% endif %}
-            <div class="mt-3">
-                <small class="text-muted">
-                    <a href="{{ url_for('main.cookie_consent') }}" class="text-decoration-none">Cookie Settings</a> | 
-                    <a href="{{ url_for('main.privacy_settings') }}" class="text-decoration-none">Privacy Policy</a>
-                </small>
-            </div>
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    {% if current_user.is_authenticated %}
+    <button class="floating-btn" onclick="window.location.href='{{ url_for('main.new_entry') }}';">
+        <i class="fas fa-plus"></i>
+    </button>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="bg-light text-center py-3 mt-5">
+        <div class="container">
+            <p class="mb-0 text-muted">
+                &copy; 2024 {{ _('common.app_name') }}. 
+                <span data-i18n="common.all_rights_reserved">{{ _('common.all_rights_reserved') if _('common.all_rights_reserved') else 'All rights reserved.' }}</span>
+            </p>
         </div>
     </footer>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    
+    <!-- AdSense Script -->
+    {% if config.ADSENSE_CLIENT_ID %}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config.ADSENSE_CLIENT_ID }}"
+            crossorigin="anonymous"></script>
+    {% endif %}
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- i18n JS -->
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+    
     {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
 
-    <!-- AI Assistant Floating Button -->
-    <div class="assistant-container position-fixed bottom-0 end-0 mb-4 me-4">
-      <button class="btn btn-primary rounded-circle p-3" id="assistant-toggle" title="Diary Assistant">
-        <i class="bi bi-robot fs-4"></i>
-      </button>
-      <div class="card assistant-card d-none mt-2" style="width: 350px;">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h6 class="mb-0">Diary Assistant</h6>
-          <button class="btn btn-sm btn-close" id="assistant-close"></button>
-        </div>
-        <div class="card-body p-0">
-          <div class="assistant-chat p-3" style="height: 300px; overflow-y: auto;"></div>
-          <div class="input-group p-3">
-            <input type="text" class="form-control" id="assistant-input" placeholder="Ask about your entries...">
-            <button class="btn btn-primary" id="assistant-send">
-              <i class="bi bi-send"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+        // Initialize popovers
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        });
 
-    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/assistant.js') }}"></script>
+        // Auto-hide flash messages
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.contains('dark-mode');
+            
+            if (isDark) {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+            
+            // Save preference to server
+            fetch('/profile/update_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ theme: isDark ? 'light' : 'dark' })
+            });
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' && !document.body.classList.contains('dark-mode')) {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Language change handler
+        document.addEventListener('languageChanged', function(e) {
+            console.log('Language changed to:', e.detail.language);
+            // You can add additional logic here when language changes
+        });
+
+        // Initialize i18n
+        document.addEventListener('DOMContentLoaded', function() {
+            // Translate any elements with data-i18n attribute
+            if (window.i18n) {
+                window.i18n.updateAllTranslations();
+            }
+            
+            // Initialize AdSense ads
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        });
+    </script>
 </body>
 </html>

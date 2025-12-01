@@ -508,3 +508,345 @@ def get_time_patterns(user_id: int) -> Dict[str, Any]:
         'daily': {int(day): count for day, count in dow_dist},
         'monthly': {int(month): count for month, count in monthly_dist}
     }
+
+
+def generate_word_cloud_data(user_id: int, limit: int = 50) -> Dict[str, Any]:
+    """Generate word cloud data with weights and categories."""
+    from collections import Counter
+    import re
+    
+    # Get all entries
+    entries = Entry.query.filter_by(user_id=user_id).all()
+    
+    if not entries:
+        return {'words': [], 'categories': {}, 'total_words': 0}
+    
+    # Process all text
+    all_text = ' '.join([entry.content for entry in entries if entry.content])
+    
+    # Clean and tokenize
+    words = re.findall(r'\b[a-zA-Z]+\b', all_text.lower())
+    
+    # Filter out common words
+    stop_words = {
+        'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+        'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does',
+        'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can',
+        'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+        'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our',
+        'their', 'a', 'an', 'what', 'when', 'where', 'why', 'how', 'who', 'which',
+        'just', 'really', 'very', 'so', 'also', 'even', 'only', 'now', 'then', 'here',
+        'there', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further',
+        'than', 'once', 'more', 'most', 'some', 'such', 'no', 'nor', 'not', 'only',
+        'own', 'same', 'so', 'than', 'too', 'very'
+    }
+    
+    # Count meaningful words
+    word_counts = Counter(word for word in words if len(word) > 3 and word not in stop_words)
+    
+    # Categorize words
+    categories = {
+        'emotions': {'happy', 'sad', 'angry', 'excited', 'joy', 'love', 'fear', 'worry', 'peace', 'calm', 'stress', 'anxiety', 'grateful', 'hope', 'dream', 'feel'},
+        'activities': {'work', 'school', 'home', 'family', 'friends', 'meeting', 'class', 'project', 'exercise', 'walk', 'run', 'play', 'travel', 'visit', 'call', 'talk', 'read', 'write', 'cook', 'clean'},
+        'time': {'today', 'yesterday', 'tomorrow', 'week', 'month', 'year', 'morning', 'evening', 'night', 'day', 'time', 'hour', 'minute', 'moment'},
+        'relationships': {'mother', 'father', 'brother', 'sister', 'friend', 'husband', 'wife', 'son', 'daughter', 'team', 'boss', 'colleague'},
+        'personal_growth': {'learn', 'grow', 'change', 'improve', 'better', 'goal', 'plan', 'future', 'dream', 'wish', 'hope', 'believe', 'think', 'understand'},
+        'work_career': {'job', 'career', 'office', 'business', 'company', 'team', 'project', 'meeting', 'client', 'customer', 'sale', 'present', 'report'},
+        'health_wellness': {'health', 'doctor', 'medicine', 'sleep', 'rest', 'food', 'eat', 'drink', 'water', 'exercise', 'gym', 'weight', 'body', 'mind'},
+        'reflection': {'think', 'feel', 'know', 'realize', 'understand', 'remember', 'forget', 'decide', 'choose', 'want', 'need', 'like', 'hate'}
+    }
+    
+    # Categorize words
+    word_categories = {}
+    for word, count in word_counts.most_common(limit):
+        word_category = 'general'
+        for category, category_words in categories.items():
+            if word in category_words:
+                word_category = category
+                break
+        word_categories[word] = word_category
+    
+    # Generate word cloud data
+    max_count = max(word_counts.values()) if word_counts else 1
+    
+    word_cloud_data = []
+    for word, count in word_counts.most_common(limit):
+        # Calculate size (scale from 10 to 60)
+        size = int(10 + (count / max_count) * 50)
+        
+        word_cloud_data.append({
+            'text': word,
+            'size': size,
+            'weight': count,
+            'category': word_categories.get(word, 'general'),
+            'color': _get_category_color(word_categories.get(word, 'general'))
+        })
+    
+    # Category distribution
+    category_counts = Counter(word_categories.values())
+    
+    return {
+        'words': word_cloud_data,
+        'categories': dict(category_counts),
+        'total_words': len(word_counts),
+        'most_common': word_counts.most_common(1)[0] if word_counts else None
+    }
+
+
+def _get_category_color(category: str) -> str:
+    """Get color for word category."""
+    colors = {
+        'emotions': '#e74c3c',
+        'activities': '#3498db',
+        'time': '#f39c12',
+        'relationships': '#9b59b6',
+        'personal_growth': '#2ecc71',
+        'work_career': '#34495e',
+        'health_wellness': '#16a085',
+        'reflection': '#e67e22',
+        'general': '#95a5a6'
+    }
+    return colors.get(category, '#95a5a6')
+
+
+def get_advanced_patterns(user_id: int) -> Dict[str, Any]:
+    """Get advanced writing patterns and insights."""
+    from collections import defaultdict
+    import statistics
+    
+    # Get entries with analysis
+    entries = Entry.query.filter_by(user_id=user_id).order_by(Entry.created_at).all()
+    
+    if not entries:
+        return {}
+    
+    # Sentiment trends
+    sentiment_trends = []
+    for entry in entries[-30:]:  # Last 30 entries
+        if entry.content:
+            # Simple sentiment analysis
+            positive_words = ['happy', 'good', 'great', 'love', 'excellent', 'wonderful', 'amazing', 'fantastic']
+            negative_words = ['sad', 'bad', 'terrible', 'hate', 'awful', 'horrible', 'disappointed', 'frustrated']
+            
+            words = entry.content.lower().split()
+            positive_count = sum(1 for word in words if any(pos in word for pos in positive_words))
+            negative_count = sum(1 for word in words if any(neg in word for neg in negative_words))
+            
+            sentiment = 0
+            if positive_count > negative_count:
+                sentiment = 1
+            elif negative_count > positive_count:
+                sentiment = -1
+                
+            sentiment_trends.append({
+                'date': entry.created_at.isoformat(),
+                'sentiment': sentiment,
+                'word_count': len(words)
+            })
+    
+    # Writing complexity
+    sentence_lengths = []
+    avg_word_lengths = []
+    
+    for entry in entries:
+        if entry.content:
+            sentences = entry.content.split('.')
+            for sentence in sentences:
+                if sentence.strip():
+                    words = sentence.split()
+                    sentence_lengths.append(len(words))
+                    if words:
+                        avg_word_lengths.append(statistics.mean(len(word) for word in words))
+    
+    # Topic modeling (simple keyword clustering)
+    topic_keywords = defaultdict(list)
+    for entry in entries:
+        if entry.content:
+            words = entry.content.lower().split()
+            for word in words:
+                if len(word) > 5:  # Focus on meaningful words
+                    topic_keywords[word].append(entry.created_at)
+    
+    # Find trending topics
+    trending_topics = []
+    for word, dates in topic_keywords.items():
+        if len(dates) >= 3:  # Words mentioned at least 3 times
+            recent_count = len([date for date in dates if date > datetime.now() - timedelta(days=30)])
+            if recent_count >= 2:  # Trending recently
+                trending_topics.append({
+                    'topic': word,
+                    'frequency': len(dates),
+                    'recent_frequency': recent_count
+                })
+    
+    trending_topics.sort(key=lambda x: x['recent_frequency'], reverse=True)
+    
+    return {
+        'sentiment_trends': sentiment_trends,
+        'writing_complexity': {
+            'avg_sentence_length': statistics.mean(sentence_lengths) if sentence_lengths else 0,
+            'avg_word_length': statistics.mean(avg_word_lengths) if avg_word_lengths else 0,
+            'sentence_length_variance': statistics.variance(sentence_lengths) if len(sentence_lengths) > 1 else 0
+        },
+        'trending_topics': trending_topics[:10],
+        'writing_consistency': _calculate_writing_consistency(entries)
+    }
+
+
+def _calculate_writing_consistency(entries) -> Dict[str, Any]:
+    """Calculate writing consistency metrics."""
+    if len(entries) < 2:
+        return {'score': 0, 'pattern': 'insufficient_data'}
+    
+    # Group entries by day
+    daily_entries = defaultdict(list)
+    for entry in entries:
+        day = entry.created_at.date()
+        daily_entries[day].append(entry)
+    
+    # Calculate consistency score
+    total_days = (entries[-1].created_at.date() - entries[0].created_at.date()).days + 1
+    writing_days = len(daily_entries)
+    
+    consistency_score = (writing_days / total_days) * 100
+    
+    # Identify pattern
+    if consistency_score >= 80:
+        pattern = 'daily_writer'
+    elif consistency_score >= 60:
+        pattern = 'frequent_writer'
+    elif consistency_score >= 40:
+        pattern = 'regular_writer'
+    elif consistency_score >= 20:
+        pattern = 'occasional_writer'
+    else:
+        pattern = 'sporadic_writer'
+    
+    return {
+        'score': round(consistency_score, 1),
+        'pattern': pattern,
+        'total_days': total_days,
+        'writing_days': writing_days,
+        'avg_entries_per_writing_day': sum(len(day_entries) for day_entries in daily_entries.values()) / writing_days if writing_days > 0 else 0
+    }
+
+
+def get_emotional_journey(user_id: int) -> Dict[str, Any]:
+    """Map emotional journey over time."""
+    from app.services.ai_sentiment import sentiment_analyzer
+    
+    entries = Entry.query.filter_by(user_id=user_id).order_by(Entry.created_at).all()
+    
+    if not entries:
+        return {}
+    
+    emotional_journey = []
+    mood_progression = []
+    
+    for entry in entries:
+        if entry.content:
+            # Analyze sentiment
+            analysis = sentiment_analyzer.analyze_sentiment(entry.content)
+            
+            emotional_journey.append({
+                'date': entry.created_at.isoformat(),
+                'sentiment': analysis['sentiment'],
+                'confidence': analysis['confidence'],
+                'mood': entry.mood,
+                'title': entry.title or 'Untitled'
+            })
+            
+            if entry.mood:
+                mood_progression.append({
+                    'date': entry.created_at.isoformat(),
+                    'mood': entry.mood
+                })
+    
+    # Find emotional patterns
+    positive_periods = []
+    negative_periods = []
+    
+    current_positive = None
+    current_negative = None
+    
+    for point in emotional_journey:
+        if point['sentiment'] == 'positive':
+            if current_positive is None:
+                current_positive = {'start': point['date'], 'entries': 1}
+            else:
+                current_positive['entries'] += 1
+            current_negative = None
+        elif point['sentiment'] == 'negative':
+            if current_negative is None:
+                current_negative = {'start': point['date'], 'entries': 1}
+            else:
+                current_negative['entries'] += 1
+            current_positive = None
+        else:
+            if current_positive:
+                current_positive['end'] = point['date']
+                positive_periods.append(current_positive)
+                current_positive = None
+            if current_negative:
+                current_negative['end'] = point['date']
+                negative_periods.append(current_negative)
+                current_negative = None
+    
+    # Close any open periods
+    if current_positive:
+        positive_periods.append(current_positive)
+    if current_negative:
+        negative_periods.append(current_negative)
+    
+    return {
+        'journey': emotional_journey,
+        'mood_progression': mood_progression,
+        'positive_periods': positive_periods,
+        'negative_periods': negative_periods,
+        'emotional_resilience': _calculate_emotional_resilience(emotional_journey)
+    }
+
+
+def _calculate_emotional_resilience(journey) -> Dict[str, Any]:
+    """Calculate emotional resilience metrics."""
+    if len(journey) < 5:
+        return {'score': 0, 'recovery_time': 0}
+    
+    # Find negative to positive transitions
+    recovery_times = []
+    negative_start = None
+    
+    for i, point in enumerate(journey):
+        if point['sentiment'] == 'negative' and negative_start is None:
+            negative_start = i
+        elif point['sentiment'] == 'positive' and negative_start is not None:
+            recovery_time = i - negative_start
+            recovery_times.append(recovery_time)
+            negative_start = None
+    
+    avg_recovery = sum(recovery_times) / len(recovery_times) if recovery_times else 0
+    
+    # Calculate resilience score (lower recovery time = higher resilience)
+    max_recovery = max(recovery_times) if recovery_times else 1
+    resilience_score = (1 - (avg_recovery / max_recovery)) * 100 if recovery_times else 50
+    
+    return {
+        'score': round(resilience_score, 1),
+        'avg_recovery_time': round(avg_recovery, 1),
+        'total_recoveries': len(recovery_times),
+        'resilience_level': _get_resilience_level(resilience_score)
+    }
+
+
+def _get_resilience_level(score: float) -> str:
+    """Get resilience level based on score."""
+    if score >= 80:
+        return 'very_high'
+    elif score >= 60:
+        return 'high'
+    elif score >= 40:
+        return 'moderate'
+    elif score >= 20:
+        return 'low'
+    else:
+        return 'very_low'

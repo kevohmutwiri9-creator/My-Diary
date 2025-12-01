@@ -1,7 +1,8 @@
 """Template context processors."""
-from flask import current_app, g
+from flask import current_app, g, session
 from datetime import datetime
 from flask_wtf.csrf import generate_csrf as wtf_generate_csrf
+from app.services.i18n import I18nService
 
 def _extract_nonce():
     """Return the script-src nonce provided by Talisman, if available."""
@@ -17,6 +18,26 @@ def _extract_nonce():
 
 def inject_template_vars():
     """Inject variables into all templates."""
+    # Initialize i18n service
+    i18n_service = I18nService()
+    
+    # Get current language
+    current_language = session.get('language', 'en')
+    
+    # Define translation function
+    def _(key, **kwargs):
+        """Translation function for templates."""
+        translation = i18n_service.translate(key, current_language)
+        
+        # Handle variable interpolation
+        if kwargs:
+            try:
+                return translation.format(**kwargs)
+            except (KeyError, ValueError):
+                return translation
+        
+        return translation
+    
     return {
         'csp_nonce': lambda: _extract_nonce(),
         # Use Flask-WTF CSRF token compatible with CSRFProtect
@@ -25,5 +46,10 @@ def inject_template_vars():
         'current_year': lambda: datetime.utcnow().year,
         'debug': current_app.debug,
         'version': current_app.config.get('VERSION', '1.0.0'),
-        'config': current_app.config
+        'config': current_app.config,
+        # i18n functions
+        '_': _,
+        'current_language': current_language,
+        'available_languages': i18n_service.get_available_languages(),
+        'translate': i18n_service.translate,
     }

@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('settings.title') }} - {{ _('common.app_name') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.preferences-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.preference-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.preference-section h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+}
+
+.preference-group {
+    margin-bottom: 1.5rem;
+}
+
+.preference-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.preference-group select,
+.preference-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.preference-group select:focus,
+.preference-group input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.language-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.language-option {
+    padding: 1rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.language-option:hover {
+    border-color: #3498db;
+    background-color: #f8f9fa;
+}
+
+.language-option.selected {
+    border-color: #3498db;
+    background-color: #e3f2fd;
+}
+
+.language-option .flag {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.language-option .name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.language-option .native {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.timezone-info {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.format-preview {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    font-family: monospace;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .preferences-container {
+        padding: 1rem;
+    }
+    
+    .preference-section {
+        padding: 1.5rem;
+    }
+    
+    .language-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preferences-container">
+    <div class="page-header">
+        <h1>{{ _('settings.title') }}</h1>
+        <p class="text-muted">Customize your language and regional preferences</p>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <form id="preferences-form">
+        <!-- Language Preferences -->
+        <div class="preference-section">
+            <h3>🌐 {{ _('settings.language') }}</h3>
+            <div class="preference-group">
+                <label>{{ _('settings.language') }}</label>
+                <div class="language-grid">
+                    {% for code, info in available_languages.items() %}
+                    <div class="language-option {% if code == preferences.language %}selected{% endif %}" 
+                         data-language="{{ code }}">
+                        <div class="flag">{{ info.flag }}</div>
+                        <div class="name">{{ info.name }}</div>
+                        <div class="native">{{ info.native_name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" id="language" name="language" value="{{ preferences.language }}">
+            </div>
+        </div>
+
+        <!-- Regional Settings -->
+        <div class="preference-section">
+            <h3>🌍 {{ _('settings.general') }}</h3>
+            
+            <div class="preference-group">
+                <label for="timezone">{{ _('settings.timezone') }}</label>
+                <select id="timezone" name="timezone">
+                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                    <option value="America/New_York">Eastern Time (ET)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                    <option value="Europe/London">London (GMT/BST)</option>
+                    <option value="Europe/Paris">Paris (CET/CEST)</option>
+                    <option value="Europe/Berlin">Berlin (CET/CEST)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Asia/Shanghai">Shanghai (CST)</option>
+                    <option value="Asia/Dubai">Dubai (GST)</option>
+                    <option value="Australia/Sydney">Sydney (AEDT/AEST)</option>
+                </select>
+                <div class="timezone-info">
+                    Current time in selected timezone: <span id="current-time">{{ moment().format('YYYY-MM-DD HH:mm:ss') }}</span>
+                </div>
+            </div>
+
+            <div class="preference-group">
+                <label for="currency">{{ _('settings.currency') }}</label>
+                <select id="currency" name="currency">
+                    <option value="USD">USD - US Dollar ($)</option>
+                    <option value="EUR">EUR - Euro (€)</option>
+                    <option value="GBP">GBP - British Pound (£)</option>
+                    <option value="JPY">JPY - Japanese Yen (¥)</option>
+                    <option value="CNY">CNY - Chinese Yuan (¥)</option>
+                    <option value="INR">INR - Indian Rupee (₹)</option>
+                    <option value="AUD">AUD - Australian Dollar ($)</option>
+                    <option value="CAD">CAD - Canadian Dollar ($)</option>
+                    <option value="CHF">CHF - Swiss Franc (Fr)</option>
+                    <option value="SEK">SEK - Swedish Krona (kr)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Date & Time Format -->
+        <div class="preference-section">
+            <h3>📅 {{ _('settings.date_format') }} & {{ _('settings.time_format') }}</h3>
+            
+            <div class="preference-group">
+                <label for="date_format">{{ _('settings.date_format') }}</label>
+                <select id="date_format" name="date_format">
+                    <option value="short">Short (MM/DD/YYYY)</option>
+                    <option value="medium">Medium (MMM DD, YYYY)</option>
+                    <option value="long">Long (Month DD, YYYY)</option>
+                    <option value="full">Full (Day, Month DD, YYYY)</option>
+                </select>
+                <div class="format-preview" id="date-preview">
+                    Preview: {{ moment().format('MMM DD, YYYY') }}
+                </div>
+            </div>
+
+            <div class="preference-group">
+                <label for="time_format">{{ _('settings.time_format') }}</label>
+                <select id="time_format" name="time_format">
+                    <option value="12h">12-hour (HH:MM AM/PM)</option>
+                    <option value="24h">24-hour (HH:MM)</option>
+                </select>
+                <div class="format-preview" id="time-preview">
+                    Preview: {{ moment().format('HH:mm') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="text-center">
+            <button type="submit" class="save-btn" id="save-btn">
+                {{ _('common.save') }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize preferences
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('preferences-form');
+    const alertContainer = document.getElementById('alert-container');
+    const saveBtn = document.getElementById('save-btn');
+    
+    // Set current values
+    document.getElementById('timezone').value = '{{ preferences.timezone }}';
+    document.getElementById('currency').value = '{{ preferences.currency }}';
+    document.getElementById('date_format').value = '{{ preferences.date_format }}';
+    document.getElementById('time_format').value = '{{ preferences.time_format }}';
+    
+    // Language selection
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.language-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            document.getElementById('language').value = this.dataset.language;
+        });
+    });
+    
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const response = await fetch('/i18n/preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', result.message);
+                // Reload page to apply changes
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showAlert('error', result.error);
+            }
+        } catch (error) {
+            showAlert('error', 'Failed to save preferences');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '{{ _("common.save") }}';
+        }
+    });
+    
+    // Update previews when format changes
+    document.getElementById('date_format').addEventListener('change', updateDatePreview);
+    document.getElementById('time_format').addEventListener('change', updateTimePreview);
+    
+    function showAlert(type, message) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        alertContainer.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+    
+    function updateDatePreview() {
+        const format = document.getElementById('date_format').value;
+        const preview = document.getElementById('date-preview');
+        const now = new Date();
+        
+        let formatted;
+        switch(format) {
+            case 'short':
+                formatted = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+                break;
+            case 'medium':
+                formatted = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                break;
+            case 'long':
+                formatted = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                break;
+            case 'full':
+                formatted = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                break;
+        }
+        
+        preview.textContent = `Preview: ${formatted}`;
+    }
+    
+    function updateTimePreview() {
+        const format = document.getElementById('time_format').value;
+        const preview = document.getElementById('time-preview');
+        const now = new Date();
+        
+        const formatted = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: format === '12h'
+        });
+        
+        preview.textContent = `Preview: ${formatted}`;
+    }
+    
+    // Update current time display
+    function updateCurrentTime() {
+        const timezone = document.getElementById('timezone').value;
+        const timeElement = document.getElementById('current-time');
+        
+        try {
+            const now = new Date();
+            const options = {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            
+            timeElement.textContent = now.toLocaleString('en-US', options);
+        } catch (error) {
+            timeElement.textContent = 'Invalid timezone';
+        }
+    }
+    
+    document.getElementById('timezone').addEventListener('change', updateCurrentTime);
+    updateCurrentTime();
+    
+    // Update time every second
+    setInterval(updateCurrentTime, 1000);
+});
+</script>
+{% endblock %}

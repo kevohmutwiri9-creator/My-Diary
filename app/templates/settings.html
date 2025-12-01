@@ -11,7 +11,7 @@
             <h5 class="mb-0">Advertising Preferences</h5>
         </div>
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" action="{{ url_for('main.update_ad_settings') }}">
                 {{ ad_form.hidden_tag() }}
                 <div class="form-check form-switch mb-3">
                     {{ ad_form.allow_ads(class="form-check-input", id="allowAdsToggle") }}

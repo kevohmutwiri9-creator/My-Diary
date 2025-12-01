@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}AdSense Status - {{ _('common.app_name') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2><i class="fas fa-ad"></i> AdSense Status</h2>
+            <p class="text-muted">Check your Google AdSense integration status</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('main.settings') }}" class="btn btn-outline-primary">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-check-circle"></i> Configuration Status</h5>
+                </div>
+                <div class="card-body">
+                    {% if ad_validation.valid %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check"></i> AdSense is properly configured
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Configuration issues detected
+                        </div>
+                        <ul class="list-unstyled">
+                            {% for error in ad_validation.errors %}
+                            <li><i class="fas fa-times text-danger"></i> {{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    <hr>
+
+                    <h6>Configuration Details:</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Client ID:</strong></td>
+                            <td>
+                                {% if ad_config.client_id %}
+                                    <code>{{ ad_config.client_id[:20] }}...</code>
+                                    <span class="badge bg-success">Configured</span>
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                    <span class="badge bg-danger">Missing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Slot ID:</strong></td>
+                            <td>
+                                {% if ad_config.slot_id %}
+                                    <code>{{ ad_config.slot_id }}</code>
+                                    <span class="badge bg-success">Configured</span>
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                    <span class="badge bg-warning">Optional</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Enabled:</strong></td>
+                            <td>
+                                {% if ad_config.enabled %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user"></i> User Preferences</h5>
+                </div>
+                <div class="card-body">
+                    {% if current_user.is_authenticated %}
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="adPreferenceToggle" 
+                                   {% if current_user.allow_ads %}checked{% endif %}
+                                   disabled>
+                            <label class="form-check-label" for="adPreferenceToggle">
+                                Show ads in my dashboard
+                            </label>
+                        </div>
+
+                        <p class="text-muted">
+                            <small>
+                                Your current preference: 
+                                {% if current_user.allow_ads %}
+                                    <span class="badge bg-success">Ads enabled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Ads disabled</span>
+                                {% endif %}
+                            </small>
+                        </p>
+
+                        <div class="mt-3">
+                            <a href="{{ url_for('main.settings') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Change preference
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">
+                            <i class="fas fa-info-circle"></i> Please log in to manage your ad preferences
+                        </p>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line"></i> Ad Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">0</h4>
+                                <p class="text-muted">Total Impressions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">0</h4>
+                                <p class="text-muted">Total Clicks</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">0.0%</h4>
+                                <p class="text-muted">CTR</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">$0.00</h4>
+                                <p class="text-muted">Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> 
+                        Ad performance statistics will be available once your AdSense account starts generating impressions.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-question-circle"></i> AdSense FAQ</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="adsenseFAQ">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    What is Google AdSense?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#adsenseFAQ">
+                                <div class="accordion-body">
+                                    Google AdSense is a program that allows website owners to display targeted ads on their sites and earn money when visitors click on or view these ads.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    How do I control whether ads are shown?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#adsenseFAQ">
+                                <div class="accordion-body">
+                                    You can control ads through your account settings. Simply toggle the "Show ads" option to enable or disable advertisements. Your preference is saved and respected across all pages.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Where do ads appear?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#adsenseFAQ">
+                                <div class="accordion-body">
+                                    Ads may appear in the dashboard sidebar, between journal entries, and in other strategic locations. They are designed to be non-intrusive and relevant to your interests.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    Is my data shared with advertisers?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#adsenseFAQ">
+                                <div class="accordion-body">
+                                    No. Google AdSense uses contextual targeting and anonymous browsing data to show relevant ads. Your personal journal content and private information are never shared with advertisers.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5>Need Help?</h5>
+                    <p class="text-muted">
+                        If you're experiencing issues with ads or have questions about AdSense integration, 
+                        please check our help documentation or contact support.
+                    </p>
+                    <div class="mt-3">
+                        <a href="{{ url_for('main.help') }}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-book"></i> Help Center
+                        </a>
+                        <a href="{{ url_for('main.contact') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-envelope"></i> Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}

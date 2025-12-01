@@ -1,0 +1,147 @@
+<!-- Language Switcher Component -->
+<div class="language-switcher">
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" 
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="flag">{{ available_languages[current_language].flag }}</span>
+            <span class="language-name">{{ available_languages[current_language].name }}</span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+            {% for code, info in available_languages.items() %}
+            <li>
+                <a class="dropdown-item language-option {% if code == current_language %}active{% endif %}" 
+                   href="#" data-language="{{ code }}">
+                    <span class="flag">{{ info.flag }}</span>
+                    <span class="language-name">{{ info.name }}</span>
+                    {% if code == current_language %}
+                    <span class="check">✓</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<style>
+.language-switcher {
+    display: inline-block;
+}
+
+.language-switcher .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.language-switcher .flag {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.language-switcher .language-name {
+    font-weight: 500;
+}
+
+.language-switcher .dropdown-menu {
+    min-width: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.language-switcher .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+}
+
+.language-switcher .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.language-switcher .dropdown-item.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.language-switcher .check {
+    margin-left: auto;
+    color: #1976d2;
+    font-weight: bold;
+}
+
+/* Loading state */
+.language-switcher.loading .dropdown-toggle {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.language-switcher.loading .dropdown-toggle::after {
+    content: '';
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.5rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const languageOptions = document.querySelectorAll('.language-option');
+    const switcher = document.querySelector('.language-switcher');
+    
+    languageOptions.forEach(option => {
+        option.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const languageCode = this.dataset.language;
+            const currentLanguage = '{{ current_language }}';
+            
+            if (languageCode === currentLanguage) {
+                return; // Already selected
+            }
+            
+            // Add loading state
+            switcher.classList.add('loading');
+            
+            try {
+                const response = await fetch('/i18n/set_language', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        language_code: languageCode
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Reload page to apply language change
+                    window.location.reload();
+                } else {
+                    console.error('Failed to set language:', result.error);
+                    switcher.classList.remove('loading');
+                }
+            } catch (error) {
+                console.error('Error setting language:', error);
+                switcher.classList.remove('loading');
+            }
+        });
+    });
+});
+</script>

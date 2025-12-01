@@ -191,10 +191,23 @@ def create_app(config_class=Config):
 
     # Register blueprints
     from app.routes.main import main_bp
-    app.register_blueprint(main_bp)
-
     from app.routes.auth import auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/auth')
+    from app.routes.community import community_bp
+    from app.routes.media import media_bp
+    from app.routes.security import security_bp
+    from app.routes.performance import performance_bp
+    from app.routes.templates import templates_bp
+    
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(community_bp)
+    app.register_blueprint(media_bp)
+    app.register_blueprint(security_bp)
+    app.register_blueprint(performance_bp)
+    app.register_blueprint(templates_bp)
+    
+    from app.routes.i18n import i18n_bp
+    app.register_blueprint(i18n_bp)
 
     from app.routes.assistant import assistant_bp
     app.register_blueprint(assistant_bp, url_prefix='/assistant')
