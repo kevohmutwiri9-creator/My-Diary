@@ -218,6 +218,9 @@ def create_app(config_class=Config):
     from app.routes.profile import profile_bp
     app.register_blueprint(profile_bp)
     
+    from app.routes.paypal import paypal_bp
+    app.register_blueprint(paypal_bp)
+    
     from app.routes.two_factor import two_factor_bp
     app.register_blueprint(two_factor_bp)
 

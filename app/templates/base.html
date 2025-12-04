@@ -374,6 +374,15 @@
                             <li><a class="dropdown-item" href="{{ url_for('main.settings') }}">
                                 <i class="fas fa-cog"></i> {{ _('common.settings') }}
                             </a></li>
+                            {% if current_user.is_premium() %}
+                            <li><a class="dropdown-item" href="{{ url_for('paypal.manage') }}">
+                                <i class="fas fa-crown"></i> Subscription
+                            </a></li>
+                            {% else %}
+                            <li><a class="dropdown-item" href="{{ url_for('paypal.pricing') }}">
+                                <i class="fas fa-tag"></i> Pricing
+                            </a></li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="fas fa-sign-out-alt"></i> {{ _('common.logout') }}

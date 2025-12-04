@@ -46,6 +46,13 @@ class Config:
     ADSENSE_CLIENT_ID = os.environ.get('ADSENSE_CLIENT_ID', 'ca-pub-2396098605485959')
     ADSENSE_SLOT_ID = os.environ.get('ADSENSE_SLOT_ID')
 
+    # PayPal configuration
+    PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+    PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+    PAYPAL_WEBHOOK_ID = os.environ.get('PAYPAL_WEBHOOK_ID')
+    PAYPAL_SANDBOX = os.environ.get('PAYPAL_SANDBOX', 'True').lower() == 'true'
+    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+
     # Assistant configuration
     ASSISTANT_MODEL_CANDIDATES = [
         candidate.strip() for candidate in os.environ.get(

@@ -50,6 +50,19 @@ class User(UserMixin, db.Model):
     currency = db.Column(db.String(3), default='USD')  # USD, EUR, GBP, etc.
     number_format = db.Column(db.String(10), default='decimal')  # decimal, comma, space
     
+    # Subscription/Premium features
+    subscription_tier = db.Column(db.String(20), default='free')  # free, premium, pro
+    subscription_status = db.Column(db.String(20), default='inactive')  # active, cancelled, expired, inactive
+    subscription_started_at = db.Column(db.DateTime, nullable=True)
+    subscription_ends_at = db.Column(db.DateTime, nullable=True)
+    paypal_subscription_id = db.Column(db.String(100), nullable=True)
+    last_payment_at = db.Column(db.DateTime, nullable=True)
+    next_billing_date = db.Column(db.DateTime, nullable=True)
+    auto_renew = db.Column(db.Boolean, default=True)
+    trial_used = db.Column(db.Boolean, default=False)
+    trial_started_at = db.Column(db.DateTime, nullable=True)
+    trial_ends_at = db.Column(db.DateTime, nullable=True)
+    
     # Profile
     profile_picture = db.Column(db.String(255), nullable=True)
     bio = db.Column(db.Text, nullable=True)
@@ -187,6 +200,138 @@ class User(UserMixin, db.Model):
     def update_profile_picture(self, filename):
         """Update the user's profile picture."""
         self.profile_picture = filename
+
+    # Subscription methods
+    def is_premium(self):
+        """Check if user has premium subscription."""
+        return self.subscription_tier in ['premium', 'pro'] and self.subscription_status == 'active'
+    
+    def is_pro(self):
+        """Check if user has pro subscription."""
+        return self.subscription_tier == 'pro' and self.subscription_status == 'active'
+    
+    def is_trial_active(self):
+        """Check if user has active trial."""
+        if not self.trial_started_at or not self.trial_ends_at:
+            return False
+        return datetime.utcnow() < self.trial_ends_at
+    
+    def can_start_trial(self):
+        """Check if user can start a trial."""
+        return not self.trial_used and not self.is_premium()
+    
+    def start_trial(self, tier='premium', days=14):
+        """Start a free trial."""
+        if not self.can_start_trial():
+            return False
+        
+        self.trial_used = True
+        self.trial_started_at = datetime.utcnow()
+        self.trial_ends_at = datetime.utcnow() + timedelta(days=days)
+        self.subscription_tier = tier
+        self.subscription_status = 'active'
+        
+        db.session.commit()
+        return True
+    
+    def upgrade_subscription(self, tier, paypal_subscription_id=None):
+        """Upgrade user subscription."""
+        self.subscription_tier = tier
+        self.subscription_status = 'active'
+        self.subscription_started_at = datetime.utcnow()
+        self.paypal_subscription_id = paypal_subscription_id
+        self.last_payment_at = datetime.utcnow()
+        
+        # Set next billing date based on tier
+        if tier == 'premium':
+            self.subscription_ends_at = datetime.utcnow() + timedelta(days=30)
+        elif tier == 'pro':
+            self.subscription_ends_at = datetime.utcnow() + timedelta(days=30)
+        
+        self.next_billing_date = self.subscription_ends_at
+        
+        db.session.commit()
+        return True
+    
+    def cancel_subscription(self):
+        """Cancel subscription."""
+        self.subscription_status = 'cancelled'
+        self.auto_renew = False
+        db.session.commit()
+        return True
+    
+    def extend_subscription(self, days=30):
+        """Extend subscription period."""
+        if self.subscription_ends_at:
+            self.subscription_ends_at += timedelta(days=days)
+        else:
+            self.subscription_ends_at = datetime.utcnow() + timedelta(days=days)
+        
+        self.next_billing_date = self.subscription_ends_at
+        db.session.commit()
+        return True
+    
+    def get_subscription_features(self):
+        """Get available features based on subscription tier."""
+        features = {
+            'free': {
+                'max_entries': 100,
+                'max_photos': 10,
+                'ai_insights': False,
+                'advanced_analytics': False,
+                'templates': 5,
+                'export_formats': ['txt'],
+                'priority_support': False,
+                'ads': True,
+                'voice_entries': False,
+                'collaboration': False
+            },
+            'premium': {
+                'max_entries': float('inf'),
+                'max_photos': 100,
+                'ai_insights': True,
+                'advanced_analytics': True,
+                'templates': 50,
+                'export_formats': ['txt', 'pdf', 'json'],
+                'priority_support': True,
+                'ads': False,
+                'voice_entries': True,
+                'collaboration': False
+            },
+            'pro': {
+                'max_entries': float('inf'),
+                'max_photos': float('inf'),
+                'ai_insights': True,
+                'advanced_analytics': True,
+                'templates': float('inf'),
+                'export_formats': ['txt', 'pdf', 'json', 'csv', 'docx'],
+                'priority_support': True,
+                'ads': False,
+                'voice_entries': True,
+                'collaboration': True
+            }
+        }
+        
+        return features.get(self.subscription_tier, features['free'])
+    
+    def check_subscription_limits(self):
+        """Check if user is approaching subscription limits."""
+        if self.is_premium():
+            return {'status': 'ok', 'message': 'No limits for premium users'}
+        
+        features = self.get_subscription_features()
+        current_entries = self.entries.count()
+        
+        warnings = []
+        
+        if current_entries >= features['max_entries'] * 0.8:
+            warnings.append(f'You have used {current_entries} of {features["max_entries"]} entries')
+        
+        return {
+            'status': 'warning' if warnings else 'ok',
+            'warnings': warnings,
+            'features': features
+        }
 
 @login_manager.user_loader
 def load_user(id):

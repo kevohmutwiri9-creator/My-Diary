@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Subscription - {{ _('common.app_name') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2><i class="fas fa-crown text-warning me-2"></i>Manage Subscription</h2>
+            <p class="text-muted">Manage your premium subscription and billing</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('paypal.pricing') }}" class="btn btn-outline-primary">
+                <i class="fas fa-tag me-2"></i>View Plans
+            </a>
+        </div>
+    </div>
+
+    {% if current_user.is_premium() %}
+    <!-- Current Subscription -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        {{ current_user.subscription_tier.title() }} Plan
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Status</small>
+                            <div>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Next Billing</small>
+                            <div>
+                                {% if current_user.next_billing_date %}
+                                    {{ current_user.next_billing_date.strftime('%b %d, %Y') }}
+                                {% else %}
+                                    Not scheduled
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Started</small>
+                            <div>
+                                {% if current_user.subscription_started_at %}
+                                    {{ current_user.subscription_started_at.strftime('%b %d, %Y') }}
+                                {% else %}
+                                    Recently
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Auto-Renew</small>
+                            <div>
+                                {% if current_user.auto_renew %}
+                                    <span class="badge bg-success">Enabled</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Disabled</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if current_user.is_trial_active() %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Trial Active!</strong> Your trial ends on {{ current_user.trial_ends_at.strftime('%b %d, %Y') }}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        {% if current_user.subscription_tier == 'premium' %}
+                        <a href="{{ url_for('paypal.upgrade', tier='pro') }}" class="btn btn-warning">
+                            <i class="fas fa-arrow-up me-2"></i>Upgrade to Pro
+                        </a>
+                        {% endif %}
+                        
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            <i class="fas fa-times me-2"></i>Cancel Subscription
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Usage Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set features = current_user.get_subscription_features() %}
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Journal Entries</span>
+                            {% if features.max_entries == float('inf') %}
+                                <span class="badge bg-success">Unlimited</span>
+                            {% else %}
+                                <span>{{ current_user.entries.count() }} / {{ features.max_entries }}</span>
+                            {% endif %}
+                        </div>
+                        {% if features.max_entries != float('inf') %}
+                        <div class="progress" style="height: 6px;">
+                            {% set percentage = (current_user.entries.count() / features.max_entries * 100) %}
+                            <div class="progress-bar" style="width: {{ percentage }}%;"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Photo Uploads</span>
+                            {% if features.max_photos == float('inf') %}
+                                <span class="badge bg-success">Unlimited</span>
+                            {% else %}
+                                <span>0 / {{ features.max_photos }}</span>
+                            {% endif %}
+                        </div>
+                        {% if features.max_photos != float('inf') %}
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: 0%;"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <h6>Available Features</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">
+                                {% if features.ai_insights %}
+                                    <i class="fas fa-check text-success me-1"></i> AI Insights
+                                {% else %}
+                                    <i class="fas fa-times text-danger me-1"></i> AI Insights
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                {% if features.advanced_analytics %}
+                                    <i class="fas fa-check text-success me-1"></i> Analytics
+                                {% else %}
+                                    <i class="fas fa-times text-danger me-1"></i> Analytics
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                {% if features.voice_entries %}
+                                    <i class="fas fa-check text-success me-1"></i> Voice Entry
+                                {% else %}
+                                    <i class="fas fa-times text-danger me-1"></i> Voice Entry
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                {% if features.priority_support %}
+                                    <i class="fas fa-check text-success me-1"></i> Priority Support
+                                {% else %}
+                                    <i class="fas fa-times text-danger me-1"></i> Priority Support
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                {% if features.ads %}
+                                    <i class="fas fa-ad text-warning me-1"></i> With Ads
+                                {% else %}
+                                    <i class="fas fa-check text-success me-1"></i> Ad-Free
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                {% if features.collaboration %}
+                                    <i class="fas fa-check text-success me-1"></i> Collaboration
+                                {% else %}
+                                    <i class="fas fa-times text-danger me-1"></i> Collaboration
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Billing History -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Billing History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ current_user.last_payment_at.strftime('%b %d, %Y') if current_user.last_payment_at else 'N/A' }}</td>
+                                    <td>{{ current_user.subscription_tier.title() }} Subscription</td>
+                                    <td>${{ plans[current_user.subscription_tier].price if current_user.subscription_tier in plans else '0.00' }}</td>
+                                    <td><span class="badge bg-success">Paid</span></td>
+                                    <td><i class="fab fa-paypal text-primary me-1"></i> PayPal</td>
+                                </tr>
+                                {% if current_user.is_trial_active() %}
+                                <tr>
+                                    <td>{{ current_user.trial_started_at.strftime('%b %d, %Y') }}</td>
+                                    <td>Free Trial Started</td>
+                                    <td>$0.00</td>
+                                    <td><span class="badge bg-info">Trial</span></td>
+                                    <td>-</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Active Subscription -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-crown text-muted fa-3x mb-3"></i>
+                    <h4>No Active Subscription</h4>
+                    <p class="text-muted mb-4">
+                        You don't currently have a premium subscription. Upgrade to unlock all features and remove advertisements.
+                    </p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ url_for('paypal.pricing') }}" class="btn btn-primary">
+                            <i class="fas fa-star me-2"></i>View Pricing Plans
+                        </a>
+                        {% if current_user.can_start_trial() %}
+                        <a href="{{ url_for('paypal.start_trial', tier='premium') }}" class="btn btn-outline-success">
+                            <i class="fas fa-play me-2"></i>Start Free Trial
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Support Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5><i class="fas fa-headset me-2"></i>Need Help?</h5>
+                            <p class="text-muted mb-0">
+                                Our support team is here to help with any billing or subscription questions.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('main.contact') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-envelope me-2"></i>Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Subscription Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Are you sure you want to cancel?</strong>
+                </div>
+                <p>
+                    If you cancel your subscription, you'll continue to have access to premium features until the end of your current billing period:
+                </p>
+                <ul>
+                    <li>Access continues until <strong>{{ current_user.subscription_ends_at.strftime('%b %d, %Y') if current_user.subscription_ends_at else 'the end of your billing period' }}</strong></li>
+                    <li>You can reactivate anytime</li>
+                    <li>Your data remains safe and accessible</li>
+                    <li>You'll lose access to premium features after cancellation</li>
+                </ul>
+                <p class="text-muted">
+                    We'd love to know why you're cancelling. Your feedback helps us improve!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
+                <form method="POST" action="{{ url_for('paypal.cancel_subscription') }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Cancel Subscription
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}

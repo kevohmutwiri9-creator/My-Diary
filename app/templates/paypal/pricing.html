@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - {{ _('common.app_name') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">Choose Your Plan</h1>
+        <p class="lead text-muted">Unlock the full potential of your journaling experience</p>
+    </div>
+
+    {% if paypal_configured %}
+    <div class="row g-4 mb-5">
+        <!-- Free Plan -->
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h4 class="card-title text-center mb-0">Free</h4>
+                    <h3 class="text-center mb-0">$0<span class="text-muted fw-normal">/month</span></h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            100 journal entries
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            10 photo uploads
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Basic mood tracking
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            5 journal templates
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Text export only
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-times me-2"></i>
+                            <del>AI insights</del>
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-times me-2"></i>
+                            <del>Advanced analytics</del>
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-times me-2"></i>
+                            <del>Voice entries</del>
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-times me-2"></i>
+                            <del>Priority support</del>
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-ad me-2"></i>
+                            With advertisements
+                        </li>
+                    </ul>
+                    {% if current_user.is_authenticated and current_user.subscription_tier == 'free' %}
+                    <div class="d-grid">
+                        <button class="btn btn-outline-secondary" disabled>
+                            <i class="fas fa-check me-2"></i>Current Plan
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="d-grid">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-primary">
+                            Get Started
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Plan -->
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-lg border-primary">
+                <div class="card-header bg-primary text-white py-3 position-relative">
+                    <div class="position-absolute top-0 start-50 translate-middle">
+                        <span class="badge bg-warning text-dark">Most Popular</span>
+                    </div>
+                    <h4 class="card-title text-center mb-0">Premium</h4>
+                    <h3 class="text-center mb-0">$9.99<span class="text-white-50 fw-normal">/month</span></h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Unlimited</strong> journal entries
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            100 photo uploads
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>AI-powered insights</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Advanced mood analytics
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            50 journal templates
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Multiple export formats
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Voice-to-text entries
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Priority email support
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>No advertisements</strong>
+                        </li>
+                        <li class="mb-2 text-primary">
+                            <i class="fas fa-gift me-2"></i>
+                            <strong>14-day free trial</strong>
+                        </li>
+                    </ul>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.subscription_tier == 'premium' %}
+                        <div class="d-grid">
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-check me-2"></i>Current Plan
+                            </button>
+                        </div>
+                        {% elif current_user.can_start_trial() %}
+                        <div class="d-grid">
+                            <a href="{{ url_for('paypal.start_trial', tier='premium') }}" class="btn btn-primary">
+                                <i class="fas fa-play me-2"></i>Start Free Trial
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="d-grid">
+                            <a href="{{ url_for('paypal.subscribe', tier='premium') }}" class="btn btn-primary">
+                                <i class="fas fa-rocket me-2"></i>Upgrade to Premium
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="d-grid">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
+                            <i class="fas fa-play me-2"></i>Start Free Trial
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white py-3">
+                    <h4 class="card-title text-center mb-0">Pro</h4>
+                    <h3 class="text-center mb-0">$19.99<span class="text-white-50 fw-normal">/month</span></h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Everything in Premium</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Unlimited</strong> photo uploads
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Advanced AI insights
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Predictive mood analysis
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>Unlimited</strong> templates
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            All export formats
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Collaboration features
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Priority phone support
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <strong>No advertisements</strong>
+                        </li>
+                        <li class="mb-2 text-primary">
+                            <i class="fas fa-gift me-2"></i>
+                            <strong>14-day free trial</strong>
+                        </li>
+                    </ul>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.subscription_tier == 'pro' %}
+                        <div class="d-grid">
+                            <button class="btn btn-dark" disabled>
+                                <i class="fas fa-check me-2"></i>Current Plan
+                            </button>
+                        </div>
+                        {% elif current_user.can_start_trial() %}
+                        <div class="d-grid">
+                            <a href="{{ url_for('paypal.start_trial', tier='pro') }}" class="btn btn-dark">
+                                <i class="fas fa-play me-2"></i>Start Free Trial
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="d-grid">
+                            <a href="{{ url_for('paypal.subscribe', tier='pro') }}" class="btn btn-dark">
+                                <i class="fas fa-crown me-2"></i>Go Pro
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="d-grid">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-dark">
+                            <i class="fas fa-play me-2"></i>Start Free Trial
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yearly Savings -->
+    <div class="text-center mb-5">
+        <div class="alert alert-info d-inline-block">
+            <i class="fas fa-piggy-bank me-2"></i>
+            <strong>Save 20% with yearly billing!</strong> Get 2 months free when you pay annually.
+        </div>
+    </div>
+
+    <!-- Feature Comparison -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="text-center mb-4">Feature Comparison</h3>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th class="text-center">Free</th>
+                            <th class="text-center">Premium</th>
+                            <th class="text-center">Pro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Journal Entries</td>
+                            <td class="text-center">100</td>
+                            <td class="text-center"><i class="fas fa-infinity text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-infinity text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Photo Uploads</td>
+                            <td class="text-center">10</td>
+                            <td class="text-center">100</td>
+                            <td class="text-center"><i class="fas fa-infinity text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>AI Insights</td>
+                            <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Advanced Analytics</td>
+                            <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Voice Entries</td>
+                            <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Templates</td>
+                            <td class="text-center">5</td>
+                            <td class="text-center">50</td>
+                            <td class="text-center"><i class="fas fa-infinity text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Export Formats</td>
+                            <td class="text-center">1</td>
+                            <td class="text-center">3</td>
+                            <td class="text-center">5</td>
+                        </tr>
+                        <tr>
+                            <td>Priority Support</td>
+                            <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Advertisements</td>
+                            <td class="text-center"><i class="fas fa-check text-warning"></i></td>
+                            <td class="text-center"><i class="fas fa-times text-success"></i></td>
+                            <td class="text-center"><i class="fas fa-times text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Collaboration</td>
+                            <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                            <td class="text-center"><i class="fas fa-times text-danger"></i></td>
+                            <td class="text-center"><i class="fas fa-check text-success"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Payment system is currently being configured. Please check back later.
+        </div>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- FAQ Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">Frequently Asked Questions</h3>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Can I change or cancel my subscription anytime?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! You can upgrade, downgrade, or cancel your subscription at any time. If you cancel, you'll continue to have access to premium features until the end of your billing period.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            What happens to my data if I cancel?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Your data is always yours! If you cancel, your journal entries and data remain safe. You'll still be able to access and export your data, though premium features will be limited.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Is the free trial really free?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Absolutely! You get 14 days of full premium access with no obligation. You can cancel anytime during the trial without being charged.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            What payment methods do you accept?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept all major payment methods through PayPal, including credit cards, debit cards, and PayPal balance. All payments are secure and processed by PayPal.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}
