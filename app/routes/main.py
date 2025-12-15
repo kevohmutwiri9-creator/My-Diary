@@ -7,7 +7,7 @@ from app.models.entry import Entry
 from app.models.goal import Goal
 from app.models.user import User
 from app.services.adsense import adsense_service
-from app.forms import AdSettingsForm
+from app.forms import AdSettingsForm, EntryForm # Import EntryForm
 from datetime import datetime, timedelta
 import logging
 
@@ -19,7 +19,11 @@ def index():
     """Home page."""
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
-    return render_template('index.html')
+    
+    # Fetch a few recent public entries for the homepage
+    public_entries = Entry.query.filter_by(is_private=False).order_by(Entry.created_at.desc()).limit(5).all()
+    
+    return render_template('index.html', public_entries=public_entries)
 
 @main_bp.route('/dashboard')
 @login_required
@@ -83,13 +87,23 @@ def view_entry(id):
     
     return render_template('view_entry.html', entry=entry)
 
-@main_bp.route('/new')
+@main_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def new_entry():
     """Create a new entry."""
-    return render_template('new_entry.html')
+    form = EntryForm()
+    if form.validate_on_submit():
+        entry = Entry(title=form.title.data, 
+                      content=form.content.data, 
+                      is_public=form.is_public.data, # Save is_public status
+                      user_id=current_user.id)
+        db.session.add(entry)
+        db.session.commit()
+        flash('Your entry has been created!', 'success')
+        return redirect(url_for('main.view_entry', id=entry.id))
+    return render_template('new_entry.html', form=form)
 
-@main_bp.route('/edit/<int:id>')
+@main_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_entry(id):
     """Edit an entry."""
@@ -100,7 +114,14 @@ def edit_entry(id):
         flash('You can only edit your own entries.', 'warning')
         return redirect(url_for('main.entries'))
     
-    return render_template('edit_entry.html', entry=entry)
+    form = EntryForm(obj=entry)
+    if form.validate_on_submit():
+        form.populate_obj(entry)
+        db.session.commit()
+        flash('Your entry has been updated!', 'success')
+        return redirect(url_for('main.view_entry', id=entry.id))
+    
+    return render_template('edit_entry.html', form=form, entry=entry)
 
 @main_bp.route('/settings')
 @login_required
