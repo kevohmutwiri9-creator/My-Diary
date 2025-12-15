@@ -20,6 +20,10 @@ from app.utils.error_handler import ErrorHandler
 from app.utils.security_enhancer import SecurityEnhancer
 from app.utils.performance_optimizer import PerformanceOptimizer
 from app.utils.ui_enhancer import UIEnhancer
+from app.extensions.performance import init_performance
+# Temporarily disabled due to indentation errors
+# from app.services.i18n import I18nService, LocalizationService, TranslationService # Import i18n services
+from app.services.paypal import PayPalService # Import PayPal service
 
 # Initialize extensions without app
 db = SQLAlchemy()
@@ -37,6 +41,11 @@ error_handler = ErrorHandler()
 security_enhancer = SecurityEnhancer()
 performance_optimizer = PerformanceOptimizer()
 ui_enhancer = UIEnhancer()
+# Temporarily disabled due to indentation errors
+# i18n_service = I18nService() # Initialize i18n services
+# localization_service = LocalizationService()
+# translation_service = TranslationService()
+paypal_service = PayPalService() # Initialize PayPal service
 
 def create_app(config_class=Config):
     """Application factory function."""
@@ -119,17 +128,18 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     mail.init_app(app)
     
-    # Initialize error handler
+    # Initialize custom services with app
     error_handler.init_app(app)
-    
-    # Initialize security enhancer
     security_enhancer.init_app(app)
-    
-    # Initialize performance optimizer
     performance_optimizer.init_app(app)
-    
-    # Initialize UI enhancer
     ui_enhancer.init_app(app)
+    # Initialize performance optimizations
+    init_performance(app)
+    # Temporarily disabled due to indentation errors
+    # i18n_service.init_app(app) # Initialize i18n service
+    # localization_service.init_app(app) # Initialize localization service
+    # translation_service.init_app(app) # Initialize translation service
+    paypal_service.init_app(app) # Initialize PayPal service
     
     # Initialize rate limiter
     def get_identifier():
@@ -188,6 +198,15 @@ def create_app(config_class=Config):
     app.jinja_env.filters['markdown_to_html'] = markdown_to_html
     app.jinja_env.filters['zip'] = zip_filter
     app.jinja_env.filters['datetimefilter'] = datetimefilter
+    # Temporarily disabled i18n filters due to indentation errors
+    # app.jinja_env.filters['translate'] = i18n_service.translate # Register translate filter
+    # app.jinja_env.filters['format_date'] = i18n_service.format_date # Register format_date filter
+    # app.jinja_env.filters['format_datetime'] = i18n_service.format_datetime # Register format_datetime filter
+    # app.jinja_env.filters['format_number'] = i18n_service.format_number # Register format_number filter
+    # app.jinja_env.filters['format_currency'] = i18n_service.format_currency # Register format_currency filter
+
+    # Make i18n_service available globally in templates
+    # app.jinja_env.globals['i18n'] = i18n_service
 
     # Register blueprints
     from app.routes.main import main_bp

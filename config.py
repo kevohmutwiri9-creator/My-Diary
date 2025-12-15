@@ -6,7 +6,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 INSTANCE_DIR = os.path.join(basedir, 'instance')
 os.makedirs(INSTANCE_DIR, exist_ok=True)
 
-load_dotenv(os.path.join(basedir, '.env'))
+# Load .env file if it exists
+env_path = os.path.join(basedir, '.env')
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
 class Config:
     # App Config
@@ -38,6 +41,8 @@ class Config:
     # Caching
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
+    REDIS_ENABLED = os.environ.get('REDIS_ENABLED', 'false').lower() in ('1', 'true', 'yes')
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     
     # Application settings
     POSTS_PER_PAGE = 10
@@ -47,6 +52,7 @@ class Config:
     ADSENSE_SLOT_ID = os.environ.get('ADSENSE_SLOT_ID')
 
     # PayPal configuration
+    PAYPAL_ENABLED = os.environ.get('PAYPAL_ENABLED', 'false').lower() in ('1', 'true', 'yes')
     PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
     PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
     PAYPAL_WEBHOOK_ID = os.environ.get('PAYPAL_WEBHOOK_ID')
@@ -81,6 +87,9 @@ class Config:
     # Password reset
     PASSWORD_RESET_TOKEN_MAX_AGE = int(os.environ.get('PASSWORD_RESET_TOKEN_MAX_AGE', 3600))
     PASSWORD_RESET_SALT = os.environ.get('PASSWORD_RESET_SALT', 'password-reset-salt')
+
+    # i18n supported locales (comma-separated); default to English only to avoid missing-file warnings
+    I18N_LOCALES = os.environ.get('I18N_LOCALES', 'en')
 
 class DevelopmentConfig(Config):
     DEBUG = True
