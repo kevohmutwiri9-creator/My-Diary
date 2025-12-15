@@ -6,10 +6,11 @@ from flask import Blueprint, request, jsonify, render_template, flash, redirect,
 from flask_login import login_required, current_user
 from datetime import datetime, date, timedelta
 from app.services.templates import template_service, prompt_service, collection_service
-from app.models.templates import JournalTemplate, WritingPrompt, PromptCollection, TemplateRating, PromptRating
+from app.models.templates import JournalTemplate, WritingPrompt, PromptCollection, TemplateRating, PromptRating, PromptResponse
 from app.models.user import User
 from app import db
 import logging
+from sqlalchemy import func, desc, or_
 
 logger = logging.getLogger(__name__)
 
@@ -350,250 +351,27 @@ def view_prompt(prompt_id):
         return redirect(url_for('templates.prompts_index'))
 
 
-@templates_bp.route('/prompts/<int:prompt_id>/respond', methods=['POST'])
-@login_required
-def respond_to_prompt(prompt_id):
-    """Respond to a writing prompt"""
-    try:
-        response_text = request.form.get('response_text', '').strip()
-        time_spent = request.form.get('time_spent', type=int)
-        create_entry = request.form.get('create_entry') == 'on'
-        
-        if not response_text:
-            return jsonify({'success': False, 'message': 'Response cannot be empty'}), 400
-        
-        # Create response
-        response = prompt_service.respond_to_prompt(
-            prompt_id=prompt_id,
-            user_id=current_user.id,
-            response_text=response_text,
-            time_spent=time_spent
-        )
-        
-        if not response:
-            return jsonify({'success': False, 'message': 'Failed to save response'}), 500
-        
-        result = {
-            'success': True,
-            'message': 'Response saved successfully',
-            'response_id': response.id
-        }
-        
-        # Create entry if requested
-        if create_entry:
-            prompt = WritingPrompt.query.get(prompt_id)
-            entry_content = f"Prompt: {prompt.title}\n\n{prompt.prompt_text}\n\nResponse:\n{response_text}"
-            
-            # Store in session for new entry creation
-            session['prompt_response_content'] = entry_content
-            session['prompt_id'] = prompt_id
-            
-            result['create_entry_url'] = url_for('main.create_entry')
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        logger.error(f"Respond to prompt error: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'Failed to save response'}), 500
+# DUPLICATE REMOVED - rate_prompt function already defined at line 356
 
 
-@templates_bp.route('/prompts/<int:prompt_id>/rate', methods=['POST'])
-@login_required
-def rate_prompt(prompt_id):
-    """Rate prompt"""
-    try:
-        rating = request.form.get('rating', type=int)
-        review = request.form.get('review', '').strip()
-        
-        if not rating or rating < 1 or rating > 5:
-            return jsonify({'success': False, 'message': 'Invalid rating'}), 400
-        
-        prompt = WritingPrompt.query.get_or_404(prompt_id)
-        
-        # Check access permissions
-        if prompt.created_by != current_user.id and not prompt.is_public:
-            return jsonify({'success': False, 'message': 'Prompt not found'}), 404
-        
-        # Check if user already rated
-        existing_rating = PromptRating.query.filter_by(
-            prompt_id=prompt_id, user_id=current_user.id
-        ).first()
-        
-        if existing_rating:
-            existing_rating.rating = rating
-            existing_rating.review = review
-            existing_rating.created_at = datetime.utcnow()
-        else:
-            new_rating = PromptRating(
-                prompt_id=prompt_id,
-                user_id=current_user.id,
-                rating=rating,
-                review=review
-            )
-            db.session.add(new_rating)
-        
-        # Update prompt rating
-        prompt.update_rating()
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Rating submitted successfully',
-            'new_rating': prompt.rating,
-            'rating_count': prompt.rating_count
-        })
-        
-    except Exception as e:
-        logger.error(f"Rate prompt error: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'Failed to submit rating'}), 500
-
-
-@templates_bp.route('/prompts/random')
-@login_required
-def random_prompts():
-    """Get random prompts"""
-    try:
-        count = request.args.get('count', 5, type=int)
-        category = request.args.get('category', 'all')
-        difficulty = request.args.get('difficulty', 'all')
-        
-        prompts = prompt_service.get_random_prompts(
-            count=count,
-            category=category,
-            difficulty=difficulty,
-            user_id=current_user.id
-        )
-        
-        return jsonify({
-            'success': True,
-            'prompts': [prompt.to_dict() for prompt in prompts]
-        })
-        
-    except Exception as e:
-        logger.error(f"Random prompts error: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'Failed to get random prompts'}), 500
+# DUPLICATE REMOVED - random_prompts function already defined at line 359
 
 
 # Collections Routes
-@templates_bp.route('/collections')
-@login_required
-def collections_index():
-    """Prompt collections index page"""
-    try:
-        collections = collection_service.get_collections(current_user.id)
-        
-        return render_template('templates/collections.html', collections=collections)
-        
-    except Exception as e:
-        logger.error(f"Collections index error: {str(e)}", exc_info=True)
-        flash('Unable to load collections.', 'error')
-        return redirect(url_for('main.dashboard'))
+# DUPLICATE REMOVED - collections_index function already defined at line 363
 
 
-@templates_bp.route('/collections/create', methods=['GET', 'POST'])
-@login_required
-def create_collection():
-    """Create new collection"""
-    if request.method == 'GET':
-        return render_template('templates/create_collection.html')
-    
-    try:
-        name = request.form.get('name', '').strip()
-        description = request.form.get('description', '').strip()
-        category = request.form.get('category', 'general')
-        is_public = request.form.get('is_public') == 'on'
-        
-        if not name:
-            flash('Collection name is required.', 'error')
-            return render_template('templates/create_collection.html')
-        
-        collection = collection_service.create_collection(
-            user_id=current_user.id,
-            name=name,
-            description=description,
-            category=category,
-            is_public=is_public
-        )
-        
-        if collection:
-            flash('Collection created successfully!', 'success')
-            return redirect(url_for('templates.view_collection', collection_id=collection.id))
-        else:
-            flash('Failed to create collection.', 'error')
-            return render_template('templates/create_collection.html')
-        
-    except Exception as e:
-        logger.error(f"Create collection error: {str(e)}", exc_info=True)
-        flash('Failed to create collection.', 'error')
-        return render_template('templates/create_collection.html')
+# DUPLICATE REMOVED - create_collection function already defined at line 366
 
 
-@templates_bp.route('/collections/<int:collection_id>')
-@login_required
-def view_collection(collection_id):
-    """View collection details"""
-    try:
-        collection = PromptCollection.query.get_or_404(collection_id)
-        
-        # Check access permissions
-        if collection.created_by != current_user.id and not collection.is_public:
-            flash('Collection not found.', 'error')
-            return redirect(url_for('templates.collections_index'))
-        
-        return render_template('templates/view_collection.html',
-                             collection=collection.to_dict(include_prompts=True))
-        
-    except Exception as e:
-        logger.error(f"View collection error: {str(e)}", exc_info=True)
-        flash('Collection not found.', 'error')
-        return redirect(url_for('templates.collections_index'))
+# DUPLICATE REMOVED - view_collection function already defined at line 369
 
 
-@templates_bp.route('/collections/<int:collection_id>/add-prompt', methods=['POST'])
-@login_required
-def add_prompt_to_collection(collection_id):
-    """Add prompt to collection"""
-    try:
-        prompt_id = request.form.get('prompt_id', type=int)
-        
-        if not prompt_id:
-            return jsonify({'success': False, 'message': 'Prompt ID is required'}), 400
-        
-        success = collection_service.add_prompt_to_collection(
-            collection_id=collection_id,
-            prompt_id=prompt_id,
-            user_id=current_user.id
-        )
-        
-        if success:
-            return jsonify({
-                'success': True,
-                'message': 'Prompt added to collection successfully'
-            })
-        else:
-            return jsonify({'success': False, 'message': 'Failed to add prompt to collection'}), 500
-        
-    except Exception as e:
-        logger.error(f"Add prompt to collection error: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'Failed to add prompt to collection'}), 500
+# DUPLICATE REMOVED - add_prompt_to_collection function already defined at line 372
 
 
 # API Routes for AJAX
-@templates_bp.route('/api/recommended')
-@login_required
-def recommended_templates():
-    """Get recommended templates for user"""
-    try:
-        templates = template_service.get_recommended_templates(current_user.id, limit=5)
-        
-        return jsonify({
-            'success': True,
-            'templates': [template.to_dict(include_content=False) for template in templates]
-        })
-        
-    except Exception as e:
-        logger.error(f"Recommended templates error: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'message': 'Failed to get recommendations'}), 500
+# DUPLICATE REMOVED - recommended_templates function already defined at line 376
 
 
 @templates_bp.route('/api/search')
@@ -646,3 +424,501 @@ def search_templates():
     except Exception as e:
         logger.error(f"Search templates error: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'message': 'Search failed'}), 500
+
+
+
+
+
+@templates_bp.route('/prompts/<int:prompt_id>/respond', methods=['POST'])
+
+@login_required
+
+def respond_to_prompt(prompt_id):
+
+    """Respond to a writing prompt"""
+
+    try:
+
+        response_text = request.form.get('response_text', '').strip()
+
+        time_spent = request.form.get('time_spent', type=int)
+
+        create_entry = request.form.get('create_entry') == 'on'
+
+        
+
+        if not response_text:
+
+            return jsonify({'success': False, 'message': 'Response cannot be empty'}), 400
+
+        
+
+        # Create response
+
+        response = prompt_service.respond_to_prompt(
+
+            prompt_id=prompt_id,
+
+            user_id=current_user.id,
+
+            response_text=response_text,
+
+            time_spent=time_spent
+
+        )
+
+        
+
+        if not response:
+
+            return jsonify({'success': False, 'message': 'Failed to save response'}), 500
+
+        
+
+        result = {
+
+            'success': True,
+
+            'message': 'Response saved successfully',
+
+            'response_id': response.id
+
+        }
+
+        
+
+        # Create entry if requested
+
+        if create_entry:
+
+            prompt = WritingPrompt.query.get(prompt_id)
+
+            entry_content = f"Prompt: {prompt.title}\n\n{prompt.prompt_text}\n\nResponse:\n{response_text}"
+
+            
+
+            # Store in session for new entry creation
+
+            session['prompt_response_content'] = entry_content
+
+            session['prompt_id'] = prompt_id
+
+            
+
+            result['create_entry_url'] = url_for('main.create_entry')
+
+        
+
+        return jsonify(result)
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Respond to prompt error: {str(e)}", exc_info=True)
+
+        return jsonify({'success': False, 'message': 'Failed to save response'}), 500
+
+
+
+
+
+@templates_bp.route('/prompts/<int:prompt_id>/rate', methods=['POST'])
+
+@login_required
+
+def rate_prompt(prompt_id):
+
+    """Rate prompt"""
+
+    try:
+
+        rating = request.form.get('rating', type=int)
+
+        review = request.form.get('review', '').strip()
+
+        
+
+        if not rating or rating < 1 or rating > 5:
+
+            return jsonify({'success': False, 'message': 'Invalid rating'}), 400
+
+        
+
+        prompt = WritingPrompt.query.get_or_404(prompt_id)
+
+        
+
+        # Check access permissions
+
+        if prompt.created_by != current_user.id and not prompt.is_public:
+
+            return jsonify({'success': False, 'message': 'Prompt not found'}), 404
+
+        
+
+        # Check if user already rated
+
+        existing_rating = PromptRating.query.filter_by(
+
+            prompt_id=prompt_id, user_id=current_user.id
+
+        ).first()
+
+        
+
+        if existing_rating:
+
+            existing_rating.rating = rating
+
+            existing_rating.review = review
+
+            existing_rating.created_at = datetime.utcnow()
+
+        else:
+
+            new_rating = PromptRating(
+
+                prompt_id=prompt_id,
+
+                user_id=current_user.id,
+
+                rating=rating,
+
+                review=review
+
+            )
+
+            db.session.add(new_rating)
+
+        
+
+        # Update prompt rating
+
+        prompt.update_rating()
+
+        db.session.commit()
+
+        
+
+        return jsonify({
+
+            'success': True,
+
+            'message': 'Rating submitted successfully',
+
+            'new_rating': prompt.rating,
+
+            'rating_count': prompt.rating_count
+
+        })
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Rate prompt error: {str(e)}", exc_info=True)
+
+        return jsonify({'success': False, 'message': 'Failed to submit rating'}), 500
+
+
+
+
+
+@templates_bp.route('/prompts/random')
+
+@login_required
+
+def random_prompts():
+
+    """Get random prompts"""
+
+    try:
+
+        count = request.args.get('count', 5, type=int)
+
+        category = request.args.get('category', 'all')
+
+        difficulty = request.args.get('difficulty', 'all')
+
+        
+
+        prompts = prompt_service.get_random_prompts(
+
+            count=count,
+
+            category=category,
+
+            difficulty=difficulty,
+
+            user_id=current_user.id
+
+        )
+
+        
+
+        return jsonify({
+
+            'success': True,
+
+            'prompts': [prompt.to_dict() for prompt in prompts]
+
+        })
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Random prompts error: {str(e)}", exc_info=True)
+
+        return jsonify({'success': False, 'message': 'Failed to get random prompts'}), 500
+
+
+
+
+
+# Collections Routes
+
+@templates_bp.route('/collections')
+
+@login_required
+
+def collections_index():
+
+    """Prompt collections index page"""
+
+    try:
+
+        collections = collection_service.get_collections(current_user.id)
+
+        
+
+        return render_template('templates/collections.html', collections=collections)
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Collections index error: {str(e)}", exc_info=True)
+
+        flash('Unable to load collections.', 'error')
+
+        return redirect(url_for('main.dashboard'))
+
+
+
+
+
+@templates_bp.route('/collections/create', methods=['GET', 'POST'])
+
+@login_required
+
+def create_collection():
+
+    """Create new collection"""
+
+    if request.method == 'GET':
+
+        return render_template('templates/create_collection.html')
+
+    
+
+    try:
+
+        name = request.form.get('name', '').strip()
+
+        description = request.form.get('description', '').strip()
+
+        category = request.form.get('category', 'general')
+
+        is_public = request.form.get('is_public') == 'on'
+
+        
+
+        if not name:
+
+            flash('Collection name is required.', 'error')
+
+            return render_template('templates/create_collection.html')
+
+        
+
+        collection = collection_service.create_collection(
+
+            user_id=current_user.id,
+
+            name=name,
+
+            description=description,
+
+            category=category,
+
+            is_public=is_public
+
+        )
+
+        
+
+        if collection:
+
+            flash('Collection created successfully!', 'success')
+
+            return redirect(url_for('templates.view_collection', collection_id=collection.id))
+
+        else:
+
+            flash('Failed to create collection.', 'error')
+
+            return render_template('templates/create_collection.html')
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Create collection error: {str(e)}", exc_info=True)
+
+        flash('Failed to create collection.', 'error')
+
+        return render_template('templates/create_collection.html')
+
+
+
+
+
+@templates_bp.route('/collections/<int:collection_id>')
+
+@login_required
+
+def view_collection(collection_id):
+
+    """View collection details"""
+
+    try:
+
+        collection = PromptCollection.query.get_or_404(collection_id)
+
+        
+
+        # Check access permissions
+
+        if collection.created_by != current_user.id and not collection.is_public:
+
+            flash('Collection not found.', 'error')
+
+            return redirect(url_for('templates.collections_index'))
+
+        
+
+        return render_template('templates/view_collection.html',
+
+                             collection=collection.to_dict(include_prompts=True))
+
+        
+
+    except Exception as e:
+
+        logger.error(f"View collection error: {str(e)}", exc_info=True)
+
+        flash('Collection not found.', 'error')
+
+        return redirect(url_for('templates.collections_index'))
+
+
+
+
+
+@templates_bp.route('/collections/<int:collection_id>/add-prompt', methods=['POST'])
+
+@login_required
+
+def add_prompt_to_collection(collection_id):
+
+    """Add prompt to collection"""
+
+    try:
+
+        prompt_id = request.form.get('prompt_id', type=int)
+
+        
+
+        if not prompt_id:
+
+            return jsonify({'success': False, 'message': 'Prompt ID is required'}), 400
+
+        
+
+        success = collection_service.add_prompt_to_collection(
+
+            collection_id=collection_id,
+
+            prompt_id=prompt_id,
+
+            user_id=current_user.id
+
+        )
+
+        
+
+        if success:
+
+            return jsonify({
+
+                'success': True,
+
+                'message': 'Prompt added to collection successfully'
+
+            })
+
+        else:
+
+            return jsonify({'success': False, 'message': 'Failed to add prompt to collection'}), 500
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Add prompt to collection error: {str(e)}", exc_info=True)
+
+        return jsonify({'success': False, 'message': 'Failed to add prompt to collection'}), 500
+
+
+
+
+
+# API Routes for AJAX
+
+@templates_bp.route('/api/recommended')
+
+@login_required
+
+def recommended_templates():
+
+    """Get recommended templates for user"""
+
+    try:
+
+        templates = template_service.get_recommended_templates(current_user.id, limit=5)
+
+        
+
+        return jsonify({
+
+            'success': True,
+
+            'templates': [template.to_dict(include_content=False) for template in templates]
+
+        })
+
+        
+
+    except Exception as e:
+
+        logger.error(f"Recommended templates error: {str(e)}", exc_info=True)
+
+        return jsonify({'success': False, 'message': 'Failed to get recommendations'}), 500
+
+
+
+
+
+

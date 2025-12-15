@@ -20,7 +20,8 @@ class I18nService:
     
     def __init__(self):
         self.default_locale = 'en'
-        self.supported_locales = {
+        # Full catalog; will be filtered by config in init_app
+        self.catalog_locales = {
             'en': {'name': 'English', 'native_name': 'English', 'flag': '🇺🇸'},
             'es': {'name': 'Spanish', 'native_name': 'Español', 'flag': '🇪🇸'},
             'fr': {'name': 'French', 'native_name': 'Français', 'flag': '🇫🇷'},
@@ -34,8 +35,24 @@ class I18nService:
             'ar': {'name': 'Arabic', 'native_name': 'العربية', 'flag': '🇸🇦'},
             'hi': {'name': 'Hindi', 'native_name': 'हिन्दी', 'flag': '🇮🇳'}
         }
+        self.supported_locales = {'en': self.catalog_locales['en']}
         self.translations = {}
+    
+    def init_app(self, app):
+        with app.app_context():
+            configured_locales = app.config.get('I18N_LOCALES', 'en')
+            if isinstance(configured_locales, str):
+                configured_locales = [code.strip() for code in configured_locales.split(',') if code.strip()]
+            # Filter to allowed locales; always keep English as a fallback
+            self.supported_locales = {
+                code: meta
+                for code, meta in self.catalog_locales.items()
+                if code in configured_locales or code == 'en'
+            } or {'en': self.catalog_locales['en']}
+
         self.load_translations()
+        app.jinja_env.globals['get_locale'] = self.get_locale
+        app.jinja_env.globals['is_rtl'] = self.is_rtl
     
     def load_translations(self):
         """Load translation files"""
@@ -49,9 +66,9 @@ class I18nService:
                     with open(translation_file, 'r', encoding='utf-8') as f:
                         self.translations[locale_code] = json.load(f)
                 else:
-                    # Fallback to empty translations
+                    # Fallback to empty translations without noisy warnings
                     self.translations[locale_code] = {}
-                    logger.warning(f"Translation file not found: {translation_file}")
+                    logger.info(f"Translation file not found (using empty translations): {translation_file}")
             
             logger.info(f"Loaded translations for {len(self.translations)} locales")
             
@@ -193,6 +210,10 @@ class I18nService:
     def get_supported_locales(self) -> Dict[str, Dict[str, str]]:
         """Get supported locales"""
         return self.supported_locales
+
+    def get_available_languages(self):
+        """Backward-compatible alias used by older routes/templates."""
+        return self.get_supported_locales()
     
     def is_rtl(self, locale: str = None) -> bool:
         """Check if locale is right-to-left"""
@@ -221,7 +242,10 @@ class LocalizationService:
     def __init__(self):
         self.i18n_service = I18nService()
         self.content_localizations = {}
-        self.load_content_localizations()
+        
+    def init_app(self, app):
+        with app.app_context():
+            self.load_content_localizations()
     
     def load_content_localizations(self):
         """Load content-specific localizations"""
@@ -280,9 +304,15 @@ class TranslationService:
     """Translation service for dynamic content"""
     
     def __init__(self):
-        self.auto_translate_enabled = current_app.config.get('AUTO_TRANSLATE_ENABLED', False)
-        self.translation_api_key = current_app.config.get('TRANSLATION_API_KEY')
-        self.translation_service = current_app.config.get('TRANSLATION_SERVICE', 'google')
+        self.auto_translate_enabled = False
+        self.translation_api_key = None
+        self.translation_service_name = None
+        
+    def init_app(self, app):
+        with app.app_context():
+            self.auto_translate_enabled = app.config.get('AUTO_TRANSLATE_ENABLED', False)
+            self.translation_api_key = app.config.get('TRANSLATION_API_KEY')
+            self.translation_service_name = app.config.get('TRANSLATION_SERVICE', 'google')
     
     def translate_text(self, text: str, target_locale: str, source_locale: str = 'en') -> Optional[str]:
         """Translate text using external service"""
@@ -290,12 +320,12 @@ class TranslationService:
             return None
         
         try:
-            if self.translation_service == 'google':
+            if self.translation_service_name == 'google':
                 return self._translate_google(text, target_locale, source_locale)
-            elif self.translation_service == 'deepl':
+            elif self.translation_service_name == 'deepl':
                 return self._translate_deepl(text, target_locale, source_locale)
             else:
-                logger.warning(f"Unsupported translation service: {self.translation_service}")
+                logger.warning(f"Unsupported translation service: {self.translation_service_name}")
                 return None
                 
         except Exception as e:
@@ -350,7 +380,7 @@ class TranslationService:
             return None
         
         try:
-            if self.translation_service == 'google':
+            if self.translation_service_name == 'google':
                 from google.cloud import translate_v2 as translate
                 
                 translate_client = translate.Client(api_key=self.translation_api_key)
@@ -422,38 +452,485 @@ class LocalePreferencesService:
 
 
 # Template filters for Jinja2
+i18n_service = I18nService()
+localization_service = LocalizationService()
+translation_service = TranslationService()
+locale_preferences_service = LocalePreferencesService()
+
 def translate_filter(key: str, **kwargs) -> str:
     """Jinja2 filter for translation"""
-    i18n_service = I18nService()
+    # This will now use the global i18n_service instance
     return i18n_service.translate(key, **kwargs)
 
 
 def format_date_filter(date_obj: datetime, format_type: str = 'medium') -> str:
     """Jinja2 filter for date formatting"""
-    i18n_service = I18nService()
     return i18n_service.format_date(date_obj, format_type)
 
 
 def format_datetime_filter(datetime_obj: datetime, format_type: str = 'medium') -> str:
     """Jinja2 filter for datetime formatting"""
-    i18n_service = I18nService()
     return i18n_service.format_datetime(datetime_obj, format_type)
 
 
 def format_number_filter(number: float) -> str:
     """Jinja2 filter for number formatting"""
-    i18n_service = I18nService()
     return i18n_service.format_number(number)
 
 
 def format_currency_filter(amount: float, currency: str = 'USD') -> str:
     """Jinja2 filter for currency formatting"""
-    i18n_service = I18nService()
+    return i18n_service.format_currency(amount, currency)
+
+    return i18n_service.format_datetime(datetime_obj, format_type)
+
+
+def format_number_filter(number: float) -> str:
+    """Jinja2 filter for number formatting"""
+    return i18n_service.format_number(number)
+
+
+def format_currency_filter(amount: float, currency: str = 'USD') -> str:
+    """Jinja2 filter for currency formatting"""
     return i18n_service.format_currency(amount, currency)
 
 
-# Initialize services
-i18n_service = I18nService()
-localization_service = LocalizationService()
-translation_service = TranslationService()
-locale_preferences_service = LocalePreferencesService()
+class LocalizationService:
+    """Localization service for content and UI"""
+    
+    def __init__(self):
+        self.i18n_service = I18nService()
+        self.content_localizations = {}
+        
+    def init_app(self, app):
+        with app.app_context():
+            self.load_content_localizations()
+    
+    def load_content_localizations(self):
+        """Load content-specific localizations"""
+        try:
+            # Load mood translations
+            mood_file = os.path.join(current_app.root_path, 'translations', 'moods.json')
+            if os.path.exists(mood_file):
+                with open(mood_file, 'r', encoding='utf-8') as f:
+                    self.content_localizations['moods'] = json.load(f)
+            
+            # Load category translations
+            category_file = os.path.join(current_app.root_path, 'translations', 'categories.json')
+            if os.path.exists(category_file):
+                with open(category_file, 'r', encoding='utf-8') as f:
+                    self.content_localizations['categories'] = json.load(f)
+            
+            logger.info("Loaded content localizations")
+        except Exception as e:
+            logger.error(f"Error loading content localizations: {str(e)}")
+    
+    def localize_mood(self, mood: str, locale: str = None) -> str:
+        """Localize mood name"""
+        if not locale:
+            locale = self.i18n_service.get_locale()
+        
+        if 'moods' in self.content_localizations:
+            mood_translations = self.content_localizations['moods']
+            if locale in mood_translations and mood in mood_translations[locale]:
+                return mood_translations[locale][mood]
+        
+        return mood.title()
+    
+
+    def localize_category(self, category: str, locale: str = None) -> str:
+        """Localize category name"""
+        if not locale:
+            locale = self.i18n_service.get_locale()
+        
+        categories = self.content_localizations.get('categories', {})
+        return categories.get(locale, {}).get(category, category)
+
+    
+
+    def get_localized_moods(self, locale: str = None) -> Dict[str, str]:
+
+        """Get all localized moods"""
+
+        if not locale:
+
+            locale = self.i18n_service.get_locale()
+
+        
+
+        moods = self.content_localizations.get('moods', {})
+
+        return moods.get(locale, {})
+
+    
+
+    def get_localized_categories(self, locale: str = None) -> Dict[str, str]:
+
+        """Get all localized categories"""
+
+        if not locale:
+
+            locale = self.i18n_service.get_locale()
+
+        
+
+        categories = self.content_localizations.get('categories', {})
+
+        return categories.get(locale, {})
+
+
+
+
+
+class TranslationService:
+
+    """Translation service for dynamic content"""
+
+    
+
+    def __init__(self):
+
+        self.auto_translate_enabled = current_app.config.get('AUTO_TRANSLATE_ENABLED', False)
+
+        self.translation_api_key = current_app.config.get('TRANSLATION_API_KEY')
+
+        self.translation_service = current_app.config.get('TRANSLATION_SERVICE', 'google')
+
+    
+
+    def translate_text(self, text: str, target_locale: str, source_locale: str = 'en') -> Optional[str]:
+
+        """Translate text using external service"""
+
+        if not self.auto_translate_enabled or not self.translation_api_key:
+
+            return None
+
+        
+
+        try:
+
+            if self.translation_service == 'google':
+
+                return self._translate_google(text, target_locale, source_locale)
+
+            elif self.translation_service == 'deepl':
+
+                return self._translate_deepl(text, target_locale, source_locale)
+
+            else:
+
+                logger.warning(f"Unsupported translation service: {self.translation_service}")
+
+                return None
+
+                
+
+        except Exception as e:
+
+            logger.error(f"Translation error: {str(e)}")
+
+            return None
+
+    
+
+    def _translate_google(self, text: str, target_locale: str, source_locale: str) -> Optional[str]:
+
+        """Translate using Google Translate API"""
+
+        try:
+
+            from google.cloud import translate_v2 as translate
+
+            
+
+            translate_client = translate.Client(api_key=self.translation_api_key)
+
+            result = translate_client.translate(
+
+                text,
+
+                target_language=target_locale,
+
+                source_language=source_locale
+
+            )
+
+            
+
+            return result['translatedText']
+
+            
+
+        except ImportError:
+
+            logger.error("Google Translate library not installed")
+
+            return None
+
+        except Exception as e:
+
+            logger.error(f"Google Translate error: {str(e)}")
+
+            return None
+
+    
+
+    def _translate_deepl(self, text: str, target_locale: str, source_locale: str) -> Optional[str]:
+
+        """Translate using DeepL API"""
+
+        try:
+
+            import deepl
+
+            
+
+            translator = deepl.Translator(self.translation_api_key)
+
+            result = translator.translate_text(
+
+                text,
+
+                target_lang=target_locale.upper(),
+
+                source_lang=source_locale.upper()
+
+            )
+
+            
+
+            return result.text
+
+            
+
+        except ImportError:
+
+            logger.error("DeepL library not installed")
+
+            return None
+
+        except Exception as e:
+
+            logger.error(f"DeepL error: {str(e)}")
+
+            return None
+
+    
+
+    def detect_language(self, text: str) -> Optional[str]:
+
+        """Detect language of text"""
+
+        if not self.auto_translate_enabled or not self.translation_api_key:
+
+            return None
+
+        
+
+        try:
+
+            if self.translation_service == 'google':
+
+                from google.cloud import translate_v2 as translate
+
+                
+
+                translate_client = translate.Client(api_key=self.translation_api_key)
+
+                result = translate_client.detect_language(text)
+
+                return result['language']
+
+                
+
+        except Exception as e:
+
+            logger.error(f"Language detection error: {str(e)}")
+
+            return None
+
+
+
+
+
+class LocalePreferencesService:
+
+    """User locale preferences service"""
+
+    
+
+    @staticmethod
+
+    def get_user_locale_preferences(user_id: int) -> Dict[str, Any]:
+
+        """Get user's locale preferences"""
+
+        try:
+
+            from app.models.user import User
+
+            
+
+            user = User.query.get(user_id)
+
+            if not user:
+
+                return {}
+
+            
+
+            return {
+
+                'language': user.preferred_language or 'en',
+
+                'timezone': user.timezone or 'UTC',
+
+                'date_format': user.date_format or 'medium',
+
+                'time_format': user.time_format or '24h',
+
+                'number_format': user.number_format or 'default',
+
+                'currency': user.currency or 'USD'
+
+            }
+
+            
+
+        except Exception as e:
+
+            logger.error(f"Get locale preferences error: {str(e)}")
+
+            return {}
+
+    
+
+    @staticmethod
+
+    def update_user_locale_preferences(user_id: int, preferences: Dict[str, Any]) -> bool:
+
+        """Update user's locale preferences"""
+
+        try:
+
+            from app.models.user import User
+
+            
+
+            user = User.query.get(user_id)
+
+            if not user:
+
+                return False
+
+            
+
+            # Update preferences
+
+            if 'language' in preferences:
+
+                user.preferred_language = preferences['language']
+
+            if 'timezone' in preferences:
+
+                user.timezone = preferences['timezone']
+
+            if 'date_format' in preferences:
+
+                user.date_format = preferences['date_format']
+
+            if 'time_format' in preferences:
+
+                user.time_format = preferences['time_format']
+
+            if 'number_format' in preferences:
+
+                user.number_format = preferences['number_format']
+
+            if 'currency' in preferences:
+
+                user.currency = preferences['currency']
+
+            
+
+            db.session.commit()
+
+            return True
+
+            
+
+        except Exception as e:
+
+            logger.error(f"Update locale preferences error: {str(e)}")
+
+            db.session.rollback()
+
+            return False
+
+
+
+
+
+# Template filters for Jinja2
+
+def translate_filter(key: str, **kwargs) -> str:
+
+    """Jinja2 filter for translation"""
+
+    i18n_service = I18nService()
+
+    return i18n_service.translate(key, **kwargs)
+
+
+
+
+
+def format_date_filter(date_obj: datetime, format_type: str = 'medium') -> str:
+
+    """Jinja2 filter for date formatting"""
+
+    i18n_service = I18nService()
+
+    return i18n_service.format_date(date_obj, format_type)
+
+
+
+
+
+def format_datetime_filter(datetime_obj: datetime, format_type: str = 'medium') -> str:
+
+    """Jinja2 filter for datetime formatting"""
+
+    i18n_service = I18nService()
+
+    return i18n_service.format_datetime(datetime_obj, format_type)
+
+
+
+
+
+def format_number_filter(number: float) -> str:
+
+    """Jinja2 filter for number formatting"""
+
+    i18n_service = I18nService()
+
+    return i18n_service.format_number(number)
+
+
+
+
+
+def format_currency_filter(amount: float, currency: str = 'USD') -> str:
+
+    """Jinja2 filter for currency formatting"""
+
+    i18n_service = I18nService()
+
+    return i18n_service.format_currency(amount, currency)
+
+# Services will be initialized lazily when needed
+
+
+
