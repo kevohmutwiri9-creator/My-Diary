@@ -2,7 +2,7 @@
 from flask import current_app, g, session
 from datetime import datetime
 from flask_wtf.csrf import generate_csrf as wtf_generate_csrf
-from app.services.i18n import I18nService
+from app.services.i18n import i18n_service
 
 def _extract_nonce():
     """Return the script-src nonce provided by Talisman, if available."""
@@ -18,9 +18,6 @@ def _extract_nonce():
 
 def inject_template_vars():
     """Inject variables into all templates."""
-    # Initialize i18n service
-    i18n_service = I18nService()
-    
     # Get current language
     current_language = session.get('language', 'en')
     
@@ -50,6 +47,6 @@ def inject_template_vars():
         # i18n functions
         '_': _,
         'current_language': current_language,
-        'available_languages': i18n_service.get_available_languages(),
+        'available_languages': i18n_service.get_supported_locales(),
         'translate': i18n_service.translate,
     }

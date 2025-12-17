@@ -21,8 +21,7 @@ from app.utils.security_enhancer import SecurityEnhancer
 from app.utils.performance_optimizer import PerformanceOptimizer
 from app.utils.ui_enhancer import UIEnhancer
 from app.extensions.performance import init_performance
-# Temporarily disabled due to indentation errors
-# from app.services.i18n import I18nService, LocalizationService, TranslationService # Import i18n services
+from app.services.i18n import i18n_service
 from app.services.paypal import PayPalService # Import PayPal service
 
 # Initialize extensions without app
@@ -41,10 +40,6 @@ error_handler = ErrorHandler()
 security_enhancer = SecurityEnhancer()
 performance_optimizer = PerformanceOptimizer()
 ui_enhancer = UIEnhancer()
-# Temporarily disabled due to indentation errors
-# i18n_service = I18nService() # Initialize i18n services
-# localization_service = LocalizationService()
-# translation_service = TranslationService()
 paypal_service = PayPalService() # Initialize PayPal service
 
 def create_app(config_class=Config):
@@ -135,10 +130,7 @@ def create_app(config_class=Config):
     ui_enhancer.init_app(app)
     # Initialize performance optimizations
     init_performance(app)
-    # Temporarily disabled due to indentation errors
-    # i18n_service.init_app(app) # Initialize i18n service
-    # localization_service.init_app(app) # Initialize localization service
-    # translation_service.init_app(app) # Initialize translation service
+    i18n_service.init_app(app)
     paypal_service.init_app(app) # Initialize PayPal service
     
     # Initialize rate limiter

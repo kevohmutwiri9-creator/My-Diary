@@ -50,14 +50,15 @@ class I18nService:
                 if code in configured_locales or code == 'en'
             } or {'en': self.catalog_locales['en']}
 
-        self.load_translations()
+        self.load_translations(app)
         app.jinja_env.globals['get_locale'] = self.get_locale
         app.jinja_env.globals['is_rtl'] = self.is_rtl
     
-    def load_translations(self):
+    def load_translations(self, app=None):
         """Load translation files"""
         try:
-            translations_dir = os.path.join(current_app.root_path, 'translations')
+            root_path = getattr(app, 'root_path', None) or current_app.root_path
+            translations_dir = os.path.join(root_path, 'translations')
             
             for locale_code in self.supported_locales:
                 translation_file = os.path.join(translations_dir, f'{locale_code}.json')
@@ -78,6 +79,9 @@ class I18nService:
     def get_locale(self) -> str:
         """Get current locale"""
         # Priority: session > user preference > browser > default
+        if 'language' in session:
+            return session['language']
+
         if 'locale' in session:
             return session['locale']
         
@@ -99,6 +103,7 @@ class I18nService:
     def set_locale(self, locale_code: str):
         """Set current locale"""
         if locale_code in self.supported_locales:
+            session['language'] = locale_code
             session['locale'] = locale_code
             return True
         return False
