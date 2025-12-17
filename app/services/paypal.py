@@ -6,15 +6,19 @@ from datetime import datetime, timedelta
 from flask import current_app
 from urllib.parse import urlencode
 
+logger = logging.getLogger(__name__)
+
 class PayPalService:
     """Service for handling PayPal payments and subscriptions."""
     
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.base_url = "https://api-m.sandbox.paypal.com" if current_app.config.get('PAYPAL_SANDBOX', True) else "https://api-m.paypal.com"
-        self.client_id = current_app.config.get('PAYPAL_CLIENT_ID')
-        self.client_secret = current_app.config.get('PAYPAL_CLIENT_SECRET')
-        self.webhook_id = current_app.config.get('PAYPAL_WEBHOOK_ID')
+        # Initialize with None, will be set in init_app
+        self.base_url = None
+        self.client_id = None
+        self.client_secret = None
+        self.webhook_id = None
+        self._access_token = None
+        self._token_expires_at = None
         
         # Subscription plans
         self.plans = {
@@ -36,10 +40,26 @@ class PayPalService:
             }
         }
     
-    def get_access_token(self):
-        """Get PayPal API access token."""
+    def init_app(self, app):
+        with app.app_context():
+            if not app.config.get('PAYPAL_ENABLED', False):
+                logger.info("PayPal disabled by configuration.")
+                return
+
+            self.base_url = "https://api-m.sandbox.paypal.com" if app.config.get('PAYPAL_SANDBOX', True) else "https://api-m.paypal.com"
+            self.client_id = app.config.get('PAYPAL_CLIENT_ID')
+            self.client_secret = app.config.get('PAYPAL_CLIENT_SECRET')
+            self.webhook_id = app.config.get('PAYPAL_WEBHOOK_ID')
+            
+            if not self.client_id or not self.client_secret:
+                logger.warning("PayPal credentials not configured. PayPal services will be disabled.")
+    
+    def _get_access_token(self):
+        if self._access_token and self._token_expires_at and self._token_expires_at > datetime.utcnow():
+            return self._access_token
+        
         if not self.client_id or not self.client_secret:
-            self.logger.error("PayPal credentials not configured")
+            logger.error("PayPal credentials not configured")
             return None
         
         try:
@@ -59,18 +79,20 @@ class PayPalService:
             )
             
             if response.status_code == 200:
-                return response.json().get('access_token')
+                self._access_token = response.json().get('access_token')
+                self._token_expires_at = datetime.utcnow() + timedelta(seconds=response.json().get('expires_in', 3600)) # Default to 1 hour
+                return self._access_token
             else:
-                self.logger.error(f"Failed to get PayPal access token: {response.text}")
+                logger.error(f"Failed to get PayPal access token: {response.text}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"PayPal API error: {str(e)}")
+            logger.error(f"PayPal API error: {str(e)}")
             return None
     
     def create_subscription_plan(self, tier):
         """Create a subscription plan for the given tier."""
-        access_token = self.get_access_token()
+        access_token = self._get_access_token()
         if not access_token:
             return None
         
@@ -146,16 +168,16 @@ class PayPalService:
             if response.status_code in [200, 201]:
                 return response.json()
             else:
-                self.logger.error(f"Failed to create PayPal plan: {response.text}")
+                logger.error(f"Failed to create PayPal plan: {response.text}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"PayPal plan creation error: {str(e)}")
+            logger.error(f"PayPal plan creation error: {str(e)}")
             return None
     
     def create_subscription(self, plan_id, user_id):
         """Create a subscription for a user."""
-        access_token = self.get_access_token()
+        access_token = self._get_access_token()
         if not access_token:
             return None
         
@@ -191,16 +213,16 @@ class PayPalService:
             if response.status_code in [200, 201]:
                 return response.json()
             else:
-                self.logger.error(f"Failed to create PayPal subscription: {response.text}")
+                logger.error(f"Failed to create PayPal subscription: {response.text}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"PayPal subscription creation error: {str(e)}")
+            logger.error(f"PayPal subscription creation error: {str(e)}")
             return None
     
     def get_subscription_details(self, subscription_id):
         """Get subscription details from PayPal."""
-        access_token = self.get_access_token()
+        access_token = self._get_access_token()
         if not access_token:
             return None
         
@@ -219,16 +241,16 @@ class PayPalService:
             if response.status_code == 200:
                 return response.json()
             else:
-                self.logger.error(f"Failed to get PayPal subscription details: {response.text}")
+                logger.error(f"Failed to get PayPal subscription details: {response.text}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"PayPal subscription details error: {str(e)}")
+            logger.error(f"PayPal subscription details error: {str(e)}")
             return None
     
     def cancel_subscription(self, subscription_id, reason='User requested cancellation'):
         """Cancel a subscription."""
-        access_token = self.get_access_token()
+        access_token = self._get_access_token()
         if not access_token:
             return False
         
@@ -252,12 +274,12 @@ class PayPalService:
             return response.status_code in [200, 204]
                 
         except Exception as e:
-            self.logger.error(f"PayPal subscription cancellation error: {str(e)}")
+            logger.error(f"PayPal subscription cancellation error: {str(e)}")
             return False
     
     def create_order(self, amount, currency='USD', description='Premium Subscription'):
         """Create a one-time payment order."""
-        access_token = self.get_access_token()
+        access_token = self._get_access_token()
         if not access_token:
             return None
         
@@ -278,7 +300,7 @@ class PayPalService:
                             'currency_code': currency,
                             'value': str(amount)
                         },
-                        'custom_id': f'user_{current_user.id if hasattr(current_user, "id") else "unknown"}'
+                        'custom_id': f'user_{current_app.current_user.id if hasattr(current_app, "current_user") and hasattr(current_app.current_user, "id") else "unknown"}'
                     }
                 ],
                 'application_context': {
@@ -299,16 +321,16 @@ class PayPalService:
             if response.status_code in [200, 201]:
                 return response.json()
             else:
-                self.logger.error(f"Failed to create PayPal order: {response.text}")
+                logger.error(f"Failed to create PayPal order: {response.text}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"PayPal order creation error: {str(e)}")
+            logger.error(f"PayPal order creation error: {str(e)}")
             return None
     
     def capture_payment(self, order_id):
         """Capture payment for an order."""
-        access_token = self.get_access_token()
+        access_token = self._get_access_token()
         if not access_token:
             return None
         
@@ -327,11 +349,11 @@ class PayPalService:
             if response.status_code in [200, 201]:
                 return response.json()
             else:
-                self.logger.error(f"Failed to capture PayPal payment: {response.text}")
+                logger.error(f"Failed to capture PayPal payment: {response.text}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"PayPal payment capture error: {str(e)}")
+            logger.error(f"PayPal payment capture error: {str(e)}")
             return None
     
     def verify_webhook(self, headers, body):
@@ -346,7 +368,7 @@ class PayPalService:
             return True
                 
         except Exception as e:
-            self.logger.error(f"PayPal webhook verification error: {str(e)}")
+            logger.error(f"PayPal webhook verification error: {str(e)}")
             return False
     
     def get_plan_pricing(self, tier):
@@ -375,6 +397,14 @@ class PayPalService:
     def is_configured(self):
         """Check if PayPal is properly configured."""
         return bool(self.client_id and self.client_secret)
+    
+    def init_app(self, app):
+        """Initialize service with Flask app context."""
+        with app.app_context():
+            self.base_url = "https://api-m.sandbox.paypal.com" if app.config.get('PAYPAL_SANDBOX', True) else "https://api-m.paypal.com"
+            self.client_id = app.config.get('PAYPAL_CLIENT_ID')
+            self.client_secret = app.config.get('PAYPAL_CLIENT_SECRET')
+            self.webhook_id = app.config.get('PAYPAL_WEBHOOK_ID')
 
-# Create global instance
+# Create global instance - will be initialized properly in app context
 paypal_service = PayPalService()
