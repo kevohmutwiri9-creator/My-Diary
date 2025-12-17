@@ -47,6 +47,13 @@ class ResetPasswordForm(FlaskForm):
     submit = SubmitField('Reset Password')
 
 
+class EntryForm(FlaskForm):
+    title = StringField('Title', validators=[Length(max=140)])
+    content = TextAreaField('Content', validators=[DataRequired()])
+    is_public = BooleanField('Make this entry public (visible on homepage)')
+    submit = SubmitField('Save Entry')
+
+
 class AdSettingsForm(FlaskForm):
     allow_ads = BooleanField('Show relevant ads in my dashboard')
     submit_ads = SubmitField('Save ad preferences')
@@ -60,3 +67,4 @@ class ReminderSettingsForm(FlaskForm):
         default='weekly'
     )
     submit_reminders = SubmitField('Save reminder settings')
+
