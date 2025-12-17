@@ -69,6 +69,8 @@ class User(UserMixin, db.Model):
     
     # Relationships
     entries = db.relationship('Entry', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
+    created_templates = db.relationship('JournalTemplate', back_populates='creator', lazy='dynamic', cascade='all, delete-orphan')
+    created_prompts = db.relationship('WritingPrompt', back_populates='creator', lazy='dynamic', cascade='all, delete-orphan')
     
     def __init__(self, **kwargs):
         password = kwargs.pop('password', None)

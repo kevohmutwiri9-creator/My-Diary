@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 from typing import Any, Optional, Dict, List, Union
 from functools import wraps
 import redis
-from flask import current_app, request, g
+from flask import current_app, request, g, has_app_context
+from flask_login import current_user
 from app import db
 from app.models.user import User
 from app.models.entry import Entry
@@ -24,12 +25,23 @@ class CacheService:
     def __init__(self):
         self.redis_client = None
         self.default_ttl = 3600  # 1 hour
-        self._connect()
+
+        if has_app_context():
+            self._connect()
+
+    def init_app(self, app):
+        """Initialize the service with a Flask app instance."""
+        self._connect(app=app)
     
-    def _connect(self):
+    def _connect(self, app=None):
         """Connect to Redis"""
         try:
-            redis_url = current_app.config.get('REDIS_URL', 'redis://localhost:6379/0')
+            if app is None:
+                if not has_app_context():
+                    return
+                app = current_app
+
+            redis_url = app.config.get('REDIS_URL', 'redis://localhost:6379/0')
             self.redis_client = redis.from_url(redis_url, decode_responses=False)
             # Test connection
             self.redis_client.ping()
@@ -336,10 +348,9 @@ def cache_result(ttl: int = 3600, key_prefix: str = '', cache_user_specific: boo
             for k, v in sorted(kwargs.items()):
                 key_parts.append(f"{k}:{v}")
             
-            cache_key = hashlib.mdd(':'.join(key_parts).encode()).hexdigest()
+            cache_key = hashlib.md5(':'.join(key_parts).encode()).hexdigest()
             
             # Try to get from cache
-            cache_service = CacheService()
             cached_result = cache_service.get(cache_key)
             
             if cached_result is not None:
@@ -365,7 +376,6 @@ def cache_query(ttl: int = 3600, key_prefix: str = 'query'):
             # Generate cache key based on function name and parameters
             key_data = f"{key_prefix}:{func.__name__}:{hashlib.md5(str(args + tuple(sorted(kwargs.items()))).encode()).hexdigest()}"
             
-            cache_service = CacheService()
             cached_result = cache_service.get(key_data)
             
             if cached_result is not None:
