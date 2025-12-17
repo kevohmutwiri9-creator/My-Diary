@@ -4,8 +4,16 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app import db
 from app.models.entry import Entry
-from app.models.goal import Goal
 from app.models.user import User
+
+# Try to import Goal model with error handling
+try:
+    from app.models.goal import Goal
+    _GOAL_AVAILABLE = True
+except ImportError:
+    Goal = None
+    _GOAL_AVAILABLE = False
+
 from app.services.adsense import adsense_service
 from app.forms import AdSettingsForm, EntryForm # Import EntryForm
 from datetime import datetime, timedelta
@@ -36,11 +44,13 @@ def dashboard():
     total_entries = current_user.entries.count()
     total_words = sum(entry.word_count for entry in current_user.entries.all() if entry.word_count)
     
-    # Get active goals
-    active_goals = Goal.query.filter_by(
-        user_id=current_user.id, 
-        status='active'
-    ).all()
+    # Get active goals (with error handling)
+    active_goals = []
+    if _GOAL_AVAILABLE and Goal:
+        active_goals = Goal.query.filter_by(
+            user_id=current_user.id, 
+            status='active'
+        ).all()
     
     # Get mood distribution
     mood_data = {}
@@ -219,15 +229,19 @@ def analytics():
 @login_required
 def goals():
     """Goals page."""
-    active_goals = Goal.query.filter_by(
-        user_id=current_user.id,
-        status='active'
-    ).all()
+    active_goals = []
+    completed_goals = []
     
-    completed_goals = Goal.query.filter_by(
-        user_id=current_user.id,
-        status='completed'
-    ).all()
+    if _GOAL_AVAILABLE and Goal:
+        active_goals = Goal.query.filter_by(
+            user_id=current_user.id,
+            status='active'
+        ).all()
+        
+        completed_goals = Goal.query.filter_by(
+            user_id=current_user.id,
+            status='completed'
+        ).all()
     
     return render_template('goals.html',
                          active_goals=active_goals,
