@@ -211,7 +211,6 @@ def create_app(config_class=Config):
     # Register blueprints
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
-    from app.routes.community import community_bp
     from app.routes.media import media_bp
     from app.routes.security import security_bp
     from app.routes.performance import performance_bp
@@ -219,11 +218,16 @@ def create_app(config_class=Config):
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
-    app.register_blueprint(community_bp)
     app.register_blueprint(media_bp)
     app.register_blueprint(security_bp)
     app.register_blueprint(performance_bp)
     app.register_blueprint(templates_bp)
+
+    try:
+        from app.routes.community import community_bp
+        app.register_blueprint(community_bp)
+    except Exception as e:
+        app.logger.warning(f"Community blueprint unavailable; skipping registration: {e}")
     
     from app.routes.i18n import i18n_bp
     app.register_blueprint(i18n_bp)
