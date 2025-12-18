@@ -5,6 +5,8 @@ from flask_login import login_required, current_user
 from app import db
 from app.models.entry import Entry
 from app.models.user import User
+import calendar
+from collections import defaultdict
 
 # Try to import Goal model with error handling
 try:
@@ -32,6 +34,11 @@ def index():
     public_entries = Entry.query.filter_by(is_private=False).order_by(Entry.created_at.desc()).limit(5).all()
     
     return render_template('index.html', public_entries=public_entries)
+
+
+@main_bp.route('/favicon.ico')
+def favicon():
+    return ('', 204)
 
 @main_bp.route('/dashboard')
 @login_required
@@ -72,6 +79,81 @@ def dashboard():
                          mood_data=mood_data,
                          streak_count=streak_count,
                          ad_config=ad_config)
+
+
+@main_bp.route('/calendar')
+@login_required
+def calendar_view():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+
+    today = datetime.utcnow().date()
+    if not year or not month:
+        year = today.year
+        month = today.month
+
+    start_date = datetime(year, month, 1)
+    if month == 12:
+        next_month_start = datetime(year + 1, 1, 1)
+    else:
+        next_month_start = datetime(year, month + 1, 1)
+    end_date = next_month_start - timedelta(seconds=1)
+
+    entries = Entry.query.filter(
+        Entry.user_id == current_user.id,
+        Entry.created_at >= start_date,
+        Entry.created_at <= end_date,
+    ).order_by(Entry.created_at.asc()).all()
+
+    entries_by_date = defaultdict(list)
+    for entry in entries:
+        entries_by_date[entry.created_at.date()].append(entry)
+
+    cal = calendar.Calendar(firstweekday=6)
+    weeks = cal.monthdatescalendar(year, month)
+    calendar_data = []
+    for week in weeks:
+        week_data = []
+        for d in week:
+            week_data.append(
+                {
+                    'date': d,
+                    'day': d.day,
+                    'is_today': d == today,
+                    'is_current_month': d.month == month,
+                    'entries': entries_by_date.get(d, []),
+                }
+            )
+        calendar_data.append(week_data)
+
+    total_entries = len(entries)
+    days_with_entries = len(entries_by_date)
+
+    if month == 1:
+        prev_year, prev_month = year - 1, 12
+    else:
+        prev_year, prev_month = year, month - 1
+
+    if month == 12:
+        next_year, next_month = year + 1, 1
+    else:
+        next_year, next_month = year, month + 1
+
+    month_name = calendar.month_name[month]
+
+    return render_template(
+        'calendar.html',
+        calendar_data=calendar_data,
+        month_name=month_name,
+        current_year=year,
+        current_month=month,
+        prev_year=prev_year,
+        prev_month=prev_month,
+        next_year=next_year,
+        next_month=next_month,
+        total_entries=total_entries,
+        days_with_entries=days_with_entries,
+    )
 
 @main_bp.route('/entries')
 @login_required
