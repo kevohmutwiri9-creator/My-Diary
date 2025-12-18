@@ -1,12 +1,13 @@
 """Main application routes."""
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, Response, jsonify
 from flask_login import login_required, current_user
 from app import db
 from app.models.entry import Entry
 from app.models.user import User
 import calendar
 from collections import defaultdict
+import json
 
 # Try to import Goal model with error handling
 try:
@@ -154,6 +155,46 @@ def calendar_view():
         total_entries=total_entries,
         days_with_entries=days_with_entries,
     )
+
+
+@main_bp.route('/export/<format>')
+@login_required
+def export_entries(format):
+    format = (format or '').lower()
+    entries = current_user.entries.order_by(Entry.created_at.desc()).all()
+
+    if format == 'json':
+        payload = [entry.to_dict() for entry in entries]
+        content = json.dumps(payload, ensure_ascii=False, indent=2)
+        return Response(
+            content,
+            mimetype='application/json',
+            headers={'Content-Disposition': 'attachment; filename="my-diary-entries.json"'},
+        )
+
+    if format == 'txt':
+        lines = []
+        for entry in entries:
+            title = entry.title or 'Untitled'
+            created = entry.created_at.isoformat() if entry.created_at else ''
+            lines.append(f"# {title}")
+            lines.append(f"Date: {created}")
+            if entry.mood:
+                lines.append(f"Mood: {entry.mood}")
+            if entry.tags:
+                lines.append("Tags: " + ", ".join([t.name for t in entry.tags]))
+            lines.append("")
+            lines.append(entry.content or "")
+            lines.append("\n" + ("-" * 40) + "\n")
+
+        content = "\n".join(lines)
+        return Response(
+            content,
+            mimetype='text/plain; charset=utf-8',
+            headers={'Content-Disposition': 'attachment; filename="my-diary-entries.txt"'},
+        )
+
+    return jsonify({'error': f"Export format '{format}' is not available."}), 501
 
 @main_bp.route('/entries')
 @login_required
