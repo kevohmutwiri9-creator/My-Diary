@@ -29,10 +29,11 @@ ENV/
 instance/
 .webassets-cache
 
-# Environment variables
+# Environment variables - CRITICAL FOR SECURITY
 .env
 .env.local
 .env.production
+.env.staging
 
 # Database
 *.db
@@ -87,3 +88,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Deployment and documentation files (keep local only)
+migrate_db.py
+DEPLOYMENT_SUMMARY.md
+RENDER_DEPLOYMENT_GUIDE.md
