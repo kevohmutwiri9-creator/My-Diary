@@ -1,0 +1,34 @@
+services:
+  # Web Service
+  - type: web
+    name: my-diary
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-diary-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: ADSENSE_PUBLISHER_ID
+        value: ca-pub-2396098605485959
+
+  # PostgreSQL Database
+  - type: pserv
+    name: my-diary-db
+    plan: free
+    databaseName: my_diary
+    user: my_diary_user
