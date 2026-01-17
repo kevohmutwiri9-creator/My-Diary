@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Settings - My Diary{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h1 class="mb-0">Settings</h1>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              {{ form.theme.label(class="form-label") }}
+              {{ form.theme(class="form-select") }}
+              {% if form.theme.errors %}
+                <div class="text-danger mt-1">
+                  {% for error in form.theme.errors %}
+                    <small>{{ error }}</small>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle"></i> Save Settings
+          </button>
+          <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-x-circle"></i> Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="mb-0">Account Information</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>Email:</strong> {{ current_user.email }}</p>
+      <p><strong>Member since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+      <p><strong>Total entries:</strong> {{ current_user.entries.count() }}</p>
+    </div>
+  </div>
+  
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3 class="mb-0">Export Data</h3>
+    </div>
+    <div class="card-body">
+      <p class="text-muted">Download all your diary entries in various formats:</p>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('main.export_entries', fmt='json') }}" class="btn btn-outline-primary">
+          <i class="bi bi-file-earmark-code"></i> Export JSON
+        </a>
+        <a href="{{ url_for('main.export_entries', fmt='csv') }}" class="btn btn-outline-success">
+          <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+        </a>
+        <a href="{{ url_for('main.export_entries', fmt='txt') }}" class="btn btn-outline-info">
+          <i class="bi bi-file-earmark-text"></i> Export TXT
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Wellness Insights - My Diary{% endblock %}
+{% block content %}
+  <div class="card fade-in">
+    <div class="card-header">
+      <h1 class="mb-0"><i class="bi bi-heart-pulse"></i> Wellness Insights</h1>
+    </div>
+    <div class="card-body">
+      {% if insights %}
+        <div class="alert alert-info">
+          <h5><i class="bi bi-robot"></i> AI-Powered Wellness Analysis</h5>
+          <pre class="mb-0">{{ insights }}</pre>
+        </div>
+      {% endif %}
+      
+      {% if mood_counts %}
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <h5><i class="bi bi-emoji-smile"></i> Recent Mood Distribution</h5>
+            <div class="mood-chart">
+              {% for mood, count in mood_counts.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-{{ 'primary' if mood in ['happy', 'excited'] else 'secondary' if mood in ['calm'] else 'warning' if mood in ['anxious', 'tired'] else 'danger' }}">
+                    {{ mood.title() }}
+                  </span>
+                  <div class="progress flex-grow-1 mx-3" style="height: 20px;">
+                    <div class="progress-bar bg-{{ 'primary' if mood in ['happy', 'excited'] else 'secondary' if mood in ['calm'] else 'warning' if mood in ['anxious', 'tired'] else 'danger' }}" 
+                         style="width: {{ ((count / mood_counts.values() | sum) * 100) | round }}%">
+                      {{ count }}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <h5><i class="bi bi-journal-text"></i> Recent Entries</h5>
+            <div class="recent-entries">
+              {% for entry in recent_entries %}
+                <div class="small mb-2 p-2 border rounded">
+                  <strong>{{ entry.title }}</strong>
+                  <br>
+                  <small class="text-muted">{{ entry.created_at.strftime('%Y-%m-%d') }}</small>
+                  {% if entry.mood %}
+                    <span class="badge bg-secondary ms-2">{{ entry.mood.title() }}</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      
+      <div class="mt-4">
+        <h5><i class="bi bi-lightbulb"></i> Wellness Tips</h5>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card border-primary">
+              <div class="card-body text-center">
+                <i class="bi bi-moon-stars fs-1 text-primary"></i>
+                <h6 class="mt-2">Sleep Better</h6>
+                <small class="text-muted">Track your sleep patterns in your diary for better rest</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-success">
+              <div class="card-body text-center">
+                <i class="bi bi-person-walking fs-1 text-success"></i>
+                <h6 class="mt-2">Stay Active</h6>
+                <small class="text-muted">Record physical activities to boost your mood</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-info">
+              <div class="card-body text-center">
+                <i class="bi bi-people fs-1 text-info"></i>
+                <h6 class="mt-2">Connect</h6>
+                <small class="text-muted">Document meaningful social interactions</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - My Diary{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="col-lg-9">
+      <div class="card fade-in mb-4">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Entry
+              </a>
+              <a href="{{ url_for('main.wellness') }}" class="btn btn-info">
+                <i class="bi bi-heart-pulse"></i> Wellness
+              </a>
+            </div>
+          </div>
+          <p class="mb-0 text-muted">Welcome back, {{ current_user.email }}</p>
+        </div>
+        <div class="card-body">
+          <!-- Search and Filter Section -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <form method="get" class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Search entries..." value="{{ q }}">
+                <button type="submit" class="btn btn-outline-secondary">
+                  <i class="bi bi-search"></i>
+                </button>
+              </form>
+            </div>
+            <div class="col-md-2">
+              <select name="category" class="form-select" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                <option value="personal" {% if category == 'personal' %}selected{% endif %}>Personal</option>
+                <option value="work" {% if category == 'work' %}selected{% endif %}>Work</option>
+                <option value="family" {% if category == 'family' %}selected{% endif %}>Family</option>
+                <option value="health" {% if category == 'health' %}selected{% endif %}>Health</option>
+                <option value="travel" {% if category == 'travel' %}selected{% endif %}>Travel</option>
+                <option value="hobbies" {% if category == 'hobbies' %}selected{% endif %}>Hobbies</option>
+                <option value="goals" {% if category == 'goals' %}selected{% endif %}>Goals</option>
+                <option value="gratitude" {% if category == 'gratitude' %}selected{% endif %}>Gratitude</option>
+                <option value="reflection" {% if category == 'reflection' %}selected{% endif %}>Reflection</option>
+                <option value="dreams" {% if category == 'dreams' %}selected{% endif %}>Dreams</option>
+                <option value="other" {% if category == 'other' %}selected{% endif %}>Other</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select name="mood" class="form-select" onchange="this.form.submit()">
+                <option value="">All Moods</option>
+                <option value="happy" {% if mood == 'happy' %}selected{% endif %}>Happy</option>
+                <option value="sad" {% if mood == 'sad' %}selected{% endif %}>Sad</option>
+                <option value="angry" {% if mood == 'angry' %}selected{% endif %}>Angry</option>
+                <option value="anxious" {% if mood == 'anxious' %}selected{% endif %}>Anxious</option>
+                <option value="calm" {% if mood == 'calm' %}selected{% endif %}>Calm</option>
+                <option value="excited" {% if mood == 'excited' %}selected{% endif %}>Excited</option>
+                <option value="tired" {% if mood == 'tired' %}selected{% endif %}>Tired</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select name="favorite" class="form-select" onchange="this.form.submit()">
+                <option value="">All Entries</option>
+                <option value="1" {% if favorite == '1' %}selected{% endif %}>Favorites Only</option>
+              </select>
+            </div>
+            <div class="col-md-1">
+              <select name="per_page" class="form-select" onchange="this.form.submit()">
+                <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+              </select>
+            </div>
+          </div>
+
+          {% if entries %}
+            <div class="entries-list">
+              {% for e in entries %}
+                <div class="entry">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <h3>
+                        <a href="{{ url_for('main.entry_detail', entry_id=e.id) }}" class="text-decoration-none">
+                          {{ e.title }}
+                        </a>
+                      </h3>
+                      <div class="text-muted mb-2">
+                        <i class="bi bi-calendar"></i> {{ e.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% if e.updated_at != e.created_at %}
+                          <span class="ms-2"><i class="bi bi-pencil-square"></i> Updated: {{ e.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        {% endif %}
+                      </div>
+                      
+                      {% if e.category %}
+                        <span class="badge bg-info me-2">{{ e.category.title() }}</span>
+                      {% endif %}
+                      
+                      {% if e.mood %}
+                        <span class="badge bg-{{ 'primary' if e.mood in ['happy', 'excited'] else 'secondary' if e.mood in ['calm'] else 'warning' if e.mood in ['anxious', 'tired'] else 'danger' }} me-2">
+                          {{ e.mood.title() }}
+                        </span>
+                      {% endif %}
+                      
+                      {% if e.is_favorite %}
+                        <span class="badge bg-warning text-dark me-2">
+                          <i class="bi bi-star-fill"></i> Favorite
+                        </span>
+                      {% endif %}
+                      
+                      {% if e.tags %}
+                        {% for tag in e.tags.split(',') %}
+                          <span class="badge bg-secondary me-1">{{ tag.strip() }}</span>
+                        {% endfor %}
+                      {% endif %}
+                      
+                      <p class="mt-3 mb-2">{{ e.body[:200] }}{% if e.body|length > 200 %}...{% endif %}</p>
+                      
+                      <div class="d-flex gap-2">
+                        <a href="{{ url_for('main.entry_detail', entry_id=e.id) }}" class="btn btn-sm btn-outline-primary">
+                          <i class="bi bi-eye"></i> Read More
+                        </a>
+                        <a href="{{ url_for('main.edit_entry', entry_id=e.id) }}" class="btn btn-sm btn-outline-secondary">
+                          <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <form method="post" action="{{ url_for('main.toggle_favorite', entry_id=e.id) }}" class="d-inline">
+                          <button type="submit" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-star{% if not e.is_favorite %}-fill{% endif %}"></i> 
+                            {{ 'Unfavorite' if e.is_favorite else 'Favorite' }}
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+              <nav aria-label="Entry pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                  {% if pagination.has_prev %}
+                    <li class="page-item">
+                      <a class="page-link" href="{{ url_for('main.dashboard', page=pagination.prev_num, q=q, mood=mood, tag=tag, favorite=favorite, per_page=per_page) }}">
+                        <i class="bi bi-chevron-left"></i> Previous
+                      </a>
+                    </li>
+                  {% endif %}
+                  
+                  {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                      {% if page_num != pagination.page %}
+                        <li class="page-item">
+                          <a class="page-link" href="{{ url_for('main.dashboard', page=page_num, q=q, mood=mood, tag=tag, favorite=favorite, per_page=per_page) }}">
+                            {{ page_num }}
+                          </a>
+                        </li>
+                      {% else %}
+                        <li class="page-item active">
+                          <span class="page-link">{{ page_num }}</span>
+                        </li>
+                      {% endif %}
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">…</span>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                  
+                  {% if pagination.has_next %}
+                    <li class="page-item">
+                      <a class="page-link" href="{{ url_for('main.dashboard', page=pagination.next_num, q=q, mood=mood, tag=tag, favorite=favorite, per_page=per_page) }}">
+                        Next <i class="bi bi-chevron-right"></i>
+                      </a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </nav>
+            {% endif %}
+          {% else %}
+            <div class="text-center py-5">
+              <i class="bi bi-journal-x fs-1 text-muted"></i>
+              <h4 class="mt-3">No entries found</h4>
+              <p class="text-muted">
+                {% if q or mood or tag or favorite %}
+                  Try adjusting your search filters or <a href="{{ url_for('main.dashboard') }}">clear all filters</a>.
+                {% else %}
+                  Start your journaling journey by creating your first entry.
+                {% endif %}
+              </p>
+              <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Your First Entry
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sidebar with Ad -->
+    <div class="col-lg-3">
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="card-title">Premium Features</h6>
+          <p class="card-text small">Upgrade to unlock unlimited entries, advanced analytics, and more!</p>
+          <a href="#" class="btn btn-primary btn-sm">Upgrade Now</a>
+        </div>
+      </div>
+      
+      <!-- AdSense Sidebar Ad -->
+      <div class="card">
+        <div class="card-body text-center">
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-2396098605485959"
+               data-ad-slot="2345678901"
+               data-ad-format="rectangle"
+               data-full-width-responsive="true"></ins>
+          <script>
+               (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
