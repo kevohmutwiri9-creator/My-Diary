@@ -333,7 +333,11 @@ def settings():
     return render_template("settings.html", form=form)
 
 
-@main_bp.get("/ads.txt")
+@main_bp.route("/ads.txt")
 def ads_txt():
     """Serve ads.txt file for AdSense verification"""
-    return send_from_directory('static', 'ads.txt', mimetype='text/plain')
+    try:
+        return send_from_directory('static', 'ads.txt', mimetype='text/plain')
+    except:
+        # Fallback if file not found
+        return "google.com, pub-2396098605485959, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain'}
