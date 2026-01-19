@@ -9,3 +9,4 @@ reportlab==4.4.9
 markdown==3.10
 psycopg2-binary==2.9.9
 gunicorn==21.2.0
+email-validator==2.1.0
