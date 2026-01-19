@@ -64,6 +64,12 @@ class Entry(db.Model):
     tags = db.Column(db.String(300), nullable=True)
     category = db.Column(db.String(50), nullable=True)
     is_favorite = db.Column(db.Boolean, default=False, nullable=False)
+    
+    # AI Analysis fields
+    sentiment = db.Column(db.String(20), nullable=True)  # positive, negative, neutral
+    emotions = db.Column(db.Text, nullable=True)  # JSON string of detected emotions
+    ai_insights = db.Column(db.Text, nullable=True)  # AI-generated insights
+    mood_score = db.Column(db.Float, nullable=True)  # -1.0 to 1.0 sentiment score
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     user = db.relationship("User", back_populates="entries")

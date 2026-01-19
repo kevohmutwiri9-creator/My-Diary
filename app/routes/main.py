@@ -102,6 +102,20 @@ def new_entry():
         )
         db.session.add(entry)
         db.session.commit()
+        
+        # Auto-analyze sentiment after saving
+        try:
+            sentiment_result = ai_service.analyze_entry_sentiment(entry.body)
+            if sentiment_result.get("success"):
+                entry.sentiment = sentiment_result.get("sentiment")
+                entry.mood_score = sentiment_result.get("mood_score")
+                entry.emotions = sentiment_result.get("emotions")
+                entry.ai_insights = sentiment_result.get("insights")
+                db.session.commit()
+        except Exception as e:
+            # Log error but don't fail the entry creation
+            print(f"Sentiment analysis failed: {e}")
+        
         flash("Entry saved.", "success")
         return redirect(url_for("main.dashboard"))
 
@@ -167,6 +181,27 @@ def toggle_favorite(entry_id: int):
     entry.touch()
     db.session.commit()
     return redirect(request.referrer or url_for("main.dashboard"))
+
+
+@main_bp.get("/mood-analytics")
+@login_required
+def mood_analytics():
+    # Get user's entries with mood data
+    entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).limit(50).all()
+    
+    # Prepare data for AI analysis
+    entries_data = []
+    for entry in entries:
+        if entry.mood_score is not None:
+            entries_data.append({
+                'mood_score': entry.mood_score,
+                'created_at': entry.created_at
+            })
+    
+    # Get mood trends
+    mood_trends = ai_service.get_mood_trends(entries_data)
+    
+    return render_template("mood_analytics.html", entries=entries, mood_trends=mood_trends)
 
 
 @main_bp.get("/wellness")

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Mood Analytics - My Diary{% endblock %}
+{% block content %}
+  <div class="card fade-in">
+    <div class="card-header">
+      <h1 class="mb-0"><i class="bi bi-graph-up"></i> Mood Analytics</h1>
+    </div>
+    <div class="card-body">
+      {% if mood_trends %}
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card border-primary">
+              <div class="card-body text-center">
+                <h5 class="card-title text-primary">Overall Trend</h5>
+                <div class="display-4 mb-2">
+                  {% if mood_trends.trend == 'improving' %}
+                    <i class="bi bi-arrow-up-circle text-success"></i> Improving
+                  {% elif mood_trends.trend == 'declining' %}
+                    <i class="bi bi-arrow-down-circle text-danger"></i> Declining
+                  {% else %}
+                    <i class="bi bi-dash-circle text-warning"></i> Stable
+                  {% endif %}
+                </div>
+                <p class="text-muted">Based on your recent entries</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="card border-info">
+              <div class="card-body text-center">
+                <h5 class="card-title text-info">Average Mood</h5>
+                <div class="display-4 mb-2">
+                  {{ "%.1f"|format(mood_trends.average_mood * 10) }}/10
+                </div>
+                <p class="text-muted">Overall mood score</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="card border-success">
+              <div class="card-body text-center">
+                <h5 class="card-title text-success">Entries Analyzed</h5>
+                <div class="display-4 mb-2">
+                  {{ mood_trends.analyzed_entries }}
+                </div>
+                <p class="text-muted">of {{ mood_trends.total_entries }} total</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-emoji-smile"></i> Recent Mood Distribution</h5>
+              </div>
+              <div class="card-body">
+                <canvas id="moodChart" width="400" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Emotional Insights</h5>
+              </div>
+              <div class="card-body">
+                <div id="emotionsList">
+                  {% for entry in entries[:10] %}
+                    {% if entry.emotions %}
+                      <div class="mb-2 p-2 border rounded">
+                        <small class="text-muted">{{ entry.created_at.strftime('%b %d, %Y') }}</small>
+                        <div class="mt-1">
+                          {% set emotions_data = entry.emotions|from_json %}
+                          {% if emotions_data %}
+                            {% for emotion in emotions_data[:3] %}
+                              <span class="badge bg-primary me-1">{{ emotion }}</span>
+                            {% endfor %}
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-graph-up display-1 text-muted"></i>
+          <h3 class="mt-3">No mood data available yet</h3>
+          <p class="text-muted">Start writing entries to see your mood analytics!</p>
+          <a href="{{ url_for('main.new_entry') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Write First Entry
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Prepare data for Chart.js using a safer approach
+  var chartLabels = [];
+  var chartData = [];
+  
+  {% for entry in entries[:10] %}
+    chartLabels.push('{{ entry.created_at.strftime("%m/%d") }}');
+    chartData.push({{ entry.mood_score or 0 }});
+  {% endfor %}
+  
+  // Simple mood chart
+  const ctx = document.getElementById('moodChart');
+  if (ctx) {
+    const moodData = {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Mood Score',
+        data: chartData,
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1
+      }]
+    };
+
+    new Chart(ctx, {
+      type: 'line',
+      data: moodData,
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 1,
+            min: -1
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}
