@@ -145,13 +145,13 @@
                 </div>
                 <div class="col-md-4">
                   <div class="text-center">
-                    <div class="display-4 text-info">{{ current_user.entries|selectattr('ai_insights')|length }}</div>
+                    <div class="display-4 text-info">{{ current_user.entries|selectattr('ai_insights')|list|length }}</div>
                     <p class="text-muted">With AI Insights</p>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="text-center">
-                    <div class="display-4 text-success">{{ current_user.entries|selectattr('is_favorite')|length }}</div>
+                    <div class="display-4 text-success">{{ current_user.entries|selectattr('is_favorite')|list|length }}</div>
                     <p class="text-muted">Favorites</p>
                   </div>
                 </div>
