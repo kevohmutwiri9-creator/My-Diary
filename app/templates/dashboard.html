@@ -22,11 +22,11 @@
           <p class="mb-0 text-muted">Welcome back, {{ current_user.email }}</p>
         </div>
         <div class="card-body">
-          <!-- Search and Filter Section -->
+          <!-- Enhanced Search and Filter Section -->
           <div class="row mb-4">
             <div class="col-md-3">
               <form method="get" class="input-group">
-                <input type="text" name="q" class="form-control" placeholder="Search entries..." value="{{ q }}">
+                <input type="text" name="q" class="form-control" placeholder="Search entries (full-text)..." value="{{ q }}">
                 <button type="submit" class="btn btn-outline-secondary">
                   <i class="bi bi-search"></i>
                 </button>
@@ -61,16 +61,61 @@
               </select>
             </div>
             <div class="col-md-2">
+              <select name="sentiment" class="form-select" onchange="this.form.submit()">
+                <option value="">All Sentiments</option>
+                <option value="positive" {% if sentiment_filter == 'positive' %}selected{% endif %}>Positive</option>
+                <option value="negative" {% if sentiment_filter == 'negative' %}selected{% endif %}>Negative</option>
+                <option value="neutral" {% if sentiment_filter == 'neutral' %}selected{% endif %}>Neutral</option>
+              </select>
+            </div>
+            <div class="col-md-1">
               <select name="favorite" class="form-select" onchange="this.form.submit()">
                 <option value="">All Entries</option>
                 <option value="1" {% if favorite == '1' %}selected{% endif %}>Favorites Only</option>
               </select>
             </div>
+          </div>
+          
+          <!-- Advanced Filters -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <label class="form-label">Date Range</label>
+              <div class="input-group">
+                <input type="date" name="date_from" class="form-control" placeholder="From" value="{{ date_from }}">
+                <input type="date" name="date_to" class="form-control" placeholder="To" value="{{ date_to }}">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">AI Insights</label>
+              <select name="ai_insights" class="form-select" onchange="this.form.submit()">
+                <option value="">All Entries</option>
+                <option value="1" {% if has_ai_insights == '1' %}selected{% endif %}>With AI Insights</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Sort By</label>
+              <div class="input-group">
+                <select name="sort_by" class="form-select">
+                  <option value="">Default</option>
+                  <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                  <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title</option>
+                  <option value="mood" {% if sort_by == 'mood' %}selected{% endif %}>Mood</option>
+                  <option value="updated" {% if sort_by == 'updated' %}selected{% endif %}>Last Updated</option>
+                </select>
+                <select name="sort_order" class="form-select">
+                  <option value="">Default</option>
+                  <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                  <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                </select>
+              </div>
+            </div>
             <div class="col-md-1">
+              <label class="form-label">Per Page</label>
               <select name="per_page" class="form-select" onchange="this.form.submit()">
                 <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
                 <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                 <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
               </select>
             </div>
           </div>
@@ -115,7 +160,21 @@
                         {% endfor %}
                       {% endif %}
                       
-                      <p class="mt-3 mb-2">{{ e.body[:200] }}{% if e.body|length > 200 %}...{% endif %}</p>
+                      {% if e.sentiment %}
+                        <span class="badge bg-{{ 'success' if e.sentiment == 'positive' else 'danger' if e.sentiment == 'negative' else 'secondary' }} me-2">
+                          <i class="bi bi-{{ 'emoji-smile' if e.sentiment == 'positive' else 'emoji-frown' if e.sentiment == 'negative' else 'emoji-neutral' }}"></i>
+                          {{ e.sentiment.title() }}
+                        </span>
+                      {% endif %}
+                      
+                      {% if e.ai_insights %}
+                        <div class="mt-2 p-2 bg-light rounded">
+                          <small class="text-muted">
+                            <i class="bi bi-lightbulb"></i> AI Insights
+                          </small>
+                          <div class="mt-1">{{ e.ai_insights[:150] }}{% if e.ai_insights|length > 150 %}...{% endif %}</div>
+                        </div>
+                      {% endif %}
                       
                       <div class="d-flex gap-2">
                         <a href="{{ url_for('main.entry_detail', entry_id=e.id) }}" class="btn btn-sm btn-outline-primary">

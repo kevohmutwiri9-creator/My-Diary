@@ -35,27 +35,95 @@ def dashboard():
     category = (request.args.get("category") or "").strip()
     tag = (request.args.get("tag") or "").strip()
     favorite = (request.args.get("favorite") or "").strip()
+    date_from = (request.args.get("date_from") or "").strip()
+    date_to = (request.args.get("date_to") or "").strip()
+    sentiment_filter = (request.args.get("sentiment") or "").strip()
+    has_ai_insights = (request.args.get("ai_insights") or "").strip()
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
+    sort_by = (request.args.get("sort_by") or "").strip()
+    sort_order = (request.args.get("sort_order") or "").strip()
 
     query = Entry.query.filter_by(user_id=current_user.id)
 
+    # Enhanced search with full-text capabilities
     if q:
-        query = query.filter(or_(Entry.title.ilike(f"%{q}%"), Entry.body.ilike(f"%{q}%")))
+        search_terms = q.split()
+        search_conditions = []
+        for term in search_terms:
+            search_conditions.extend([
+                Entry.title.ilike(f"%{term}%"),
+                Entry.body.ilike(f"%{term}%"),
+                Entry.tags.ilike(f"%{term}%"),
+                Entry.category.ilike(f"%{term}%"),
+                Entry.mood.ilike(f"%{term}%")
+            ])
+        query = query.filter(or_(*search_conditions))
 
+    # Advanced filtering
     if mood:
         query = query.filter(Entry.mood == mood)
     
     if category:
         query = query.filter(Entry.category == category)
-
+    
     if tag:
         query = query.filter(Entry.tags.ilike(f"%{tag}%"))
-
+    
     if favorite == "1":
         query = query.filter(Entry.is_favorite.is_(True))
+    
+    # Date range filtering
+    if date_from:
+        try:
+            from_date = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(Entry.created_at >= from_date)
+        except ValueError:
+            pass
+    
+    if date_to:
+        try:
+            to_date = datetime.strptime(date_to, '%Y-%m-%d')
+            query = query.filter(Entry.created_at <= to_date)
+        except ValueError:
+            pass
+    
+    # Sentiment filtering
+    if sentiment_filter:
+        query = query.filter(Entry.sentiment == sentiment_filter)
+    
+    # AI insights filtering
+    if has_ai_insights == "1":
+        query = query.filter(Entry.ai_insights.isnot(None))
+    
+    # Advanced sorting
+    if sort_by:
+        if sort_by == "date":
+            if sort_order == "asc":
+                query = query.order_by(Entry.created_at.asc())
+            else:
+                query = query.order_by(Entry.created_at.desc())
+        elif sort_by == "title":
+            if sort_order == "asc":
+                query = query.order_by(Entry.title.asc())
+            else:
+                query = query.order_by(Entry.title.desc())
+        elif sort_by == "mood":
+            if sort_order == "asc":
+                query = query.order_by(Entry.mood.asc())
+            else:
+                query = query.order_by(Entry.mood.desc())
+        elif sort_by == "updated":
+            if sort_order == "asc":
+                query = query.order_by(Entry.updated_at.asc())
+            else:
+                query = query.order_by(Entry.updated_at.desc())
+        else:
+            query = query.order_by(Entry.created_at.desc())
+    else:
+        query = query.order_by(Entry.created_at.desc())
 
-    pagination = query.order_by(Entry.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template(
         "dashboard.html",
@@ -66,6 +134,12 @@ def dashboard():
         category=category,
         tag=tag,
         favorite=favorite,
+        date_from=date_from,
+        date_to=date_to,
+        sentiment_filter=sentiment_filter,
+        has_ai_insights=has_ai_insights,
+        sort_by=sort_by,
+        sort_order=sort_order,
         per_page=per_page,
     )
 
