@@ -25,8 +25,6 @@ services:
         value: true
       - key: ADSENSE_PUBLISHER_ID
         value: ca-pub-2396098605485959
-      - key: PORT
-        value: 10000
 
   # PostgreSQL Database
   - type: pserv
