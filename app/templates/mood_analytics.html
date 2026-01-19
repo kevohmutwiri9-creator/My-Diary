@@ -31,7 +31,7 @@
               <div class="card-body text-center">
                 <h5 class="card-title text-info">Average Mood</h5>
                 <div class="display-4 mb-2">
-                  {% if mood_trends and mood_trends.average_mood is not none %}
+                  {% if mood_trends and mood_trends.average_mood is defined and mood_trends.average_mood is not none %}
                     {{ "%.1f"|format(mood_trends.average_mood * 10) }}/10
                   {% else %}
                     N/A
