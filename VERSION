@@ -1,0 +1,5 @@
+v2.0.1 - Production Ready with Render Fixes
+- Gunicorn production server
+- PostgreSQL support
+- Enhanced deployment configuration
+- Latest security patches
