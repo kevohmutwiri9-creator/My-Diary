@@ -80,7 +80,7 @@ def new_entry():
     
     if form.validate_on_submit():
         if form.get_suggestions.data:
-            suggestions = ai_service.generate_entry_suggestions(
+            suggestions = ai_service.generate_entry_suggestions_with_search(
                 mood=form.mood.data, 
                 tags=form.tags.data,
                 category=form.category.data
@@ -88,7 +88,7 @@ def new_entry():
             return render_template("entry_form.html", form=form, suggestions=suggestions)
         
         if form.analyze_sentiment.data and form.body.data:
-            sentiment_analysis = ai_service.analyze_entry_sentiment(form.body.data)
+            sentiment_analysis = ai_service.analyze_entry_sentiment_with_context(form.body.data)
             return render_template("entry_form.html", form=form, sentiment_analysis=sentiment_analysis)
         
         entry = Entry(
@@ -105,7 +105,7 @@ def new_entry():
         
         # Auto-analyze sentiment after saving
         try:
-            sentiment_result = ai_service.analyze_entry_sentiment(entry.body)
+            sentiment_result = ai_service.analyze_entry_sentiment_with_context(entry.body)
             if sentiment_result.get("success"):
                 entry.sentiment = sentiment_result.get("sentiment")
                 entry.mood_score = sentiment_result.get("mood_score")
@@ -114,7 +114,7 @@ def new_entry():
                 db.session.commit()
         except Exception as e:
             # Log error but don't fail the entry creation
-            print(f"Sentiment analysis failed: {e}")
+            print(f"Enhanced sentiment analysis failed: {e}")
         
         flash("Entry saved.", "success")
         return redirect(url_for("main.dashboard"))
@@ -199,7 +199,7 @@ def mood_analytics():
             })
     
     # Get mood trends
-    mood_trends = ai_service.get_mood_trends(entries_data)
+    mood_trends = ai_service.get_mood_trends_with_research(entries_data)
     
     return render_template("mood_analytics.html", entries=entries, mood_trends=mood_trends)
 
@@ -219,7 +219,7 @@ def wellness():
         return redirect(url_for("main.dashboard"))
     
     entries_text = [entry.body for entry in entries]
-    insights = ai_service.generate_wellness_insights(entries_text)
+    insights = ai_service.generate_wellness_insights_with_research(entries_text)
     
     mood_counts = {}
     for entry in entries:
