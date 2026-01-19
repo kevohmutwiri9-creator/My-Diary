@@ -2,11 +2,17 @@ import csv
 import io
 import json
 import markdown
+from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-
+from reportlab.lib import colors
+from reportlab.platypus.tableofcontents import SimpleIndex
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.units import mm
+from docx import Document
+from docx.shared import Inches
 from flask import Blueprint, Response, abort, flash, redirect, render_template, request, url_for, jsonify, send_from_directory
 from flask_login import current_user, login_required
 from sqlalchemy import or_
@@ -306,6 +312,13 @@ def wellness():
                          recent_entries=entries[:5])
 
 
+@main_bp.get("/export")
+@login_required
+def export_page():
+    """Display export options page"""
+    return render_template("export.html")
+
+
 @main_bp.get("/export/<string:fmt>")
 @login_required
 def export_entries(fmt: str):
@@ -323,7 +336,12 @@ def export_entries(fmt: str):
                 "body": e.body,
                 "mood": e.mood,
                 "tags": e.tags,
+                "category": e.category,
                 "is_favorite": bool(e.is_favorite),
+                "sentiment": e.sentiment,
+                "mood_score": e.mood_score,
+                "emotions": json.loads(e.emotions) if e.emotions else [],
+                "ai_insights": e.ai_insights,
                 "created_at": e.created_at.isoformat(),
                 "updated_at": e.updated_at.isoformat() if e.updated_at else None,
             }
@@ -375,34 +393,168 @@ def export_entries(fmt: str):
             headers={"Content-Disposition": "attachment; filename=diary-export.csv"},
         )
 
+    if fmt == "docx":
+        buffer = io.BytesIO()
+        doc = Document()
+        
+        # Add title
+        title = doc.add_heading('My Diary Export', 0)
+        title.alignment = 1  # Center
+        
+        for i, e in enumerate(entries, 1):
+            # Entry title
+            doc.add_heading(f'Entry {i}: {e.title}', level=1)
+            
+            # Entry metadata
+            p = doc.add_paragraph()
+            p.add_run('Date: ').bold = True
+            p.add_run(f'{e.created_at.strftime("%Y-%m-%d %H:%M")}\n')
+            
+            if e.mood:
+                p.add_run('Mood: ').bold = True
+                p.add_run(f'{e.mood.title()}\n')
+            
+            if e.category:
+                p.add_run('Category: ').bold = True
+                p.add_run(f'{e.category.title()}\n')
+            
+            if e.tags:
+                p.add_run('Tags: ').bold = True
+                p.add_run(f'{e.tags}\n')
+            
+            if e.sentiment:
+                p.add_run('Sentiment: ').bold = True
+                p.add_run(f'{e.sentiment.title()}\n')
+            
+            if e.ai_insights:
+                p.add_run('AI Insights: ').bold = True
+                p.add_run(f'{e.ai_insights[:200]}...\n')
+            
+            # Entry body
+            doc.add_paragraph(e.body)
+            
+            # Separator
+            if i < len(entries):
+                doc.add_page_break()
+        
+        doc.save(buffer)
+        buffer.seek(0)
+        return Response(
+            buffer.getvalue(),
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": "attachment; filename=diary-export.docx"},
+        )
+
     if fmt == "pdf":
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         styles = getSampleStyleSheet()
         story = []
         
-        for e in entries:
+        # Get theme from request or default
+        theme = request.args.get('theme', 'default')
+        
+        # Define theme colors
+        if theme == 'dark':
+            title_color = colors.HexColor('#2d3748')
+            text_color = colors.HexColor('#e9ecef')
+            bg_color = colors.HexColor('#212529')
+            border_color = colors.HexColor('#495057')
+        elif theme == 'nature':
+            title_color = colors.HexColor('#2e7d32')
+            text_color = colors.HexColor('#383e3c')
+            bg_color = colors.HexColor('#f8f9fa')
+            border_color = colors.HexColor('#28a745')
+        elif theme == 'ocean':
+            title_color = colors.HexColor('#006994')
+            text_color = colors.HexColor('#343a40')
+            bg_color = colors.HexColor('#e3f2fd')
+            border_color = colors.HexColor('#004085')
+        else:  # default
+            title_color = colors.HexColor('#007bff')
+            text_color = colors.HexColor('#212529')
+            bg_color = colors.HexColor('#f8f9fa')
+            border_color = colors.HexColor('#dee2e6')
+        
+        # Title page
+        title_style = styles['Title']
+        title_style.textColor = title_color
+        story.append(Paragraph("My Diary Export", title_style))
+        story.append(Spacer(1, 20))
+        
+        # Add metadata
+        meta_style = styles['Normal']
+        meta_style.textColor = text_color
+        meta_style.backColor = bg_color
+        story.append(Paragraph(f"Exported: {datetime.now().strftime('%Y-%m-%d %H:%M')}", meta_style))
+        story.append(Paragraph(f"Total Entries: {len(entries)}", meta_style))
+        story.append(Spacer(1, 20))
+        
+        for i, e in enumerate(entries, 1):
+            # Entry title with theme
             title_style = styles['Heading1']
-            story.append(Paragraph(e.title, title_style))
+            title_style.textColor = title_color
+            story.append(Paragraph(f"Entry {i}: {e.title}", title_style))
             story.append(Spacer(1, 12))
             
-            meta_style = styles['Normal']
-            meta_text = f"{e.created_at.strftime('%Y-%m-%d %H:%M')}"
-            if e.mood:
-                meta_text += f" | Mood: {e.mood.title()}"
+            # Entry metadata box
+            meta_text = f"""
+            <font color="{text_color.hex if hasattr(text_color, 'hex') else '#000000'}">
+                <b>Date:</b> {e.created_at.strftime('%Y-%m-%d %H:%M')}<br/>
+                {f'<b>Mood:</b> {e.mood.title()}<br/>' if e.mood else ''}
+                {f'<b>Category:</b> {e.category.title()}<br/>' if e.category else ''}
+                {f'<b>Sentiment:</b> {e.sentiment.title()}<br/>' if e.sentiment else ''}
+                {f'<b>Score:</b> {e.mood_score:.1f}/1.0<br/>' if e.mood_score else ''}
+            </font>
+            """
             story.append(Paragraph(meta_text, meta_style))
             story.append(Spacer(1, 12))
             
+            # Entry body
             body_style = styles['BodyText']
-            story.append(Paragraph(e.body.replace('\n', '<br/>'), body_style))
-            story.append(Spacer(1, 20))
+            body_style.textColor = text_color
+            body_style.backColor = bg_color
+            body_style.borderColor = border_color
+            body_style.borderWidth = 1
+            body_style.borderRadius = 5
+            body_style.leftIndent = 10
+            body_style.rightIndent = 10
+            body_style.topPadding = 10
+            body_style.bottomPadding = 10
+            
+            # Convert markdown to HTML for better formatting
+            body_html = markdown.markdown(e.body)
+            story.append(Paragraph(body_html, body_style))
+            
+            # AI Insights if available
+            if e.ai_insights:
+                insights_style = styles['Normal']
+                insights_style.textColor = text_color
+                insights_style.backColor = colors.HexColor('#e9ecef')
+                insights_style.borderWidth = 1
+                insights_style.borderColor = border_color
+                insights_style.borderRadius = 3
+                insights_style.leftIndent = 10
+                insights_style.rightIndent = 10
+                insights_style.topPadding = 8
+                insights_style.bottomPadding = 8
+                
+                story.append(Spacer(1, 12))
+                story.append(Paragraph("<b>AI Insights:</b>", insights_style))
+                story.append(Paragraph(e.ai_insights[:300], insights_style))
+            
+            # Page break except for last entry
+            if i < len(entries):
+                story.append(Spacer(1, 20))
+                story.append(Paragraph("<hr/>", meta_style))
+                story.append(Spacer(1, 10))
         
         doc.build(story)
         buffer.seek(0)
         return Response(
             buffer.getvalue(),
             mimetype="application/pdf",
-            headers={"Content-Disposition": "attachment; filename=diary-export.pdf"},
+            headers={"Content-Disposition": f"attachment; filename=diary-export-{theme}.pdf"},
         )
 
     if fmt == "md":

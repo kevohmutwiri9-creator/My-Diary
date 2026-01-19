@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Export Diary - My Diary{% endblock %}
+{% block content %}
+  <div class="card fade-in">
+    <div class="card-header">
+      <h1 class="mb-0"><i class="bi bi-download"></i> Export Your Diary</h1>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="bi bi-file-earmark"></i> Export Format</h5>
+            </div>
+            <div class="card-body">
+              <div class="list-group">
+                <a href="{{ url_for('main.export_entries', fmt='json') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-filetype-json text-primary"></i>
+                      <strong>JSON</strong>
+                      <small class="text-muted d-block">Complete data with AI insights</small>
+                    </div>
+                    <span class="badge bg-success">Recommended</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='csv') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-filetype-csv text-info"></i>
+                      <strong>CSV</strong>
+                      <small class="text-muted d-block">Spreadsheet compatible</small>
+                    </div>
+                    <span class="badge bg-secondary">Basic</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='docx') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-filetype-docx text-primary"></i>
+                      <strong>Word Document</strong>
+                      <small class="text-muted d-block">Formatted with metadata</small>
+                    </div>
+                    <span class="badge bg-info">Enhanced</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='md') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-filetype-md text-secondary"></i>
+                      <strong>Markdown</strong>
+                      <small class="text-muted d-block">For documentation</small>
+                    </div>
+                    <span class="badge bg-secondary">Basic</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='txt') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-filetype-txt text-warning"></i>
+                      <strong>Plain Text</strong>
+                      <small class="text-muted d-block">Simple format</small>
+                    </div>
+                    <span class="badge bg-secondary">Basic</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="bi bi-palette"></i> PDF Theme</h5>
+            </div>
+            <div class="card-body">
+              <div class="list-group">
+                <a href="{{ url_for('main.export_entries', fmt='pdf', theme='default') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-file-pdf text-primary"></i>
+                      <strong>Default Theme</strong>
+                      <small class="text-muted d-block">Clean and professional</small>
+                    </div>
+                    <span class="badge bg-primary">Popular</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='pdf', theme='dark') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-file-pdf text-dark"></i>
+                      <strong>Dark Theme</strong>
+                      <small class="text-muted d-block">Easy on the eyes</small>
+                    </div>
+                    <span class="badge bg-dark">Dark</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='pdf', theme='nature') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-file-pdf text-success"></i>
+                      <strong>Nature Theme</strong>
+                      <small class="text-muted d-block">Green and calming</small>
+                    </div>
+                    <span class="badge bg-success">Nature</span>
+                  </div>
+                </a>
+                
+                <a href="{{ url_for('main.export_entries', fmt='pdf', theme='ocean') }}" class="list-group-item list-group-item-action">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="bi bi-file-pdf text-info"></i>
+                      <strong>Ocean Theme</strong>
+                      <small class="text-muted d-block">Blue and serene</small>
+                    </div>
+                    <span class="badge bg-info">Ocean</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="bi bi-info-circle"></i> Export Information</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <div class="display-4 text-primary">{{ current_user.entries|length }}</div>
+                    <p class="text-muted">Total Entries</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <div class="display-4 text-info">{{ current_user.entries|selectattr('ai_insights')|length }}</div>
+                    <p class="text-muted">With AI Insights</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <div class="display-4 text-success">{{ current_user.entries|selectattr('is_favorite')|length }}</div>
+                    <p class="text-muted">Favorites</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
