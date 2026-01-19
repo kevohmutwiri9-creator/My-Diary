@@ -57,16 +57,24 @@
 
         <div class="row">
           <div class="col-md-6">
+            <!-- Chart container -->
             <div class="card">
               <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-emoji-smile"></i> Recent Mood Distribution</h5>
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Mood Trends</h5>
               </div>
               <div class="card-body">
                 <canvas id="moodChart" width="400" height="200"></canvas>
               </div>
             </div>
+            
+            <!-- Hidden data for JavaScript -->
+            <script type="application/json" id="chartData">
+            {
+              "labels": [{% for entry in entries[:10] %}"{{ entry.created_at.strftime('%m/%d') }}"{% if not loop.last %},{% endif %}{% endfor %}],
+              "data": [{% for entry in entries[:10] %}{{ entry.mood_score or 0 }}{% if not loop.last %},{% endif %}{% endfor %}]
+            }
+            </script>
           </div>
-          
           <div class="col-md-6">
             <div class="card">
               <div class="card-header">
@@ -112,14 +120,16 @@
 {{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Prepare data for Chart.js using a safer approach
+  // Get chart data from JSON script tag
+  var chartDataElement = document.getElementById('chartData');
   var chartLabels = [];
   var chartData = [];
   
-  {% for entry in entries[:10] %}
-    chartLabels.push('{{ entry.created_at.strftime("%m/%d") }}');
-    chartData.push({{ entry.mood_score or 0 }});
-  {% endfor %}
+  if (chartDataElement) {
+    var data = JSON.parse(chartDataElement.textContent);
+    chartLabels = data.labels;
+    chartData = data.data;
+  }
   
   // Simple mood chart
   const ctx = document.getElementById('moodChart');
