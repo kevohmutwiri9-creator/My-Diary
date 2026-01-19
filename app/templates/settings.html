@@ -44,7 +44,7 @@
     <div class="card-body">
       <p><strong>Email:</strong> {{ current_user.email }}</p>
       <p><strong>Member since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
-      <p><strong>Total entries:</strong> {{ current_user.entries.count() }}</p>
+      <p><strong>Total entries:</strong> {{ current_user.entries|length }}</p>
     </div>
   </div>
   
