@@ -1,20 +1,52 @@
 {% extends 'base.html' %}
 {% block title %}Register - My Diary{% endblock %}
 {% block content %}
-  <div class="card">
-    <h1>Create account</h1>
-    <form method="post">
-      {{ form.hidden_tag() }}
-      <div class="field">
-        <label>Email</label>
-        {{ form.email() }}
-      </div>
-      <div class="field">
-        <label>Password</label>
-        {{ form.password() }}
-      </div>
-      <button class="btn" type="submit">Register</button>
-      <p class="muted">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
-    </form>
+  <div class="card fade-in">
+    <div class="card-header">
+      <h1 class="mb-0"><i class="bi bi-person-plus"></i> Create Account</h1>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+          {{ form.email.label(class="form-label") }}
+          {{ form.email(class="form-control form-control-lg", placeholder="Enter your email") }}
+          {% if form.email.errors %}
+            <div class="text-danger mt-1">
+              {% for error in form.email.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="mb-4">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control form-control-lg", placeholder="Create a strong password") }}
+          {% if form.password.errors %}
+            <div class="text-danger mt-1">
+              {% for error in form.password.errors %}
+                <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="d-grid gap-2 mb-3">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-person-plus"></i> Create Account
+          </button>
+        </div>
+        
+        <div class="text-center">
+          <p class="mb-0">Already have an account? 
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+          </p>
+        </div>
+      </form>
+    </div>
   </div>
 {% endblock %}
