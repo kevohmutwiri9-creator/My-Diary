@@ -12,9 +12,9 @@ class CacheService:
             redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
             self.redis_client = redis.from_url(redis_url, decode_responses=True)
             self.redis_client.ping()  # Test connection
-            current_app.logger.info("Redis cache connected successfully")
+            print("Redis cache connected successfully")  # Use print instead of current_app.logger
         except Exception as e:
-            current_app.logger.warning(f"Redis connection failed: {str(e)}. Using in-memory cache.")
+            print(f"Redis connection failed: {str(e)}. Using in-memory cache.")  # Use print instead of current_app.logger
             self.redis_client = None
             self.cache = {}  # Fallback to in-memory cache
     
@@ -26,7 +26,7 @@ class CacheService:
                 if value:
                     return json.loads(value)
             except Exception as e:
-                current_app.logger.error(f"Redis get error: {str(e)}")
+                print(f"Redis get error: {str(e)}")  # Use print instead of current_app.logger
                 return None
         else:
             return self.cache.get(key)
@@ -38,7 +38,7 @@ class CacheService:
                 self.redis_client.setex(key, timeout, json.dumps(value))
                 return True
             except Exception as e:
-                current_app.logger.error(f"Redis set error: {str(e)}")
+                print(f"Redis set error: {str(e)}")  # Use print instead of current_app.logger
                 return False
         else:
             self.cache[key] = value
@@ -51,7 +51,7 @@ class CacheService:
                 self.redis_client.delete(key)
                 return True
             except Exception as e:
-                current_app.logger.error(f"Redis delete error: {str(e)}")
+                print(f"Redis delete error: {str(e)}")  # Use print instead of current_app.logger
                 return False
         else:
             if key in self.cache:
@@ -65,7 +65,7 @@ class CacheService:
                 self.redis_client.flushdb()
                 return True
             except Exception as e:
-                current_app.logger.error(f"Redis clear error: {str(e)}")
+                print(f"Redis clear error: {str(e)}")  # Use print instead of current_app.logger
                 return False
         else:
             self.cache.clear()
