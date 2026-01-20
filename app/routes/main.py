@@ -20,7 +20,7 @@ from sqlalchemy import or_
 from .. import db
 from ..forms import EntryForm, SettingsForm
 from ..services.email_service import email_service
-from ..services.cache_service import cache_service, cache_user_data, cache_analytics, cache_entries, cache_ai_response
+from ..services.cache_service import cache_service
 from ..models import User, Entry
 from ..ai_service import ai_service
 
@@ -37,7 +37,6 @@ def index():
 
 @main_bp.get("/dashboard")
 @login_required
-@cache_entries(timeout=1800)
 def dashboard():
     q = (request.args.get("q") or "").strip()
     mood = (request.args.get("mood") or "").strip()
@@ -317,7 +316,6 @@ def wellness():
 
 @main_bp.get("/advanced-analytics")
 @login_required
-@cache_analytics(timeout=3600)
 def advanced_analytics():
     """Display advanced analytics dashboard with writing patterns"""
     # Get user's entries with analytics data

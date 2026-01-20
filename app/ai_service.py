@@ -3,7 +3,6 @@ import json
 import google.generativeai as genai
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
-from ..services.cache_service import cache_ai_response
 
 # Configure Gemini API
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -30,7 +29,6 @@ class AIService:
         ]
         return search_results[:max_results]
     
-    @cache_ai_response(timeout=7200)
     def generate_entry_suggestions_with_search(self, mood: str = None, tags: str = None, category: str = None) -> str:
         """Generate writing prompts with web search context"""
         search_query = f"journaling prompts for {mood or 'general well-being'}"
@@ -143,7 +141,6 @@ class AIService:
                 "success": False
             }
     
-    @cache_ai_response(timeout=7200)
     def generate_wellness_insights_with_research(self, entries_text: List[str]) -> str:
         """Generate wellness insights with web search for current research"""
         combined_text = "\n\n".join(entries_text[-5:])  # Last 5 entries
