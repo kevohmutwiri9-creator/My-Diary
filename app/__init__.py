@@ -52,17 +52,3 @@ def create_app():
     app.register_blueprint(main_bp)
 
     return app
-
-
-def init_database(app):
-    """Initialize database tables"""
-    with app.app_context():
-        try:
-            from . import models  # noqa: F401
-            # Import User model for the user_loader
-            from .models import User
-            db.create_all()
-            print("Database tables created successfully")
-        except Exception as e:
-            print(f"Error creating database tables: {e}")
-            # Continue without failing the app startup
