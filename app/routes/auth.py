@@ -65,6 +65,7 @@ def reset_password_request():
         
         if user:
             token = user.generate_reset_token()
+            db.session.commit()
             if email_service.send_password_reset(email, token):
                 flash("Password reset email sent. Check your inbox.", "success")
             else:
@@ -98,6 +99,7 @@ def reset_password_confirm():
         
         user.set_password(form.password.data)
         user.clear_reset_token()
+        db.session.commit()
         flash("Password reset successful. Please login.", "success")
         return redirect(url_for("auth.login"))
     

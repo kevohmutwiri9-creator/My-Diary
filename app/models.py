@@ -36,7 +36,7 @@ class User(UserMixin, db.Model):
         """Generate a secure password reset token"""
         self.reset_token = secrets.token_urlsafe(32)
         self.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
-        db.session.commit()
+        # Don't commit here - let the caller handle the commit
         return self.reset_token
     
     def verify_reset_token(self, token: str) -> bool:
@@ -51,7 +51,7 @@ class User(UserMixin, db.Model):
         """Clear password reset token"""
         self.reset_token = None
         self.reset_token_expires = None
-        db.session.commit()
+        # Don't commit here - let the caller handle the commit
 
 
 
