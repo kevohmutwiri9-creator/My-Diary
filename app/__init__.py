@@ -51,4 +51,17 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
+    # Create database tables within app context
+    with app.app_context():
+        try:
+            # Import models to ensure they're registered
+            from . import models
+            from .models import User, Entry
+            
+            # Create all tables
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
+
     return app
