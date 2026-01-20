@@ -35,14 +35,34 @@ def create_app():
 
     login_manager.login_view = "auth.login"
 
+    # Import User model after app initialization
+    from .models import User
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        try:
+            return db.session.get(User, int(user_id))
+        except (TypeError, ValueError):
+            return None
+
     from .routes.auth import auth_bp
     from .routes.main import main_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
-    with app.app_context():
-        from . import models  # noqa: F401
-        db.create_all()
-
     return app
+
+
+def init_database(app):
+    """Initialize database tables"""
+    with app.app_context():
+        try:
+            from . import models  # noqa: F401
+            # Import User model for the user_loader
+            from .models import User
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
+            # Continue without failing the app startup

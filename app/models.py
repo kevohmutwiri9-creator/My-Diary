@@ -54,12 +54,6 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
 
-@login_manager.user_loader
-def load_user(user_id: str):
-    try:
-        return db.session.get(User, int(user_id))
-    except (TypeError, ValueError):
-        return None
 
 
 class Entry(db.Model):

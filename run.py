@@ -1,8 +1,11 @@
 import os
 
-from app import create_app
+from app import create_app, init_database, db
 
 app = create_app()
+
+# Initialize database after app is created
+init_database(app)
 
 
 if __name__ == "__main__":
