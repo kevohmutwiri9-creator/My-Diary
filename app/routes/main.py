@@ -19,7 +19,9 @@ from sqlalchemy import or_
 
 from .. import db
 from ..forms import EntryForm, SettingsForm
-from ..models import Entry
+from ..services.email_service import email_service
+from ..services.cache_service import cache_service, cache_user_data, cache_analytics, cache_entries, cache_ai_response
+from ..models import User, Entry
 from ..ai_service import ai_service
 
 
@@ -35,6 +37,7 @@ def index():
 
 @main_bp.get("/dashboard")
 @login_required
+@cache_entries(timeout=1800)
 def dashboard():
     q = (request.args.get("q") or "").strip()
     mood = (request.args.get("mood") or "").strip()
@@ -310,6 +313,115 @@ def wellness():
                          insights=insights, 
                          mood_counts=mood_counts,
                          recent_entries=entries[:5])
+
+
+@main_bp.get("/advanced-analytics")
+@login_required
+@cache_analytics(timeout=3600)
+def advanced_analytics():
+    """Display advanced analytics dashboard with writing patterns"""
+    # Get user's entries with analytics data
+    entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).all()
+    
+    # Calculate writing patterns
+    analytics_data = {
+        'total_entries': len(entries),
+        'total_words': sum(len(entry.body.split()) for entry in entries),
+        'avg_words_per_entry': 0,
+        'writing_streak': 0,
+        'most_productive_day': None,
+        'category_distribution': {},
+        'mood_distribution': {},
+        'monthly_writing': {},
+        'tag_frequency': {},
+        'writing_times': {}
+    }
+    
+    if entries:
+        # Average words per entry
+        analytics_data['avg_words_per_entry'] = analytics_data['total_words'] / len(entries)
+        
+        # Writing streak (consecutive days)
+        dates = [entry.created_at.date() for entry in entries]
+        analytics_data['writing_streak'] = calculate_writing_streak(dates)
+        
+        # Most productive day of week
+        day_counts = {}
+        for date in dates:
+            day_name = date.strftime('%A')
+            day_counts[day_name] = day_counts.get(day_name, 0) + 1
+        if day_counts:
+            analytics_data['most_productive_day'] = max(day_counts, key=day_counts.get)
+        
+        # Category distribution
+        for entry in entries:
+            category = entry.category or 'Uncategorized'
+            analytics_data['category_distribution'][category] = analytics_data['category_distribution'].get(category, 0) + 1
+        
+        # Mood distribution
+        for entry in entries:
+            mood = entry.mood or 'Neutral'
+            analytics_data['mood_distribution'][mood] = analytics_data['mood_distribution'].get(mood, 0) + 1
+        
+        # Monthly writing patterns
+        for entry in entries:
+            month = entry.created_at.strftime('%Y-%m')
+            analytics_data['monthly_writing'][month] = analytics_data['monthly_writing'].get(month, 0) + 1
+        
+        # Tag frequency
+        for entry in entries:
+            if entry.tags:
+                tags = [tag.strip() for tag in entry.tags.split(',')]
+                for tag in tags:
+                    if tag:
+                        analytics_data['tag_frequency'][tag] = analytics_data['tag_frequency'].get(tag, 0) + 1
+        
+        # Writing time patterns (hour of day)
+        for entry in entries:
+            hour = entry.created_at.hour
+            time_period = get_time_period(hour)
+            analytics_data['writing_times'][time_period] = analytics_data['writing_times'].get(time_period, 0) + 1
+    
+    return render_template("advanced_analytics.html", analytics=analytics_data, entries=entries[:30])
+
+
+def calculate_writing_streak(dates):
+    """Calculate current writing streak"""
+    if not dates:
+        return 0
+    
+    # Get unique dates and sort
+    unique_dates = sorted(list(set(dates)), reverse=True)
+    
+    streak = 1  # Current day counts as streak of 1
+    today = datetime.now().date()
+    
+    if unique_dates[0] != today:
+        return 0  # No entry today, streak is 0
+    
+    for i in range(1, len(unique_dates)):
+        prev_date = unique_dates[i-1]
+        curr_date = unique_dates[i]
+        
+        # Check if current date is exactly one day before previous
+        if (prev_date - curr_date).days == 1:
+            streak += 1
+        else:
+            break
+    
+    return streak
+
+
+def get_time_period(hour):
+    """Convert hour to time period"""
+    if 5 <= hour < 12:
+        return "Morning (5AM-12PM)"
+    elif 12 <= hour < 17:
+        return "Afternoon (12PM-5PM)"
+    elif 17 <= hour < 21:
+        return "Evening (5PM-9PM)"
+    else:
+        return "Night (9PM-5AM)"
 
 
 @main_bp.get("/export")
@@ -602,3 +714,40 @@ def ads_txt():
     except:
         # Fallback if file not found
         return "google.com, pub-2396098605485959, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain'}
+
+
+# Email notification routes
+@main_bp.post("/email-preferences")
+@login_required
+def update_email_preferences():
+    """Update email notification preferences"""
+    daily_reminders = request.form.get('daily_reminders') == 'on'
+    weekly_summary = request.form.get('weekly_summary') == 'on'
+    monthly_insights = request.form.get('monthly_insights') == 'on'
+    
+    current_user.email_daily_reminders = daily_reminders
+    current_user.email_weekly_summary = weekly_summary
+    current_user.email_monthly_insights = monthly_insights
+    db.session.commit()
+    
+    flash("Email preferences updated successfully!", "success")
+    return redirect(url_for('main.settings'))
+
+
+@main_bp.get("/test-email")
+@login_required
+def test_email():
+    """Send test email to user"""
+    try:
+        success = email_service.send_daily_reminder(
+            current_user.email,
+            current_user.email.split('@')[0].title()
+        )
+        if success:
+            flash("Test email sent successfully!", "success")
+        else:
+            flash("Failed to send test email. Please check your email configuration.", "error")
+    except Exception as e:
+        flash(f"Error sending test email: {str(e)}", "error")
+    
+    return redirect(url_for('main.settings'))

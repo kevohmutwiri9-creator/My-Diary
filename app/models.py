@@ -15,6 +15,14 @@ class User(UserMixin, db.Model):
     theme = db.Column(db.String(20), default="dark", nullable=False)
     reset_token = db.Column(db.String(255), nullable=True)
     reset_token_expires = db.Column(db.DateTime, nullable=True)
+    
+    # Email notification preferences
+    email_daily_reminders = db.Column(db.Boolean, default=True, nullable=False)
+    email_weekly_summary = db.Column(db.Boolean, default=True, nullable=False)
+    email_monthly_insights = db.Column(db.Boolean, default=True, nullable=False)
+    last_daily_reminder = db.Column(db.DateTime, nullable=True)
+    last_weekly_summary = db.Column(db.DateTime, nullable=True)
+    last_monthly_insights = db.Column(db.DateTime, nullable=True)
 
     entries = db.relationship("Entry", back_populates="user", cascade="all, delete-orphan")
 
