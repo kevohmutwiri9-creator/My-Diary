@@ -64,7 +64,7 @@
         
         <div class="mb-3">
           {{ form.body.label(class="form-label") }}
-          <div id="editor" style="height: 300px; background: white; color: black; border-radius: 8px;"></div>
+          <div id="editor" style="height: 300px; border-radius: 8px;"></div>
           {% if form.body.errors %}
             <div class="text-danger mt-1">
               {% for error in form.body.errors %}
@@ -107,6 +107,15 @@
     </div>
   </div>
   
+  <!-- Hidden data for JavaScript -->
+  {% if entry %}
+  <script type="application/json" id="entryData">
+  {
+    "body": {{ entry.body|tojson|safe }}
+  }
+  </script>
+  {% endif %}
+  
   <!-- Quill Rich Text Editor -->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
@@ -129,10 +138,11 @@
     });
     
     // Load existing content if editing
-    {% if entry %}
-      var entryContent = {{ entry.body|tojson|safe }};
-      quill.root.innerHTML = entryContent;
-    {% endif %}
+    const entryDataElement = document.getElementById('entryData');
+    if (entryDataElement) {
+      const entryData = JSON.parse(entryDataElement.textContent);
+      quill.root.innerHTML = entryData.body;
+    }
     
     // Update hidden field before form submission
     function updateHiddenBody() {
