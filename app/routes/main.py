@@ -162,11 +162,32 @@ def new_entry():
     
     if form.validate_on_submit():
         if form.get_suggestions.data:
-            suggestions = ai_service.generate_entry_suggestions_with_search(
-                mood=form.mood.data, 
-                tags=form.tags.data,
-                category=form.category.data
-            )
+            # Get user's recent entries for personalization
+            user_entries = Entry.query.filter_by(user_id=current_user.id).order_by(Entry.created_at.desc()).limit(20).all()
+            user_entries_data = [
+                {
+                    'mood': entry.mood,
+                    'category': entry.category,
+                    'tags': entry.tags
+                } for entry in user_entries
+            ]
+            
+            # Try personalized suggestions first, fallback to general suggestions
+            try:
+                suggestions = ai_service.generate_personalized_suggestions(
+                    user_entries=user_entries_data,
+                    mood=form.mood.data, 
+                    tags=form.tags.data,
+                    category=form.category.data
+                )
+            except Exception as e:
+                # Fallback to general suggestions if personalization fails
+                suggestions = ai_service.generate_entry_suggestions_with_search(
+                    mood=form.mood.data, 
+                    tags=form.tags.data,
+                    category=form.category.data
+                )
+            
             return render_template("entry_form.html", form=form, suggestions=suggestions)
         
         if form.analyze_sentiment.data and form.body.data:

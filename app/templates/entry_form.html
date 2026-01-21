@@ -9,7 +9,9 @@
       {% if suggestions %}
         <div class="alert alert-info">
           <h5><i class="bi bi-lightbulb"></i> AI Writing Suggestions</h5>
-          <pre class="mb-0">{{ suggestions }}</pre>
+          <div class="suggestions-content">
+            {{ suggestions|safe }}
+          </div>
         </div>
       {% endif %}
       
