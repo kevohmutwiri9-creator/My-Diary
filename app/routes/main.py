@@ -374,6 +374,9 @@ def advanced_analytics():
                     if tag:
                         analytics_data['tag_frequency'][tag] = analytics_data['tag_frequency'].get(tag, 0) + 1
         
+        # Sort tag frequency by count and get top 10
+        analytics_data['tag_frequency'] = dict(sorted(analytics_data['tag_frequency'].items(), key=lambda x: x[1], reverse=True)[:10])
+        
         # Writing time patterns (hour of day)
         for entry in entries:
             hour = entry.created_at.hour

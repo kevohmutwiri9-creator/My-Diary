@@ -121,7 +121,7 @@
               </div>
               <div class="card-body">
                 {% if analytics.tag_frequency %}
-                  {% for tag, count in analytics.tag_frequency.items()[:10] %}
+                  {% for tag, count in analytics.tag_frequency.items() %}
                     <span class="badge bg-primary me-2 mb-2">{{ tag }} ({{ count }})</span>
                   {% endfor %}
                 {% else %}
