@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy - My Diary{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="mb-4">Privacy Policy</h1>
+          <p class="text-muted">Last updated: {{ moment().format('YYYY-MM-DD') }}</p>
+          
+          <section class="mb-4">
+            <h2>Introduction</h2>
+            <p>At My Diary, we take your privacy seriously. This Privacy Policy explains how we collect, use, protect, and share your information when you use our journaling service. By using My Diary, you agree to the practices described in this policy.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Information We Collect</h2>
+            
+            <h3>Personal Information</h3>
+            <ul>
+              <li><strong>Email Address:</strong> Used for account creation, authentication, and optional notifications</li>
+              <li><strong>Password:</strong> Encrypted and stored securely for authentication purposes</li>
+              <li><strong>User Preferences:</strong> Theme settings, notification preferences, and other customization options</li>
+            </ul>
+
+            <h3>Journal Content</h3>
+            <ul>
+              <li><strong>Diary Entries:</strong> Your personal thoughts, feelings, and experiences</li>
+              <li><strong>Mood Data:</strong> Emotional states and sentiment analysis results</li>
+              <li><strong>Metadata:</strong> Entry dates, categories, tags, and other organizational information</li>
+            </ul>
+
+            <h3>Technical Information</h3>
+            <ul>
+              <li><strong>Usage Data:</strong> How you interact with our service (feature usage, session duration)</li>
+              <li><strong>Device Information:</strong> Browser type, operating system, and device identifiers</li>
+              <li><strong>Log Data:</strong> Server logs and technical error reports</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>How We Use Your Information</h2>
+            
+            <h3>Service Provision</h3>
+            <ul>
+              <li>Provide and maintain the journaling service</li>
+              <li>Process and store your diary entries securely</li>
+              <li>Generate AI-powered insights and mood analysis</li>
+              <li>Enable data export and backup features</li>
+            </ul>
+
+            <h3>Communication</h3>
+            <ul>
+              <li>Send account-related notifications (password resets, security alerts)</li>
+              <li>Provide customer support responses</li>
+              <li>Send optional newsletter and feature updates (with your consent)</li>
+            </ul>
+
+            <h3>Service Improvement</h3>
+            <ul>
+              <li>Analyze usage patterns to improve user experience</li>
+              <li>Conduct research to enhance our AI algorithms</li>
+              <li>Develop new features based on user needs</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Data Protection and Security</h2>
+            <p>We implement multiple layers of security to protect your information:</p>
+            
+            <h3>Encryption</h3>
+            <ul>
+              <li><strong>Transit Encryption:</strong> All data transmitted uses HTTPS/TLS encryption</li>
+              <li><strong>Storage Encryption:</strong> Your diary entries are encrypted at rest</li>
+              <li><strong>Password Security:</strong> Passwords are hashed using industry-standard algorithms</li>
+            </ul>
+
+            <h3>Access Controls</h3>
+            <ul>
+              <li>Only you have access to your diary entries</li>
+              <li>Our staff cannot view your private journal content</li>
+              <li>Multi-factor authentication available for enhanced security</li>
+            </ul>
+
+            <h3>Data Retention</h3>
+            <ul>
+              <li>You can delete your account and all associated data at any time</li>
+              <li>We retain deleted data for up to 30 days for recovery purposes</li>
+              <li>Automatic data purging after extended account inactivity (2 years)</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Information Sharing</h2>
+            
+            <h3>We Never Sell Your Data</h3>
+            <p>We do not sell, rent, or trade your personal information or journal content with third parties for marketing purposes.</p>
+
+            <h3>Limited Sharing</h3>
+            <ul>
+              <li><strong>Service Providers:</strong> We use trusted third-party services for hosting, analytics, and email delivery</li>
+              <li><strong>Legal Requirements:</strong> We may disclose information if required by law or to protect our rights</li>
+              <li><strong>Business Transfers:</strong> Information may be transferred in case of merger, acquisition, or sale</li>
+            </ul>
+
+            <h3>Aggregated Data</h3>
+            <p>We may share anonymized, aggregated data for research and analytics purposes. This data cannot be used to identify individual users.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Your Rights and Choices</h2>
+            
+            <h3>Data Access and Control</h3>
+            <ul>
+              <li><strong>Access:</strong> View and download all your personal data</li>
+              <li><strong>Correction:</strong> Update your personal information</li>
+              <li><strong>Deletion:</strong> Delete your account and all associated data</li>
+              <li><strong>Portability:</strong> Export your data in common formats</li>
+            </ul>
+
+            <h3>Communication Preferences</h3>
+            <ul>
+              <li>Opt out of marketing communications at any time</li>
+              <li>Control notification preferences in settings</li>
+              <li>Unsubscribe from newsletters with one click</li>
+            </ul>
+
+            <h3>AI and Data Processing</h3>
+            <ul>
+              <li>You can disable AI-powered features at any time</li>
+              <li>Sentiment analysis is performed on your device when possible</li>
+              <li>You can request deletion of AI-generated insights</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Cookies and Tracking</h2>
+            <p>We use cookies and similar technologies to enhance your experience:</p>
+            <ul>
+              <li><strong>Essential Cookies:</strong> Required for basic site functionality</li>
+              <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
+              <li><strong>Analytics Cookies:</strong> Help us understand how our service is used</li>
+              <li><strong>Security Cookies:</strong> Protect against fraud and abuse</li>
+            </ul>
+            <p>You can control cookie settings through your browser preferences.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Children's Privacy</h2>
+            <p>My Diary is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected information from a child under 13, we will take steps to delete such information immediately.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>International Data Transfers</h2>
+            <p>Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your data in accordance with applicable data protection laws.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Changes to This Policy</h2>
+            <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. Significant changes will be communicated through email or site notifications.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Contact Information</h2>
+            <p>If you have questions about this Privacy Policy or your data rights, please contact us:</p>
+            <ul>
+              <li><strong>Email:</strong> privacy@mydiary.com</li>
+              <li><strong>Address:</strong> [Your Business Address]</li>
+              <li><strong>Response Time:</strong> We typically respond within 30 days</li>
+            </ul>
+          </section>
+
+          <div class="text-center mt-5">
+            <a href="{{ url_for('main.home') }}" class="btn btn-primary">
+              <i class="bi bi-house"></i> Back to Home
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary ms-2">
+              <i class="bi bi-person-plus"></i> Get Started
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

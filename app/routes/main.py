@@ -32,7 +32,61 @@ main_bp = Blueprint("main", __name__)
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("main.home"))
+
+
+@main_bp.get("/home")
+def home():
+    """Public landing page with content about journaling and the app"""
+    return render_template("home.html")
+
+
+@main_bp.get("/about")
+def about():
+    """About page with detailed information about the app"""
+    return render_template("about.html")
+
+
+@main_bp.get("/cookie-policy")
+def cookie_policy():
+    """Cookie policy page"""
+    return render_template("cookie_policy.html")
+
+
+@main_bp.get("/privacy")
+def privacy():
+    """Privacy policy page"""
+    return render_template("privacy.html")
+
+
+@main_bp.get("/terms")
+def terms():
+    """Terms of service page"""
+    return render_template("terms.html")
+
+
+@main_bp.get("/sample-entries")
+def sample_entries():
+    """Public sample diary entries to showcase the app"""
+    return render_template("sample_entries.html")
+
+
+@main_bp.get("/resources")
+def resources():
+    """Resources and tips page"""
+    return render_template("resources.html")
+
+
+@main_bp.get("/faq")
+def faq():
+    """Frequently Asked Questions page"""
+    return render_template("faq.html")
+
+
+@main_bp.get("/features")
+def features():
+    """Features page showcasing app capabilities"""
+    return render_template("features.html")
 
 
 @main_bp.get("/dashboard")
@@ -726,6 +780,18 @@ def settings():
         return redirect(url_for("main.settings"))
 
     return render_template("settings.html", form=form)
+
+
+@main_bp.get("/robots.txt")
+def robots_txt():
+    """Serve robots.txt file"""
+    return send_from_directory('static', 'robots.txt', mimetype='text/plain')
+
+
+@main_bp.get("/sitemap.xml")
+def sitemap_xml():
+    """Serve sitemap.xml file"""
+    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
 
 
 @main_bp.route("/ads.txt")

@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Public pages
+Allow: /home
+Allow: /features
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /sample-entries
+Allow: /ads.txt
+
+# Disallow authenticated areas
+Disallow: /dashboard
+Disallow: /entries/
+Disallow: /auth/
+Disallow: /export/
+Disallow: /settings
+Disallow: /mood-analytics
+Disallow: /wellness
+Disallow: /advanced-analytics
+
+# Sitemap
+Sitemap: https://my-diary-m7lx.onrender.com/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1

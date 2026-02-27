@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% block title %}My Diary - Your Personal Journal Companion{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <!-- Hero Section -->
+  <section class="hero-section text-center py-5 mb-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1 class="display-4 fw-bold mb-4">Transform Your Thoughts into Digital Memories</h1>
+          <p class="lead mb-4">Discover the power of journaling with My Diary - your intelligent personal companion for capturing life's precious moments, tracking your emotional journey, and gaining valuable insights through AI-powered analysis.</p>
+          <div class="d-flex gap-3 justify-content-center">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5 py-3 primary-btn">
+              <i class="bi bi-person-plus"></i> Start Your Journey
+            </a>
+            <a href="{{ url_for('main.features') }}" class="btn btn-outline-secondary btn-lg px-5 py-3 secondary-btn">
+              <i class="bi bi-stars"></i> Explore Features
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="hero-image">
+            <i class="bi bi-journal-bookmark-fill display-1 text-primary"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section py-5 mb-5">
+    <div class="container">
+      <h2 class="text-center mb-5">Why Choose My Diary?</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 text-center">
+            <div class="card-body">
+              <i class="bi bi-robot display-4 text-primary mb-3"></i>
+              <h4 class="card-title">AI-Powered Insights</h4>
+              <p class="card-text">Get intelligent mood analysis, emotional patterns, and personalized wellness recommendations powered by advanced machine learning algorithms.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 text-center">
+            <div class="card-body">
+              <i class="bi bi-shield-lock display-4 text-success mb-3"></i>
+              <h4 class="card-title">Private & Secure</h4>
+              <p class="card-text">Your personal thoughts are protected with enterprise-grade encryption and privacy controls. Only you have access to your diary entries.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 text-center">
+            <div class="card-body">
+              <i class="bi bi-graph-up display-4 text-info mb-3"></i>
+              <h4 class="card-title">Advanced Analytics</h4>
+              <p class="card-text">Track your emotional journey with comprehensive analytics, mood trends, and wellness reports that help you understand yourself better.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section py-5 mb-5 bg-light">
+    <div class="container">
+      <h2 class="text-center mb-5">The Science of Journaling</h2>
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h3 class="mb-4">Backed by Research</h3>
+          <p class="mb-3">Numerous studies have shown that regular journaling can:</p>
+          <ul class="list-unstyled">
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Reduce stress and anxiety by 40%</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Improve emotional regulation and self-awareness</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Enhance memory and cognitive function</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Boost immune system function</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Increase goal achievement and personal growth</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Improve sleep quality and duration</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Support addiction recovery and relapse prevention</li>
+          </ul>
+          <a href="{{ url_for('main.sample_entries') }}" class="btn btn-outline-secondary mt-3 secondary-btn">
+            <i class="bi bi-eye"></i> View Sample Entries
+          </a>
+        </div>
+        <div class="col-lg-6">
+          <div class="stats-card">
+            <h4>Join Thousands of Happy Journalers</h4>
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Active Users</div>
+              </div>
+              <div class="col-4">
+                <div class="stat-number">2M+</div>
+                <div class="stat-label">Entries Written</div>
+              </div>
+              <div class="col-4">
+                <div class="stat-number">4.8 ★★★★★</div>
+                <div class="stat-label">User Rating</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section py-5 mb-5">
+    <div class="container">
+      <h2 class="text-center mb-5">What Our Users Say</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+              </div>
+              <p class="card-text">"My Diary has completely transformed my mental health journey. The AI insights help me understand my patterns and make positive changes."</p>
+              <footer class="blockquote-footer">Sarah M., Psychology Student</footer>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+              </div>
+              <p class="card-text">"The mood analytics feature is incredible! I can see how my emotional state changes over time and what factors influence it."</p>
+              <footer class="blockquote-footer">James R., Software Engineer</footer>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="mb-3">
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+                <i class="bi bi-star-fill text-warning"></i>
+              </div>
+              <p class="card-text">"As someone who struggles with consistency, the daily reminders and intuitive interface make journaling a habit I actually enjoy."</p>
+              <footer class="blockquote-footer">Emily T., Marketing Manager</footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section py-5 text-center">
+    <div class="container">
+      <h2 class="mb-4">Start Your Journaling Journey Today</h2>
+      <p class="lead mb-4">Join thousands of users who have discovered the transformative power of journaling</p>
+      <div class="d-flex gap-3 justify-content-center">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5 py-3 primary-btn">
+          <i class="bi bi-person-plus"></i> Get Started Free
+        </a>
+        <a href="{{ url_for('main.sample_entries') }}" class="btn btn-outline-secondary btn-lg px-5 py-3 secondary-btn">
+          <i class="bi bi-eye"></i> See Examples
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  margin: 20px;
+}
+
+.hero-image {
+  font-size: 8rem;
+  opacity: 0.8;
+}
+
+.stats-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  color: #212529;
+  border: 2px solid #667eea;
+}
+
+.stat-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #111111;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-label {
+  font-size: 18px;
+  color: #333333;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card {
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+body.theme-dark .benefits-section {
+  background: rgba(30, 41, 82, 0.5);
+}
+
+body.theme-dark .stats-card {
+        background: linear-gradient(135deg, rgba(30, 41, 82, 0.95) 0%, rgba(30, 41, 82, 0.85) 100%);
+        color: #f8fafc;
+        border: 2px solid #667eea;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      }
+
+body.theme-dark .stat-label {
+        color: #f8fafc;
+      }
+
+body.theme-dark .stat-number {
+        color: #60a5fa;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      /* Button fixes for visibility */
+      .primary-btn {
+        background: #2563EB !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        border: none !important;
+      }
+      
+      .primary-btn:hover {
+        background: #1d4ed8 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      }
+      
+      .secondary-btn {
+        border: 2px solid #333333 !important;
+        color: #333333 !important;
+        font-weight: 500 !important;
+        padding: 10px 22px !important;
+        background: transparent !important;
+      }
+      
+      .secondary-btn:hover {
+        background: #333333 !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      
+      body.theme-dark .secondary-btn {
+        border-color: #f8fafc !important;
+        color: #f8fafc !important;
+      }
+      
+      body.theme-dark .secondary-btn:hover {
+        background: #f8fafc !important;
+        color: #1a1f3a !important;
+      }
+</style>
+{% endblock %}

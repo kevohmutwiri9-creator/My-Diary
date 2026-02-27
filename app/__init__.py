@@ -45,11 +45,30 @@ def create_app():
         except (TypeError, ValueError):
             return None
 
+    # Register blueprints
     from .routes.auth import auth_bp
     from .routes.main import main_bp
-
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+    
+    # Register error handlers
+    def register_error_handlers(app):
+        from flask import render_template
+        
+        @app.errorhandler(404)
+        def not_found_error(error):
+            return render_template('404.html'), 404
+
+        @app.errorhandler(500)
+        def internal_error(error):
+            db.session.rollback()
+            return render_template('500.html'), 500
+
+        @app.errorhandler(403)
+        def forbidden_error(error):
+            return render_template('404.html'), 403
+
+    register_error_handlers(app)
 
     # Create database tables within app context
     with app.app_context():

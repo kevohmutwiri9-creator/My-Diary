@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Server Error - My Diary{% endblock %}
+{% block meta_description %}We're experiencing technical difficulties. Please try again later or contact support if the problem persists.{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 text-center">
+      <div class="error-page">
+        <div class="error-code mb-4">
+          <h1 class="display-1 text-danger">500</h1>
+        </div>
+        
+        <div class="error-message mb-4">
+          <h2 class="mb-3">Oops! Something Went Wrong</h2>
+          <p class="text-muted">We're experiencing some technical difficulties.</p>
+          <p class="text-muted">Don't worry - your journal entries are safe and sound!</p>
+        </div>
+        
+        <div class="error-actions mb-4">
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button onclick="location.reload()" class="btn btn-primary">
+              <i class="bi bi-arrow-clockwise"></i> Try Again
+            </button>
+            <a href="{{ url_for('main.home') }}" class="btn btn-outline-primary">
+              <i class="bi bi-house"></i> Go Home
+            </a>
+            <a href="mailto:support@mydiary.com" class="btn btn-outline-secondary">
+              <i class="bi bi-envelope"></i> Contact Support
+            </a>
+          </div>
+        </div>
+        
+        <div class="error-reassurance">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-shield-check"></i> Your Data is Safe</h5>
+              <p class="card-text">
+                This error doesn't affect your journal entries or personal data. 
+                Everything is securely backed up and protected.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="error-suggestions mt-4">
+          <h4 class="mb-3">While you wait, why not:</h4>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <a href="{{ url_for('main.features') }}" class="btn btn-sm btn-outline-info w-100 mb-2">
+                <i class="bi bi-stars"></i> Explore Features
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('main.faq') }}" class="btn btn-sm btn-outline-success w-100 mb-2">
+                <i class="bi bi-question-circle"></i> Read FAQ
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('main.sample_entries') }}" class="btn btn-sm btn-outline-warning w-100 mb-2">
+                <i class="bi bi-eye"></i> View Examples
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('main.about') }}" class="btn btn-sm btn-outline-primary w-100 mb-2">
+                <i class="bi bi-info-circle"></i> Learn About Us
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="error-tips mt-4">
+          <div class="card border-warning">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-lightbulb"></i> Quick Fix Tips</h5>
+              <ul class="list-unstyled text-start small">
+                <li><i class="bi bi-check-circle text-success"></i> Refresh the page</li>
+                <li><i class="bi bi-check-circle text-success"></i> Clear your browser cache</li>
+                <li><i class="bi bi-check-circle text-success"></i> Check your internet connection</li>
+                <li><i class="bi bi-check-circle text-success"></i> Try a different browser</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.error-page {
+  padding: 3rem 0;
+}
+
+.error-code .display-1 {
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.error-message h2 {
+  color: #495057;
+}
+
+.error-suggestions .btn {
+  text-align: left;
+}
+
+body.theme-dark .error-message h2 {
+  color: #f8fafc;
+}
+
+body.theme-dark .bg-light {
+  background: rgba(30, 41, 82, 0.5) !important;
+}
+
+body.theme-dark .border-warning {
+  border-color: #f59e0b !important;
+}
+</style>
+
+<script>
+// Auto-retry after 10 seconds
+setTimeout(() => {
+  location.reload();
+}, 10000);
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Page Not Found - My Diary{% endblock %}
+{% block meta_description %}The page you're looking for doesn't exist. Return to My Diary homepage to start your journaling journey.{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 text-center">
+      <div class="error-page">
+        <div class="error-code mb-4">
+          <h1 class="display-1 text-primary">404</h1>
+        </div>
+        
+        <div class="error-message mb-4">
+          <h2 class="mb-3">Oops! Page Not Found</h2>
+          <p class="text-muted">The page you're looking for seems to have vanished into the digital void.</p>
+          <p class="text-muted">Don't worry - even the best journal entries sometimes get lost in the shuffle!</p>
+        </div>
+        
+        <div class="error-actions mb-4">
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('main.home') }}" class="btn btn-primary">
+              <i class="bi bi-house"></i> Go Home
+            </a>
+            <a href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}" class="btn btn-outline-primary">
+              <i class="bi bi-journal-text"></i> {{ 'My Journal' if current_user.is_authenticated else 'Login' }}
+            </a>
+            <a href="{{ url_for('main.faq') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-question-circle"></i> Help
+            </a>
+          </div>
+        </div>
+        
+        <div class="error-suggestions">
+          <h4 class="mb-3">Looking for something specific?</h4>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <a href="{{ url_for('main.features') }}" class="btn btn-sm btn-outline-info w-100 mb-2">
+                <i class="bi bi-stars"></i> Features
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('main.sample_entries') }}" class="btn btn-sm btn-outline-success w-100 mb-2">
+                <i class="bi bi-eye"></i> Examples
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('main.about') }}" class="btn btn-sm btn-outline-warning w-100 mb-2">
+                <i class="bi bi-info-circle"></i> About
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-outline-primary w-100 mb-2">
+                <i class="bi bi-person-plus"></i> Sign Up
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="error-tips mt-4">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-lightbulb"></i> Journaling Tip</h5>
+              <p class="card-text small">
+                Sometimes getting lost is the perfect opportunity to discover something new. 
+                Why not start a fresh journal entry about your journey today?
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.error-page {
+  padding: 3rem 0;
+}
+
+.error-code .display-1 {
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.error-message h2 {
+  color: #495057;
+}
+
+.error-suggestions .btn {
+  text-align: left;
+}
+
+body.theme-dark .error-message h2 {
+  color: #f8fafc;
+}
+
+body.theme-dark .bg-light {
+  background: rgba(30, 41, 82, 0.5) !important;
+}
+</style>
+{% endblock %}

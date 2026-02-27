@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+{% block title %}Frequently Asked Questions - My Diary{% endblock %}
+{% block meta_description %}Find answers to common questions about My Diary journaling platform, privacy, features, and getting started with AI-powered journaling.{% endblock %}
+{% block meta_keywords %}FAQ, help, support, journaling questions, diary app help, My Diary FAQ{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h1><i class="bi bi-question-circle"></i> Frequently Asked Questions</h1>
+          <p class="mb-0 text-muted">Everything you need to know about My Diary and journaling</p>
+        </div>
+        <div class="card-body">
+          
+          <!-- Getting Started -->
+          <section class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-rocket-takeoff"></i> Getting Started</h2>
+            
+            <div class="accordion" id="gettingStartedAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                    What is My Diary and how does it work?
+                  </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#gettingStartedAccordion">
+                  <div class="accordion-body">
+                    <p>My Diary is an AI-powered journaling platform designed to help you capture your thoughts, track your emotional journey, and gain valuable insights into your personal growth. Here's how it works:</p>
+                    <ul>
+                      <li><strong>Write Entries:</strong> Create daily journal entries with our rich text editor</li>
+                      <li><strong>Track Moods:</strong> Record your emotional state and track patterns over time</li>
+                      <li><strong>Get AI Insights:</strong> Receive personalized analysis and recommendations</li>
+                      <li><strong>Organize Content:</strong> Use categories, tags, and favorites to organize your thoughts</li>
+                      <li><strong>Export Data:</strong> Download your journal in various formats anytime</li>
+                    </ul>
+                    <p>Our AI analyzes your entries to provide mood insights, writing suggestions, and personalized wellness recommendations.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                    How do I create my first journal entry?
+                  </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#gettingStartedAccordion">
+                  <div class="accordion-body">
+                    <p>Creating your first entry is simple:</p>
+                    <ol>
+                      <li>Sign up for a free account or log in</li>
+                      <li>Click the "New Entry" button in your dashboard</li>
+                      <li>Add a title for your entry</li>
+                      <li>Write your thoughts in the rich text editor</li>
+                      <li>Optionally set your mood, category, and tags</li>
+                      <li>Click "Save Entry" to store your thoughts</li>
+                    </ol>
+                    <p><strong>Pro tip:</strong> Start with just 5 minutes of writing about your day. Consistency is more important than length!</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                    Is My Diary free to use?
+                  </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#gettingStartedAccordion">
+                  <div class="accordion-body">
+                    <p>Yes! My Diary offers a generous free tier that includes:</p>
+                    <ul>
+                      <li>Unlimited journal entries</li>
+                      <li>Basic mood tracking</li>
+                      <li>AI-powered insights</li>
+                      <li>Data export functionality</li>
+                      <li>Mobile-responsive design</li>
+                    </ul>
+                    <p>We also offer premium features for users who want advanced analytics, custom themes, and additional storage options.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Privacy & Security -->
+          <section class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-shield-lock"></i> Privacy & Security</h2>
+            
+            <div class="accordion" id="privacyAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                    Is my journal data private and secure?
+                  </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                  <div class="accordion-body">
+                    <p><strong>Absolutely!</strong> Your privacy is our top priority:</p>
+                    <ul>
+                      <li><strong>End-to-End Encryption:</strong> Your entries are encrypted in transit and at rest</li>
+                      <li><strong>Private by Default:</strong> Only you can access your journal entries</li>
+                      <li><strong>No Data Mining:</strong> We never sell or share your personal content</li>
+                      <li><strong>Secure Servers:</strong> Enterprise-grade security infrastructure</li>
+                      <li><strong>GDPR Compliant:</strong> Full compliance with data protection regulations</li>
+                    </ul>
+                    <p>Our team cannot view your private journal entries. Your thoughts remain yours alone.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                    How does the AI analysis work? Is my data shared?
+                  </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                  <div class="accordion-body">
+                    <p>Our AI analysis is designed with privacy in mind:</p>
+                    <ul>
+                      <li><strong>Local Processing:</strong> Most analysis happens on your device when possible</li>
+                      <li><strong>Anonymized Data:</strong> Only anonymized patterns are used for improvement</li>
+                      <li><strong>No Personal Content:</strong> Your actual journal text is never shared with third parties</li>
+                      <li><strong>Optional Features:</strong> You can disable AI features if you prefer</li>
+                    </ul>
+                    <p>The AI analyzes patterns in mood, writing style, and frequency to provide insights - but never shares your personal thoughts.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                    Can I export or delete my data?
+                  </button>
+                </h2>
+                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                  <div class="accordion-body">
+                    <p><strong>Yes, you have complete control over your data:</strong></p>
+                    <ul>
+                      <li><strong>Export Anytime:</strong> Download your entire journal in JSON, PDF, Word, or text formats</li>
+                      <li><strong>Complete Deletion:</strong> Delete your account and all data permanently</li>
+                      <li><strong>Data Portability:</strong> Move your data to other platforms easily</li>
+                      <li><strong>Right to be Forgotten:</strong> We comply with all data removal requests</li>
+                    </ul>
+                    <p>Visit your Settings page to export your data or delete your account.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Features -->
+          <section class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-stars"></i> Features & Functionality</h2>
+            
+            <div class="accordion" id="featuresAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                    What kind of AI insights can I get?
+                  </button>
+                </h2>
+                <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#featuresAccordion">
+                  <div class="accordion-body">
+                    <p>Our AI provides various types of insights:</p>
+                    <ul>
+                      <li><strong>Sentiment Analysis:</strong> Understand the emotional tone of your entries</li>
+                      <li><strong>Mood Patterns:</strong> Track how your mood changes over time</li>
+                      <li><strong>Writing Suggestions:</strong> Get prompts when you're stuck</li>
+                      <li><strong>Wellness Tips:</strong> Personalized recommendations for mental health</li>
+                      <li><strong>Growth Tracking:</strong> See how you evolve as a person</li>
+                      <li><strong>Stress Detection:</strong> Early warnings for potential burnout</li>
+                    </ul>
+                    <p>These insights help you understand yourself better and make positive changes in your life.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                    Can I use My Diary on my mobile phone?
+                  </button>
+                </h2>
+                <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#featuresAccordion">
+                  <div class="accordion-body">
+                    <p><strong>Yes!</strong> My Diary is fully mobile-responsive:</p>
+                    <ul>
+                      <li>Works on all smartphones and tablets</li>
+                      <li>Optimized interface for touch screens</li>
+                      <li>Automatic sync across all your devices</li>
+                      <li>Offline mode for writing without internet</li>
+                      <li>Mobile-optimized text editor</li>
+                    </ul>
+                    <p>Simply visit my-diary-m7lx.onrender.com on your phone's browser to get started.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">
+                    What export formats are available?
+                  </button>
+                </h2>
+                <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#featuresAccordion">
+                  <div class="accordion-body">
+                    <p>We offer multiple export formats for your convenience:</p>
+                    <ul>
+                      <li><strong>PDF:</strong> Beautiful formatted documents with themes</li>
+                      <li><strong>Word (.docx):</strong> Editable documents for further customization</li>
+                      <li><strong>JSON:</strong> Structured data for developers</li>
+                      <li><strong>CSV:</strong> Spreadsheet-compatible format</li>
+                      <li><strong>Markdown:</strong> Plain text with formatting</li>
+                      <li><strong>TXT:</strong> Simple text format</li>
+                    </ul>
+                    <p>Each format preserves your entries, dates, moods, and metadata.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Troubleshooting -->
+          <section class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-tools"></i> Troubleshooting</h2>
+            
+            <div class="accordion" id="troubleshootingAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq10">
+                    I forgot my password. How do I reset it?
+                  </button>
+                </h2>
+                <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                  <div class="accordion-body">
+                    <p>Resetting your password is easy:</p>
+                    <ol>
+                      <li>Go to the login page</li>
+                      <li>Click "Forgot Password?"</li>
+                      <li>Enter your email address</li>
+                      <li>Check your email for a reset link (check spam folder too)</li>
+                      <li>Click the link and create a new password</li>
+                      <li>Log in with your new password</li>
+                    </ol>
+                    <p><strong>Note:</strong> Reset links expire after 24 hours for security.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq11">
+                    Why aren't my AI insights showing up?
+                  </button>
+                </h2>
+                <div id="faq11" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                  <div class="accordion-body">
+                    <p>AI insights require a minimum amount of content:</p>
+                    <ul>
+                      <li>Write at least 3-5 entries to start seeing patterns</li>
+                      <li>Each entry should be substantial (100+ words recommended)</li>
+                      <li>Make sure you've set your mood for each entry</li>
+                      <li>Check that AI features are enabled in your settings</li>
+                    </ul>
+                    <p>Insights improve over time as the AI learns more about your writing patterns.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq12">
+                    Is there a limit to how much I can write?
+                  </button>
+                </h2>
+                <div id="faq12" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                  <div class="accordion-body">
+                    <p><strong>No limits on free accounts!</strong> You can write:</p>
+                    <ul>
+                      <li>Unlimited number of entries</li>
+                      <li>Unlimited words per entry</li>
+                      <li>Unlimited storage space</li>
+                      <li>Unlimited photos and attachments (coming soon)</li>
+                    </ul>
+                    <p>We believe in unrestricted self-expression. Write as much as you need!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Journaling Tips -->
+          <section class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-lightbulb"></i> Journaling Tips</h2>
+            
+            <div class="accordion" id="tipsAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq13">
+                    How often should I journal?
+                  </button>
+                </h2>
+                <div id="faq13" class="accordion-collapse collapse" data-bs-parent="#tipsAccordion">
+                  <div class="accordion-body">
+                    <p>The ideal frequency depends on your goals:</p>
+                    <ul>
+                      <li><strong>Daily:</strong> Best for habit building and mood tracking</li>
+                      <li><strong>3-4 times per week:</strong> Good balance for most people</li>
+                      <li><strong>Weekly:</strong> Minimum for meaningful insights</li>
+                    </ul>
+                    <p><strong>Key tip:</strong> Consistency matters more than length. Even 5 minutes daily is better than one long session weekly.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq14">
+                    What should I write about?
+                  </button>
+                </h2>
+                <div id="faq14" class="accordion-collapse collapse" data-bs-parent="#tipsAccordion">
+                  <div class="accordion-body">
+                    <p>Write about whatever feels authentic to you:</p>
+                    <ul>
+                      <li><strong>Daily Events:</strong> What happened today and how you felt</li>
+                      <li><strong>Goals & Dreams:</strong> Your aspirations and progress</li>
+                      <li><strong>Challenges:</strong> Obstacles you're facing and solutions</li>
+                      <li><strong>Gratitude:</strong> Things you're thankful for</li>
+                      <li><strong>Self-Reflection:</strong> Thoughts about yourself and growth</li>
+                      <li><strong>Creative Ideas:</strong> Inspiration and brainstorming</li>
+                    </ul>
+                    <p>Don't worry about being profound - honest, authentic writing is most valuable.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq15">
+                    How can I make journaling a habit?
+                  </button>
+                </h2>
+                <div id="faq15" class="accordion-collapse collapse" data-bs-parent="#tipsAccordion">
+                  <div class="accordion-body">
+                    <p>Build the habit with these strategies:</p>
+                    <ul>
+                      <li><strong>Start Small:</strong> Begin with just 2-3 minutes daily</li>
+                      <li><strong>Link to Existing Habits:</strong> Write after your morning coffee or before bed</li>
+                      <li><strong>Set Reminders:</strong> Use our app notifications or calendar alerts</li>
+                      <li><strong>Create a Ritual:</strong> Same time, same place, same routine</li>
+                      <li><strong>Don't Break the Chain:</strong> Use a calendar to track streaks</li>
+                      <li><strong>Be Forgiving:</strong> If you miss a day, just start again tomorrow</li>
+                    </ul>
+                    <p>Habit formation takes about 21 days - stick with it!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact & Support -->
+          <section class="mb-5">
+            <h2 class="mb-4"><i class="bi bi-envelope"></i> Still Have Questions?</h2>
+            <div class="card bg-light">
+              <div class="card-body">
+                <p class="mb-3">Can't find the answer you're looking for? We're here to help!</p>
+                <div class="row">
+                  <div class="col-md-6">
+                    <h5><i class="bi bi-envelope"></i> Email Support</h5>
+                    <p>Send us a message at <a href="mailto:support@mydiary.com">support@mydiary.com</a></p>
+                    <p class="small text-muted">We typically respond within 24 hours</p>
+                  </div>
+                  <div class="col-md-6">
+                    <h5><i class="bi bi-book"></i> Resources</h5>
+                    <ul class="list-unstyled">
+                      <li><a href="{{ url_for('main.features') }}">Features Overview</a></li>
+                      <li><a href="{{ url_for('main.sample_entries') }}">Sample Entries</a></li>
+                      <li><a href="{{ url_for('main.privacy') }}">Privacy Policy</a></li>
+                      <li><a href="{{ url_for('main.terms') }}">Terms of Service</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.accordion-button:not(.collapsed) {
+  background-color: #667eea;
+  color: white;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: #667eea;
+}
+
+.accordion-item {
+  border: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.accordion-item:first-of-type {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.accordion-item:last-of-type {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+body.theme-dark .accordion-item {
+  background: rgba(30, 41, 82, 0.95);
+  border-color: #475569;
+}
+
+body.theme-dark .accordion-button {
+  background: rgba(30, 41, 82, 0.95);
+  color: #f8fafc;
+}
+
+body.theme-dark .accordion-button:not(.collapsed) {
+  background: #667eea;
+  color: white;
+}
+
+body.theme-dark .accordion-body {
+  background: rgba(30, 41, 82, 0.95);
+  color: #f8fafc;
+}
+
+body.theme-dark .bg-light {
+  background: rgba(30, 41, 82, 0.5) !important;
+}
+</style>
+{% endblock %}

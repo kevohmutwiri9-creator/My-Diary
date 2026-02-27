@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}Cookie Policy - My Diary{% endblock %}
+{% block meta_description %}Learn about how My Diary uses cookies and tracking technologies to enhance your journaling experience while protecting your privacy.{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="mb-4">Cookie Policy</h1>
+          <p class="text-muted">Last updated: {{ moment().format('YYYY-MM-DD') if moment else '2024-02-27' }}</p>
+          
+          <section class="mb-4">
+            <h2>What Are Cookies?</h2>
+            <p>Cookies are small text files that are stored on your device (computer, tablet, or mobile) when you visit a website. They help websites remember information about your visit, which can make it easier to visit the site again and make the site more useful to you.</p>
+            <p>Cookies are widely used in order to make websites work more efficiently, as well as to provide information to the owners of the site.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>How We Use Cookies</h2>
+            <p>We use cookies for several purposes to enhance your experience on My Diary:</p>
+            
+            <h3>Essential Cookies</h3>
+            <p>These cookies are necessary for the website to function and cannot be switched off in our systems. They are usually only set in response to actions made by you which amount to a request for services, such as setting your privacy preferences, logging in or filling in forms.</p>
+            <ul>
+              <li>Authentication and session management</li>
+              <li>Security and fraud prevention</li>
+              <li>Remembering your preferences (like theme settings)</li>
+              <li>Load balancing and server optimization</li>
+            </ul>
+
+            <h3>Analytics Cookies</h3>
+            <p>These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us to know which pages are the most and least popular and see how visitors move around the site.</p>
+            <ul>
+              <li>Google Analytics for website traffic analysis</li>
+              <li>Performance monitoring and optimization</li>
+              <li>User behavior analysis (anonymized)</li>
+              <li>Error tracking and debugging</li>
+            </ul>
+
+            <h3>Functional Cookies</h3>
+            <p>These cookies enable the website to provide enhanced functionality and personalization. They may be set by us or by third party providers whose services we have added to our pages.</p>
+            <ul>
+              <li>Remembering your journal preferences</li>
+              <li>Saving your writing session state</li>
+              <li>Customizing your user experience</li>
+              <li>Enabling social media integration</li>
+            </ul>
+
+            <h3>Advertising Cookies</h3>
+            <p>These cookies may be set through our site by our advertising partners. They may be used by those companies to build a profile of your interests and show you relevant adverts on other sites.</p>
+            <ul>
+              <li>Google AdSense for displaying relevant advertisements</li>
+              <li>Personalized ad delivery based on your interests</li>
+              <li>Ad performance measurement and optimization</li>
+              <li>Frequency capping to prevent ad overexposure</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Third-Party Cookies</h2>
+            <p>We use several third-party services that may set their own cookies:</p>
+            
+            <h3>Google Analytics</h3>
+            <p>We use Google Analytics to understand how our site is being used. Google Analytics uses cookies to collect information such as:</p>
+            <ul>
+              <li>How often users visit our site</li>
+              <li>What pages they visit and in what order</li>
+              <li>How long they spend on each page</li>
+              <li>What browser and device they're using</li>
+            </ul>
+            <p>Google Analytics data is anonymized and aggregated. You can opt out of Google Analytics by installing the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank">Google Analytics Opt-out Browser Add-on</a>.</p>
+
+            <h3>Google AdSense</h3>
+            <p>We use Google AdSense to display advertisements on our site. Google uses cookies to:</p>
+            <ul>
+              <li>Show ads based on your interests and previous visits to our site</li>
+              <li>Prevent the same ads from being shown too many times</li>
+              <li>Measure the effectiveness of ad campaigns</li>
+              <li>Personalize ads based on your browsing behavior across websites</li>
+            </ul>
+            <p>You can control ad personalization through <a href="https://adssettings.google.com" target="_blank">Google's Ad Settings</a>.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Cookie Duration</h2>
+            <p>Different cookies have different lifespans:</p>
+            <ul>
+              <li><strong>Session Cookies:</strong> These are temporary cookies that expire when you close your browser</li>
+              <li><strong>Persistent Cookies:</strong> These remain on your device for a set period or until you delete them</li>
+              <li><strong>Authentication Cookies:</strong> Typically last for 30 days to maintain your login session</li>
+              <li><strong>Analytics Cookies:</strong> Usually expire after 2 years</li>
+              <li><strong>Advertising Cookies:</strong> Can last up to 1 year or more</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Your Cookie Choices</h2>
+            <p>You have several options regarding cookies:</p>
+            
+            <h3>Browser Settings</h3>
+            <p>You can control and/or delete cookies as you wish. You can delete all cookies that are already on your device and you can set most browsers to prevent them from being placed. However, if you do this, you may have to manually adjust some preferences every time you visit a site and some services and functionality may not work.</p>
+            
+            <h3>Managing Specific Cookies</h3>
+            <ul>
+              <li><strong>Accept All:</strong> Allow all cookies for the best experience</li>
+              <li><strong>Essential Only:</strong> Allow only necessary cookies for the site to function</li>
+              <li><strong>Customize:</strong> Choose which types of cookies to accept</li>
+              <li><strong>Reject All:</strong> Block all non-essential cookies</li>
+            </ul>
+
+            <h3>Opt-Out Links</h3>
+            <p>You can opt out of tracking by various third-party services:</p>
+            <ul>
+              <li><a href="https://tools.google.com/dlpage/gaoptout" target="_blank">Google Analytics Opt-out</a></li>
+              <li><a href="https://adssettings.google.com" target="_blank">Google Ad Settings</a></li>
+              <li><a href="https://www.aboutads.info/choices/" target="_blank">Digital Advertising Alliance</a></li>
+              <li><a href="https://www.youronlinechoices.com/" target="_blank">Your Online Choices</a></li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Cookie Consent</h2>
+            <p>When you first visit My Diary, we'll show you a cookie banner where you can:</p>
+            <ul>
+              <li>Accept all cookies for the best experience</li>
+              <li>Customize your cookie preferences</li>
+              <li>Reject non-essential cookies</li>
+              <li>Change your preferences at any time</li>
+            </ul>
+            <p>Your cookie preferences are saved and will be respected on future visits. You can change your preferences at any time through your account settings or by clearing your browser cookies.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Impact of Disabling Cookies</h2>
+            <p>If you choose to disable cookies, some features of My Diary may not work properly:</p>
+            
+            <h3>Essential Cookies Disabled</h3>
+            <ul>
+              <li>You won't be able to log in or maintain your session</li>
+              <li>Your preferences won't be saved</li>
+              <li>Security features may be compromised</li>
+              <li>The site may not function correctly</li>
+            </ul>
+
+            <h3>Analytics Cookies Disabled</h3>
+            <ul>
+              <li>We won't be able to analyze site performance</li>
+              <li>We can't identify and fix user experience issues</li>
+              <li>Site improvements will be based on limited data</li>
+            </ul>
+
+            <h3>Advertising Cookies Disabled</h3>
+            <ul>
+              <li>You'll still see ads, but they may be less relevant</li>
+              <li>You may see the same ads repeatedly</li>
+              <li>Ad frequency capping may not work properly</li>
+            </ul>
+          </section>
+
+          <section class="mb-4">
+            <h2>Children and Cookies</h2>
+            <p>My Diary is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.</p>
+            <p>We comply with the Children's Online Privacy Protection Act (COPPA) and do not target advertising to children.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Updates to This Policy</h2>
+            <p>We may update this Cookie Policy from time to time to reflect changes in our practices, legal requirements, or the way we use cookies. We will notify you of any material changes by:</p>
+            <ul>
+              <li>Posting the updated policy on our website</li>
+              <li>Updating the "Last updated" date</li>
+              <li>Sending email notifications for significant changes</li>
+              <li>Displaying a notice on our website</li>
+            </ul>
+            <p>Your continued use of our services after any changes to this policy constitutes your acceptance of the updated policy.</p>
+          </section>
+
+          <section class="mb-4">
+            <h2>Contact Information</h2>
+            <p>If you have questions about this Cookie Policy or how we use cookies, please contact us:</p>
+            <ul>
+              <li><strong>Email:</strong> privacy@mydiary.com</li>
+              <li><strong>Address:</strong> [Your Business Address]</li>
+              <li><strong>Website:</strong> <a href="{{ url_for('main.home') }}">my-diary-m7lx.onrender.com</a></li>
+            </ul>
+          </section>
+
+          <div class="text-center mt-5">
+            <a href="{{ url_for('main.home') }}" class="btn btn-primary">
+              <i class="bi bi-house"></i> Back to Home
+            </a>
+            <a href="{{ url_for('main.privacy') }}" class="btn btn-outline-primary ms-2">
+              <i class="bi bi-shield-lock"></i> Privacy Policy
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
