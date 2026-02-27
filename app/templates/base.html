@@ -593,7 +593,7 @@
         </div>
         <hr class="my-3">
         <div class="text-center">
-          <p class="mb-0">&copy; {{ moment().format('YYYY') if moment else 2024 }} My Diary. All rights reserved.</p>
+          <p class="mb-0">&copy; <span id="current-year">{{ moment().format('YYYY') if moment else '2026' }}</span> My Diary. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -603,5 +603,16 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
+    
+    <script>
+      // Update current year
+      document.addEventListener('DOMContentLoaded', function() {
+        const currentYear = new Date().getFullYear();
+        const yearElement = document.getElementById('current-year');
+        if (yearElement) {
+          yearElement.textContent = currentYear;
+        }
+      });
+    </script>
   </body>
 </html>
