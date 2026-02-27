@@ -1,7 +1,35 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard - My Diary{% endblock %}
+
+<style>
+  .dashboard-background {
+    background-image: url('{{ url_for("static", filename="dashboard-bg.png") }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  .dashboard-overlay {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+  }
+  
+  body.theme-dark .dashboard-overlay {
+    background: rgba(30, 41, 82, 0.92);
+    color: #f8fafc;
+  }
+</style>
+
 {% block content %}
-  <div class="row">
+<div class="dashboard-background">
+  <div class="dashboard-overlay">
+    <div class="row">
     <div class="col-lg-9">
       <div class="card fade-in mb-4">
         <div class="card-header">
@@ -290,4 +318,5 @@
       </div>
     </div>
   </div>
+</div>
 {% endblock %}
