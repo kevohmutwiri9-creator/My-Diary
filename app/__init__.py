@@ -12,7 +12,10 @@ csrf = CSRFProtect()
 
 
 def create_app():
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, 
+                static_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static'),
+                static_url_path='/static',
+                instance_relative_config=True)
 
     # Set SECRET_KEY from environment first
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
