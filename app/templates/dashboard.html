@@ -3,18 +3,18 @@
 
 <style>
   .dashboard-background {
-    background-image: url('{{ url_for("static", filename="dashboard-bg.png") }}');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: scroll;
-    min-height: 100vh;
-    position: relative;
+    background-image: url('{{ url_for("static", filename="dashboard-bg.png") }}') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: scroll !important;
+    min-height: 100vh !important;
+    position: relative !important;
   }
   
   .dashboard-overlay {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(5px) !important;
     border-radius: 15px;
     padding: 20px;
     margin: 20px;
