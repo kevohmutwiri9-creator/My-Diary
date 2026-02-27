@@ -64,9 +64,9 @@
   </section>
 
   <!-- Benefits Section -->
-  <section class="benefits-section py-5 mb-5 bg-light">
+  <section class="benefits-section py-5 mb-5" style="background: #f8f9fa; border: 1px solid #e9ecef;">
     <div class="container">
-      <h2 class="text-center mb-5">The Science of Journaling</h2>
+      <h2 class="text-center mb-5" style="color: #000000; font-size: 36px; font-weight: 700;">The Science of Journaling</h2>
       <div class="row align-items-center">
         <div class="col-lg-6">
           <h3 class="mb-4" style="color: #000000; font-size: 42px; font-weight: 700;">The Scientific Journaling</h3>
@@ -76,15 +76,15 @@
               <i class="bi bi-plus-circle"></i> Add new research
             </span>
           </div>
-          <p class="mb-3" style="color: #333333; font-size: 18px;">Numerous studies have shown that regular journaling can:</p>
+          <p class="mb-3" style="color: #333333; font-size: 18px; font-weight: 500;">Numerous studies have shown that regular journaling can:</p>
           <ul class="list-unstyled">
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Reduce stress and anxiety by 40%</li>
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Improve emotional regulation and self-awareness</li>
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Enhance memory and cognitive function</li>
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Boost immune system function</li>
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Increase goal achievement and personal growth</li>
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Improve sleep quality and duration</li>
-            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Support addiction recovery and relapse prevention</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Reduce stress and anxiety by 40%</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Improve emotional regulation and self-awareness</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Enhance memory and cognitive function</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Boost immune system function</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Increase goal achievement and personal growth</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Improve sleep quality and duration</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Support addiction recovery and relapse prevention</li>
           </ul>
           <a href="{{ url_for('main.sample_entries') }}" class="btn btn-outline-secondary mt-3 secondary-btn">
             <i class="bi bi-eye"></i> View Sample Entries
@@ -254,6 +254,22 @@ body.theme-dark .stat-label {
 body.theme-dark .stat-number {
         color: #60a5fa;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      /* Benefits section fixes */
+      body.theme-dark .benefits-section {
+        background: rgba(30, 41, 82, 0.95) !important;
+        border: 1px solid #475569 !important;
+      }
+      
+      body.theme-dark .benefits-section h2,
+      body.theme-dark .benefits-section h3 {
+        color: #f8fafc !important;
+      }
+      
+      body.theme-dark .benefits-section p,
+      body.theme-dark .benefits-section li {
+        color: #cbd5e1 !important;
       }
       
       /* Button fixes for visibility */
