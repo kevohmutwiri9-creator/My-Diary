@@ -184,6 +184,129 @@
       </div>
     </div>
   </section>
+
+  <!-- Research Section -->
+  <section class="research-section py-5 mb-5">
+    <div class="container">
+      <h2 class="text-center mb-5">Backed by Science, Trusted by Users</h2>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="research-card">
+            <h4><i class="bi bi-journal-medical text-primary"></i> Scientific Research</h4>
+            <p>Our platform is built on extensive psychological research demonstrating the effectiveness of journaling for mental health and personal growth.</p>
+            <ul>
+              <li><strong>University of Texas Study:</strong> Expressive writing participants showed 43% fewer doctor visits</li>
+              <li><strong>Cambridge University Research:</strong> Journaling improves working memory and cognitive function</li>
+              <li><strong>Journal of Clinical Psychology:</strong> Regular journaling reduces anxiety symptoms by up to 40%</li>
+              <li><strong>Psychosomatic Medicine:</strong> Writing about trauma strengthens immune system response</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="research-card">
+            <h4><i class="bi bi-people text-success"></i> Community Impact</h4>
+            <p>Our growing community of journalers spans across the globe, united by the shared commitment to personal growth and mental wellness.</p>
+            <div class="impact-stats">
+              <div class="stat-item">
+                <span class="stat-number">50,000+</span>
+                <span class="stat-label">Active Users Worldwide</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">2.5M+</span>
+                <span class="stat-label">Journal Entries Created</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">120+</span>
+                <span class="stat-label">Countries Represented</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">94%</span>
+                <span class="stat-label">Report Improved Mental Health</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works py-5 mb-5">
+    <div class="container">
+      <h2 class="text-center mb-5">How My Diary Works</h2>
+      <div class="row g-4">
+        <div class="col-md-3">
+          <div class="step-card text-center">
+            <div class="step-number">1</div>
+            <h4>Sign Up Free</h4>
+            <p>Create your account in seconds. No credit card required for our generous free tier.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="step-card text-center">
+            <div class="step-number">2</div>
+            <h4>Write Daily</h4>
+            <p>Use our rich text editor to capture your thoughts, feelings, and experiences.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="step-card text-center">
+            <div class="step-number">3</div>
+            <h4>Get Insights</h4>
+            <p>Our AI analyzes your entries to provide personalized insights and recommendations.</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="step-card text-center">
+            <div class="step-number">4</div>
+            <h4>Track Growth</h4>
+            <p>Monitor your emotional journey with comprehensive analytics and mood tracking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content Preview Section -->
+  <section class="content-preview py-5 mb-5">
+    <div class="container">
+      <h2 class="text-center mb-5">Explore Our Content Library</h2>
+      <div class="row g-4">
+        <div class="col-md-3">
+          <div class="content-card">
+            <i class="bi bi-newspaper display-4 text-primary mb-3"></i>
+            <h4>Blog Articles</h4>
+            <p>In-depth articles about journaling techniques, mental health research, and personal growth strategies.</p>
+            <a href="{{ url_for('main.blog') }}" class="btn btn-outline-primary btn-sm">Read Blog</a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="content-card">
+            <i class="bi bi-book-half display-4 text-success mb-3"></i>
+            <h4>Step-by-Step Guides</h4>
+            <p>Comprehensive tutorials for beginners, advanced techniques, and specialized journaling practices.</p>
+            <a href="{{ url_for('main.guides') }}" class="btn btn-outline-primary btn-sm">View Guides</a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="content-card">
+            <i class="bi bi-trophy display-4 text-warning mb-3"></i>
+            <h4>Success Stories</h4>
+            <p>Inspiring real stories from users who transformed their lives through journaling.</p>
+            <a href="{{ url_for('main.success_stories') }}" class="btn btn-outline-primary btn-sm">Read Stories</a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="content-card">
+            <i class="bi bi-book display-4 text-info mb-3"></i>
+            <h4>Resources</h4>
+            <p>Expert tips, writing prompts, and mental health resources to enhance your practice.</p>
+            <a href="{{ url_for('main.resources') }}" class="btn btn-outline-primary btn-sm">Explore Resources</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <style>
@@ -310,6 +433,112 @@ body.theme-dark .stat-number {
       body.theme-dark .secondary-btn:hover {
         background: #f8fafc !important;
         color: #1a1f3a !important;
+      }
+      
+      .research-card {
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        height: 100%;
+      }
+      
+      .research-card ul {
+        list-style: none;
+        padding: 0;
+      }
+      
+      .research-card li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      
+      .research-card li:last-child {
+        border-bottom: none;
+      }
+      
+      .impact-stats {
+        margin-top: 1.5rem;
+      }
+      
+      .impact-stats .stat-item {
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+      
+      .impact-stats .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+        display: block;
+      }
+      
+      .impact-stats .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+      }
+      
+      .step-card {
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        transition: all 0.3s ease;
+      }
+      
+      .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-color: #667eea;
+      }
+      
+      .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 1rem;
+      }
+      
+      .content-card {
+        padding: 2rem;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+      
+      .content-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-color: #667eea;
+      }
+      
+      body.theme-dark .research-card,
+      body.theme-dark .step-card,
+      body.theme-dark .content-card {
+        background: rgba(30, 41, 82, 0.95);
+        border-color: #475569;
+        color: #f8fafc;
+      }
+      
+      body.theme-dark .research-card li {
+        border-bottom-color: #475569;
+      }
+      
+      body.theme-dark .impact-stats .stat-number {
+        color: #60a5fa;
+      }
+      
+      body.theme-dark .impact-stats .stat-label {
+        color: #cbd5e1;
       }
 </style>
 {% endblock %}

@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+{% block title %}Journaling Blog - Expert Tips & Mental Health Insights{% endblock %}
+{% block meta_description %}Discover expert articles about journaling techniques, mental health research, personal growth strategies, and wellness tips backed by science.{% endblock %}
+{% block meta_keywords %}journaling blog, mental health articles, personal growth, wellness tips, journaling research, self-care strategies{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h1><i class="bi bi-newspaper"></i> Journaling Blog</h1>
+          <p class="mb-0 text-muted">Expert insights, research-backed articles, and practical tips for your journaling journey</p>
+        </div>
+        <div class="card-body">
+          
+          <!-- Featured Article -->
+          <div class="featured-article mb-5">
+            <div class="row align-items-center">
+              <div class="col-lg-8">
+                <span class="badge bg-primary mb-2">Featured</span>
+                <h2 class="mb-3">The Neuroscience of Journaling: How Writing Changes Your Brain</h2>
+                <p class="lead mb-3">Discover the scientific evidence behind why journaling is one of the most powerful tools for mental health and personal growth.</p>
+                <p class="mb-3">Recent neuroimaging studies have revealed that expressive writing activates the prefrontal cortex, the brain region responsible for emotional regulation and executive function. When we write about our thoughts and feelings, we're not just documenting our experiences—we're literally rewiring our neural pathways.</p>
+                <a href="#neuroscience" class="btn btn-primary">Read Full Article</a>
+              </div>
+              <div class="col-lg-4">
+                <div class="featured-image text-center">
+                  <i class="bi bi-brain display-1 text-primary"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Article Categories -->
+          <div class="article-categories mb-5">
+            <h3 class="mb-4">Browse by Category</h3>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <a href="#mental-health" class="category-card">
+                  <i class="bi bi-heart-pulse display-4 text-danger"></i>
+                  <h5>Mental Health</h5>
+                  <p class="small text-muted">Research & wellness</p>
+                </a>
+              </div>
+              <div class="col-md-3">
+                <a href="#techniques" class="category-card">
+                  <i class="bi bi-pencil-square display-4 text-primary"></i>
+                  <h5>Techniques</h5>
+                  <p class="small text-muted">Writing methods</p>
+                </a>
+              </div>
+              <div class="col-md-3">
+                <a href="#productivity" class="category-card">
+                  <i class="bi bi-graph-up-arrow display-4 text-success"></i>
+                  <h5>Productivity</h5>
+                  <p class="small text-muted">Goal achievement</p>
+                </a>
+              </div>
+              <div class="col-md-3">
+                <a href="#creativity" class="category-card">
+                  <i class="bi bi-palette display-4 text-warning"></i>
+                  <h5>Creativity</h5>
+                  <p class="small text-muted">Inspiration & art</p>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Articles -->
+          <section class="mb-5">
+            <h3 class="mb-4">Recent Articles</h3>
+            
+            <!-- Article 1 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">15</div>
+                    <div class="date-month">March</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-info mb-2">Mental Health</span>
+                  <h4><a href="#anxiety-management">5 Journaling Techniques That Actually Reduce Anxiety</a></h4>
+                  <p class="mb-2">Anxiety affects millions of people worldwide, but research shows that specific journaling practices can significantly reduce symptoms. Learn the evidence-based techniques that mental health professionals recommend.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 8 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 2.4k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 2 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">12</div>
+                    <div class="date-month">March</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-success mb-2">Productivity</span>
+                  <h4><a href="#morning-pages">Why Morning Pages Can Transform Your Life</a></h4>
+                  <p class="mb-2">The Morning Pages technique, popularized by Julia Cameron, has helped countless creatives and entrepreneurs unlock their potential. Discover the science behind this simple yet powerful practice.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 6 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 1.8k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 3 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">10</div>
+                    <div class="date-month">March</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-warning mb-2">Creativity</span>
+                  <h4><a href="#creative-block">Overcoming Creative Block Through Stream of Consciousness Writing</a></h4>
+                  <p class="mb-2">Creative block happens to everyone, but stream of consciousness journaling can break through those barriers. Learn how to use this technique to access your subconscious creativity.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 7 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 1.5k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 4 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">08</div>
+                    <div class="date-month">March</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-primary mb-2">Techniques</span>
+                  <h4><a href="#gratitude-journaling">The Science of Gratitude Journaling: Why It Works</a></h4>
+                  <p class="mb-2">Gratitude journaling isn't just positive thinking—it's a practice backed by neuroscience. Learn how this simple habit can rewire your brain for happiness and resilience.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 5 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 2.1k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 5 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">05</div>
+                    <div class="date-month">March</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-secondary mb-2">Research</span>
+                  <h4><a href="#trauma-healing">Journaling for Trauma Recovery: What the Research Says</a></h4>
+                  <p class="mb-2">Expressive writing has been shown to help people process traumatic experiences and reduce PTSD symptoms. Understand the research and learn safe approaches to trauma-informed journaling.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 10 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 3.2k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 6 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">02</div>
+                    <div class="date-month">March</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-info mb-2">Mental Health</span>
+                  <h4><a href="#depression">Journaling as a Complementary Tool for Depression Management</a></h4>
+                  <p class="mb-2">While journaling isn't a replacement for professional treatment, research shows it can be a powerful complementary tool for managing depression. Learn evidence-based techniques.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 9 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 1.9k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 7 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">28</div>
+                    <div class="date-month">February</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-primary mb-2">Techniques</span>
+                  <h4><a href="#bullet-journaling">Bullet Journaling for Mental Health: A Complete Guide</a></h4>
+                  <p class="mb-2">Discover how the bullet journaling method can help organize your thoughts, track habits, and improve mental wellbeing through structured reflection.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 8 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 2.3k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 8 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">25</div>
+                    <div class="date-month">February</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-success mb-2">Productivity</span>
+                  <h4><a href="#goal-setting">The Science of Goal Setting Through Journaling</a></h4>
+                  <p class="mb-2">Learn how writing down your goals can increase your chances of achieving them by 42%, according to research from Harvard Business School.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 7 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 1.7k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 9 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">22</div>
+                    <div class="date-month">February</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-warning mb-2">Creativity</span>
+                  <h4><a href="#art-journaling">Art Journaling: Expressing Emotions Beyond Words</a></h4>
+                  <p class="mb-2">Explore how combining visual art with journaling can help process emotions that words alone cannot capture, especially for trauma and deep feelings.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 6 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 1.4k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Article 10 -->
+            <article class="article-card mb-4">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="article-date">
+                    <div class="date-day">18</div>
+                    <div class="date-month">February</div>
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <span class="badge bg-secondary mb-2">Research</span>
+                  <h4><a href="#sleep">Journaling for Better Sleep: What the Studies Show</a></h4>
+                  <p class="mb-2">Research demonstrates that evening journaling can improve sleep quality by 50% by reducing racing thoughts and processing the day's events.</p>
+                  <div class="article-meta">
+                    <span class="text-muted"><i class="bi bi-clock"></i> 5 min read</span>
+                    <span class="text-muted ms-3"><i class="bi bi-eye"></i> 2.0k views</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <!-- In-Depth Article: Neuroscience -->
+          <section id="neuroscience" class="mb-5">
+            <div class="full-article">
+              <span class="badge bg-primary mb-2">Featured</span>
+              <h2 class="mb-4">The Neuroscience of Journaling: How Writing Changes Your Brain</h2>
+              
+              <div class="article-content">
+                <p class="lead">Journaling is more than just putting pen to paper—it's a powerful neurological practice that can literally reshape your brain structure and function. Modern neuroscience has begun to uncover the remarkable ways that expressive writing affects our mental health, cognitive abilities, and emotional wellbeing.</p>
+                
+                <h3>The Prefrontal Cortex Connection</h3>
+                <p>When you engage in expressive writing, fMRI scans show increased activity in the prefrontal cortex—the brain's executive center responsible for decision-making, emotional regulation, and complex thought. This activation helps explain why journaling can improve emotional control and reduce impulsive reactions.</p>
+                
+                <p>Research conducted at the University of Texas found that just 20 minutes of journaling for three consecutive days led to measurable changes in brain activity patterns that persisted for weeks. Participants showed enhanced activity in regions associated with emotional processing and reduced activity in areas linked to rumination and worry.</p>
+                
+                <h3>Reducing Amygdala Reactivity</h3>
+                <p>The amygdala, often called the brain's "fear center," plays a crucial role in processing emotions, particularly fear and anxiety. Studies have shown that regular journaling can reduce amygdala reactivity, making us less reactive to stress and more capable of handling challenging situations.</p>
+                
+                <p>A groundbreaking study published in the journal "Psychosomatic Medicine" demonstrated that participants who wrote about traumatic experiences had lower cortisol levels and reduced amygdala activation compared to control groups. This suggests that journaling helps process emotional memories in a way that reduces their psychological impact.</p>
+                
+                <h3>Memory Consolidation and Cognitive Enhancement</h3>
+                <p>Writing about experiences activates the hippocampus, the brain region crucial for memory formation and consolidation. This activation helps strengthen neural pathways associated with the memories being documented, making them more accessible and less emotionally charged.</p>
+                
+                <p>Furthermore, the act of organizing thoughts in writing engages working memory and executive function. Over time, this can lead to improved cognitive abilities, better problem-solving skills, and enhanced creativity. Many researchers believe this is why journaling is associated with improved academic and professional performance.</p>
+                
+                <h3>The Default Mode Network and Self-Reflection</h3>
+                <p>Journaling engages the brain's default mode network (DMN), a network of brain regions active when we're not focused on external tasks. The DMN is associated with self-reflection, autobiographical memory, and thinking about the future.</p>
+                
+                <p>Regular engagement of the DMN through journaling can enhance self-awareness and personal insight. This may explain why journalers often report greater clarity about their values, goals, and life direction. The practice creates a structured space for the kind of reflective thinking that leads to personal growth.</p>
+                
+                <h3>Neuroplasticity and Long-Term Benefits</h3>
+                <p>Perhaps most exciting is the evidence that journaling can promote neuroplasticity—the brain's ability to form new neural connections throughout life. Regular journaling practices have been associated with increased gray matter density in regions involved in emotional regulation and cognitive control.</p>
+                
+                <p>These structural changes suggest that the benefits of journaling compound over time. The more consistently you journal, the more your brain adapts to support this healthy habit, creating a positive feedback loop that enhances mental resilience and emotional intelligence.</p>
+                
+                <h3>Practical Implications</h3>
+                <p>Understanding the neuroscience of journaling can help us optimize our practice for maximum benefit:</p>
+                
+                <ul>
+                  <li><strong>Consistency matters:</strong> Regular journaling creates lasting neural changes</li>
+                  <li><strong>Emotional processing:</strong> Writing about feelings engages emotional regulation circuits</li>
+                  <li><strong>Structure helps:</strong> Organized writing engages executive function and cognitive control</li>
+                  <li><strong>Reflection time:</strong> Allowing time for contemplation engages the default mode network</li>
+                  <li><strong>Habit formation:</strong> The brain adapts to support regular journaling practices</li>
+                </ul>
+                
+                <p>The science is clear: journaling is a powerful tool for mental health and personal growth, backed by solid neurological evidence. By understanding how writing affects our brains, we can approach journaling not just as a habit, but as a deliberate practice for cognitive and emotional enhancement.</p>
+              </div>
+              
+              <div class="article-footer mt-4">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p class="text-muted mb-0"><strong>Published:</strong> March 15, 2024</p>
+                    <p class="text-muted mb-0"><strong>Author:</strong> Dr. Sarah Mitchell, Neuroscience Researcher</p>
+                  </div>
+                  <div class="col-md-6 text-end">
+                    <div class="share-buttons">
+                      <span class="text-muted">Share:</span>
+                      <a href="#" class="btn btn-sm btn-outline-primary ms-2"><i class="bi bi-twitter"></i></a>
+                      <a href="#" class="btn btn-sm btn-outline-primary ms-1"><i class="bi bi-facebook"></i></a>
+                      <a href="#" class="btn btn-sm btn-outline-primary ms-1"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Call to Action -->
+          <div class="text-center mt-5 p-4 bg-light rounded">
+            <h3>Start Your Journaling Journey Today</h3>
+            <p class="lead mb-4">Join thousands of users who have discovered the transformative power of journaling</p>
+            <div class="d-flex gap-3 justify-content-center">
+              <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus"></i> Start Free Today
+              </a>
+              <a href="{{ url_for('main.resources') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-book"></i> More Resources
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.featured-article {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  padding: 2rem;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.category-card {
+  display: block;
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  border-color: #667eea;
+}
+
+.article-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.article-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  border-color: #667eea;
+}
+
+.article-date {
+  background: #667eea;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.date-day {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.date-month {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.article-meta {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.full-article {
+  padding: 2rem;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.article-content h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #667eea;
+}
+
+.article-content p {
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.article-content ul {
+  margin-bottom: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
+body.theme-dark .featured-article {
+  background: rgba(102, 126, 234, 0.2);
+  border-left-color: #764ba2;
+}
+
+body.theme-dark .category-card,
+body.theme-dark .article-card,
+body.theme-dark .full-article {
+  background: rgba(30, 41, 82, 0.95);
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+body.theme-dark .article-date {
+  background: #764ba2;
+}
+
+body.theme-dark .article-meta {
+  border-top-color: #475569;
+}
+
+body.theme-dark .article-content h3 {
+  color: #60a5fa;
+}
+
+body.theme-dark .bg-light {
+  background: rgba(30, 41, 82, 0.5) !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Contact Us - My Diary{% endblock %}
+{% block meta_description %}Get in touch with the My Diary team. We're here to help with any questions, feedback, or support you need for your journaling journey.{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          <h1><i class="bi bi-envelope"></i> Contact Us</h1>
+          <p class="mb-0 text-muted">We'd love to hear from you. Reach out with questions, feedback, or support requests.</p>
+        </div>
+        <div class="card-body">
+          
+          <!-- Contact Information -->
+          <div class="contact-info mb-5">
+            <div class="row g-4">
+              <div class="col-md-4">
+                <div class="contact-item text-center">
+                  <i class="bi bi-envelope-fill display-4 text-primary mb-3"></i>
+                  <h4>Email</h4>
+                  <p><a href="mailto:kevohmutwiri3@gmail.com">support@mydiary.com</a></p>
+                  <p class="small text-muted">We respond within 24 hours</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="contact-item text-center">
+                  <i class="bi bi-chat-dots display-4 text-success mb-3"></i>
+                  <h4>Live Chat</h4>
+                  <p>Available for Premium users</p>
+                  <p class="small text-muted">Mon-Fri, 9AM-6PM EST</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="contact-item text-center">
+                  <i class="bi bi-twitter display-4 text-info mb-3"></i>
+                  <h4>Social Media</h4>
+                  <p><a href="#">@MyDiaryApp</a></p>
+                  <p class="small text-muted">Follow for tips and updates</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Form -->
+          <div class="contact-form-section mb-5">
+            <h3 class="mb-4">Send Us a Message</h3>
+            <form>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="name" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="name" placeholder="Your name" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email" placeholder="your@email.com" required>
+                </div>
+                <div class="col-12">
+                  <label for="subject" class="form-label">Subject</label>
+                  <select class="form-select" id="subject" required>
+                    <option value="">Select a topic</option>
+                    <option value="general">General Inquiry</option>
+                    <option value="support">Technical Support</option>
+                    <option value="feedback">Feedback & Suggestions</option>
+                    <option value="billing">Billing & Account</option>
+                    <option value="privacy">Privacy Concerns</option>
+                    <option value="partnership">Partnership Opportunities</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="message" class="form-label">Message</label>
+                  <textarea class="form-control" id="message" rows="6" placeholder="How can we help you?" required></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Send Message
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- FAQ Link -->
+          <div class="faq-cta text-center mb-5">
+            <div class="p-4 bg-light rounded">
+              <h4><i class="bi bi-question-circle"></i> Have a Quick Question?</h4>
+              <p class="mb-3">Check out our FAQ section for answers to common questions about My Diary.</p>
+              <a href="{{ url_for('main.faq') }}" class="btn btn-outline-primary">
+                <i class="bi bi-book"></i> View FAQ
+              </a>
+            </div>
+          </div>
+
+          <!-- Support Resources -->
+          <div class="support-resources">
+            <h3 class="mb-4">Support Resources</h3>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="resource-card">
+                  <h5><i class="bi bi-book-half text-primary"></i> Help Center</h5>
+                  <p>Browse our comprehensive guides and tutorials for step-by-step instructions on using My Diary features.</p>
+                  <a href="{{ url_for('main.guides') }}" class="btn btn-sm btn-outline-primary">Visit Guides</a>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="resource-card">
+                  <h5><i class="bi bi-newspaper text-success"></i> Blog</h5>
+                  <p>Read articles about journaling techniques, mental health tips, and personal growth strategies.</p>
+                  <a href="{{ url_for('main.blog') }}" class="btn btn-sm btn-outline-primary">Read Blog</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Business Hours -->
+          <div class="business-hours mt-5">
+            <h4><i class="bi bi-clock"></i> Response Times</h4>
+            <ul>
+              <li><strong>Email Support:</strong> Within 24 hours (usually much faster)</li>
+              <li><strong>Premium Support:</strong> Within 4 hours during business hours</li>
+              <li><strong>Emergency Issues:</strong> Within 2 hours for critical security concerns</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.contact-item {
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  border-color: #667eea;
+}
+
+.contact-form-section {
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: white;
+}
+
+.resource-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: white;
+}
+
+body.theme-dark .contact-item,
+body.theme-dark .contact-form-section,
+body.theme-dark .resource-card {
+  background: rgba(30, 41, 82, 0.95);
+  border-color: #475569;
+  color: #f8fafc;
+}
+
+body.theme-dark .bg-light {
+  background: rgba(30, 41, 82, 0.5) !important;
+}
+</style>
+{% endblock %}

@@ -89,6 +89,30 @@ def features():
     return render_template("features.html")
 
 
+@main_bp.get("/blog")
+def blog():
+    """Blog page with articles about journaling and mental health"""
+    return render_template("blog.html")
+
+
+@main_bp.get("/guides")
+def guides():
+    """Comprehensive guides page with step-by-step tutorials"""
+    return render_template("guides.html")
+
+
+@main_bp.get("/success-stories")
+def success_stories():
+    """Success stories page with user transformations"""
+    return render_template("success_stories.html")
+
+
+@main_bp.get("/contact")
+def contact():
+    """Contact page for user inquiries and support"""
+    return render_template("contact.html")
+
+
 @main_bp.get("/dashboard")
 @login_required
 def dashboard():
