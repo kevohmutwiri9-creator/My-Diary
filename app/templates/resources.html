@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Journaling Resources - My Diary{% endblock %}
-{% block meta_description %}Discover expert tips, research-backed journaling techniques, and mental health resources to enhance your personal journaling practice.{% endblock %}
+{% block meta_description %}Explore optional journaling exercises, writing prompts, and research references to help you build a reflective practice at your own pace.{% endblock %}
 {% block meta_keywords %}journaling tips, mental health resources, writing therapy, self-care, mindfulness, personal growth, journaling techniques{% endblock %}
 
 {% block content %}
@@ -10,7 +10,7 @@
       <div class="card">
         <div class="card-header">
           <h1><i class="bi bi-book"></i> Journaling Resources & Tips</h1>
-          <p class="mb-0 text-muted">Expert guidance to enhance your journaling practice and wellbeing</p>
+          <p class="mb-0 text-muted">Practical prompts and references for a flexible journaling practice</p>
         </div>
         <div class="card-body">
           
@@ -29,7 +29,7 @@
                     <li><strong>Don't Worry:</strong> Forget grammar, spelling, or structure</li>
                     <li><strong>Be Consistent:</strong> Try to write at the same time daily</li>
                   </ol>
-                  <p><strong>Remember:</strong> Your journal is a safe space - there are no rules!</p>
+                  <p><strong>Remember:</strong> Write only what you are comfortable keeping in a journal. You can skip any prompt or stop at any time.</p>
                 </div>
               </div>
               
@@ -44,7 +44,7 @@
                     <li><strong>Start a Streak:</strong> Use a calendar to track consecutive days</li>
                     <li><strong>Forgive Yourself:</strong> Missed a day? Just start again tomorrow</li>
                   </ul>
-                  <p>It takes about 21 days to form a habit - stick with it!</p>
+                  <p>There is no fixed number of days that works for everyone. Start small and return when it suits you; a missed day does not undo your practice.</p>
                 </div>
               </div>
             </div>
@@ -166,26 +166,26 @@
               <div class="col-md-8">
                 <div class="wellness-content">
                   <h4>The Science Behind Journaling</h4>
-                  <p>Research shows that regular journaling provides numerous mental health benefits:</p>
+                  <p>Research on writing exercises reports varied outcomes. These prompts are for personal reflection, not diagnosis or treatment.</p>
                   
                   <div class="benefit-item">
                     <h5><i class="bi bi-graph-down text-success"></i> Stress Reduction</h5>
-                    <p>Writing about your thoughts and feelings helps organize chaotic thinking and reduces cortisol levels by up to 40%. Studies show journaling can lower blood pressure and improve immune function.</p>
+                    <p>Writing about thoughts and feelings can help organize a difficult day and create distance from repetitive thinking. Results vary, and journaling should complement rather than replace professional care.</p>
                   </div>
                   
                   <div class="benefit-item">
                     <h5><i class="bi bi-brain text-info"></i> Emotional Processing</h5>
-                    <p>Journaling activates the left prefrontal cortex, helping regulate emotions and reduce anxiety. It provides a safe space to process difficult feelings and gain perspective.</p>
+                    <p>Writing can give you a place to describe what you noticed and organize your thoughts. People respond differently, and writing does not diagnose or treat anxiety.</p>
                   </div>
                   
                   <div class="benefit-item">
                     <h5><i class="bi bi-target text-warning"></i> Goal Achievement</h5>
-                    <p>Writing down goals increases the likelihood of achievement by 42%. Journaling helps clarify intentions, track progress, and maintain motivation.</p>
+                    <p>Writing down a goal can clarify the next action, make progress easier to review, and keep motivation visible. A journal cannot guarantee an outcome, so use it as a planning aid.</p>
                   </div>
                   
                   <div class="benefit-item">
                     <h5><i class="bi bi-shield-check text-danger"></i> Trauma Healing</h5>
-                    <p>Expressive writing about traumatic experiences can significantly reduce symptoms of PTSD and depression. It helps integrate difficult memories into your life story.</p>
+                    <p>You do not need to write about trauma. If a prompt brings up distress, stop and consider talking with a qualified professional or someone you trust.</p>
                   </div>
                 </div>
               </div>
@@ -298,10 +298,8 @@
                 <div class="resource-link">
                   <h5><i class="bi bi-laptop"></i> Online Resources</h5>
                   <ul>
-                    <li><a href="#" target="_blank">Psychology Today - Journaling Articles</a></li>
-                    <li><a href="#" target="_blank">University of Rochester - Health Benefits</a></li>
-                    <li><a href="#" target="_blank">TED Talks on Journaling</a></li>
-                    <li><a href="#" target="_blank">Reddit r/journaling Community</a></li>
+                    <li><a href="https://pubmed.ncbi.nlm.nih.gov/9622468/" rel="noopener noreferrer" target="_blank">Smyth (1998): review of expressive-writing research</a></li>
+                    <li><a href="https://pubmed.ncbi.nlm.nih.gov/12585811/" rel="noopener noreferrer" target="_blank">Emmons &amp; McCullough (2003): gratitude exercises and well-being</a></li>
                   </ul>
                 </div>
               </div>
@@ -324,7 +322,7 @@
           <section class="mb-5">
             <div class="text-center p-4 bg-light rounded">
               <h3>Ready to Start Your Journaling Journey?</h3>
-              <p class="lead mb-4">Join thousands of users who have discovered the transformative power of journaling</p>
+              <p class="lead mb-4">Choose one prompt and adapt it to what feels useful today.</p>
               <div class="d-flex gap-3 justify-content-center">
                 <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
                   <i class="bi bi-person-plus"></i> Start Free Today

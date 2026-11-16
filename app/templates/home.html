@@ -4,29 +4,29 @@
 <div class="container-fluid">
   <!-- AdSense-friendly content block (indexable) -->
   <section class="container my-5" aria-label="About My Diary">
-    <h2 class="mb-3">A journaling site built for consistency, clarity, and real growth</h2>
+    <h2 class="mb-3">A practical place to write, reflect, and revisit your entries</h2>
     <p class="lead">
-      My Diary is a private journaling companion that helps you capture what’s happening in your life,
-      understand your emotional patterns over time, and practice evidence-based reflection techniques.
+    My Diary is a web journal for writing entries, recording a mood, and reviewing your own notes over time.
+    The public guides explain simple ways to reflect; they are educational, not mental-health treatment.
     </p>
     <div class="row g-4">
       <div class="col-md-6">
         <h3 class="h5">What you can do without logging in</h3>
         <ul>
           <li>Read sample entries and see how insights are presented</li>
-          <li>Explore step-by-step journaling guides</li>
+          <li>Read step-by-step journaling guides and practice examples</li>
           <li>Browse resources, prompts, and FAQs for getting started</li>
         </ul>
       </div>
       <div class="col-md-6">
         <h3 class="h5">Why journaling helps</h3>
         <p>
-          Writing can support emotional processing, reduce rumination, and help you recognize recurring
-          thoughts, triggers, and values.
+          Writing gives you a place to put thoughts into words. Looking back at your own notes may help you
+          notice what you want to explore or discuss with someone you trust.
         </p>
         <p class="mb-0">
-          This site provides practical, research-informed guidance so you can start today—even if you’ve
-          never journaled before.
+          The exercises on this site are optional starting points, not prescriptions. Research findings vary,
+          and journaling is not a substitute for professional care.
         </p>
       </div>
     </div>
@@ -70,7 +70,7 @@
             <div class="card-body">
               <i class="bi bi-robot display-4 text-primary mb-3"></i>
               <h4 class="card-title">AI-Powered Insights</h4>
-              <p class="card-text">Get intelligent mood analysis, emotional patterns, and personalized wellness recommendations powered by advanced machine learning algorithms.</p>
+              <p class="card-text">Get optional AI-generated writing suggestions and reflections. Treat them as prompts to consider, not diagnoses or professional advice.</p>
             </div>
           </div>
         </div>
@@ -78,8 +78,8 @@
           <div class="card h-100 text-center">
             <div class="card-body">
               <i class="bi bi-shield-lock display-4 text-success mb-3"></i>
-              <h4 class="card-title">Private & Secure</h4>
-              <p class="card-text">Your personal thoughts are protected with enterprise-grade encryption and privacy controls. Only you have access to your diary entries.</p>
+              <h4 class="card-title">Your personal journal</h4>
+              <p class="card-text">Create an account to write and organize entries. Review the <a href="{{ url_for('main.privacy') }}">privacy policy</a> to understand how information is handled.</p>
             </div>
           </div>
         </div>
@@ -88,7 +88,7 @@
             <div class="card-body">
               <i class="bi bi-graph-up display-4 text-info mb-3"></i>
               <h4 class="card-title">Advanced Analytics</h4>
-              <p class="card-text">Track your emotional journey with comprehensive analytics, mood trends, and wellness reports that help you understand yourself better.</p>
+              <p class="card-text">Record a mood with an entry and review the resulting trends. These summaries describe your saved data; they are not clinical assessments.</p>
             </div>
           </div>
         </div>
@@ -99,26 +99,19 @@
   <!-- Benefits Section -->
   <section class="benefits-section py-5 mb-5" style="background: #f8f9fa; border: 1px solid #e9ecef;">
     <div class="container">
-      <h2 class="text-center mb-5" style="color: #000000; font-size: 36px; font-weight: 700;">The Science of Journaling</h2>
+      <h2 class="text-center mb-5" style="color: #000000; font-size: 36px; font-weight: 700;">A flexible journaling routine</h2>
       <div class="row align-items-center">
         <div class="col-lg-6">
-          <h3 class="mb-4" style="color: #000000; font-size: 42px; font-weight: 700;">The Scientific Journaling</h3>
-          <p class="mb-3" style="color: #1a1a1a; font-size: 24px; font-weight: 600;">Backed by Research</p>
-          <div class="mb-3">
-            <span style="background: #e6f0ff; color: #0052cc; padding: 8px 16px; border-radius: 20px; font-weight: 500; display: inline-block;">
-              <i class="bi bi-plus-circle"></i> Add new research
-            </span>
-          </div>
-          <p class="mb-3" style="color: #333333; font-size: 18px; font-weight: 500;">Numerous studies have shown that regular journaling can:</p>
+          <h3 class="mb-4" style="color: #000000; font-size: 42px; font-weight: 700;">Make writing work for you</h3>
+          <p class="mb-3" style="color: #1a1a1a; font-size: 24px; font-weight: 600;">Start with a small, repeatable entry</p>
+          <p class="mb-3" style="color: #333333; font-size: 18px; font-weight: 500;">Try a simple structure and change it to fit your needs:</p>
           <ul class="list-unstyled">
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Reduce stress and anxiety by 40%</li>
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Improve emotional regulation and self-awareness</li>
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Enhance memory and cognitive function</li>
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Boost immune system function</li>
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Increase goal achievement and personal growth</li>
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Improve sleep quality and duration</li>
-            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Support addiction recovery and relapse prevention</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> What happened?</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> What did I notice or feel?</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> What matters to me now?</li>
+            <li class="mb-2" style="color: #333333; font-size: 16px; font-weight: 500;"><i class="bi bi-check-circle text-success"></i> Is there one small next step I want to take?</li>
           </ul>
+          <p class="text-muted">There is no required streak or correct way to write. Skip a prompt or stop if writing feels unhelpful.</p>
           <a href="{{ url_for('main.sample_entries') }}" class="btn btn-outline-secondary mt-3 secondary-btn">
             <i class="bi bi-eye"></i> View Sample Entries
           </a>
@@ -126,20 +119,20 @@
         <div class="col-lg-6">
           <div class="stats-card">
             <h4 style="color: #1e293b; font-size: 20px; font-weight: 500; text-align: center; margin-bottom: 30px;">
-              👥 Join Thousands of Happy Journalers
+              A journal at your own pace
             </h4>
             <div class="row text-center">
               <div class="col-4">
-                <div class="stat-number">50K+</div>
-                <div class="stat-label">ACTIVE USERS</div>
+                <div class="stat-number">Private</div>
+                <div class="stat-label">YOUR JOURNAL</div>
               </div>
               <div class="col-4">
-                <div class="stat-number">2M+</div>
-                <div class="stat-label">ENTRIES WRITTEN</div>
+                <div class="stat-number">Daily</div>
+                <div class="stat-label">YOUR PACE</div>
               </div>
               <div class="col-4">
-                <div class="stat-number">4.8 ★★★★★</div>
-                <div class="stat-label">USER RATING</div>
+                <div class="stat-number">Exportable</div>
+                <div class="stat-label">YOUR DATA</div>
               </div>
             </div>
           </div>
@@ -151,7 +144,7 @@
   <!-- Testimonials Section -->
   <section class="testimonials-section py-5 mb-5">
     <div class="container">
-      <h2 class="text-center mb-5">What Our Users Say</h2>
+      <h2 class="text-center mb-5">Ways a journal can help</h2>
       <div class="row g-4">
         <div class="col-md-4">
           <div class="card h-100">
@@ -163,8 +156,8 @@
                 <i class="bi bi-star-fill text-warning"></i>
                 <i class="bi bi-star-fill text-warning"></i>
               </div>
-              <p class="card-text">"My Diary has completely transformed my mental health journey. The AI insights help me understand my patterns and make positive changes."</p>
-              <footer class="blockquote-footer">Sarah M., Psychology Student</footer>
+              <p class="card-text">Use a short evening entry to capture what happened, name the feeling it brought up, and choose one small next step.</p>
+              <footer class="blockquote-footer">A simple reflection routine</footer>
             </div>
           </div>
         </div>
@@ -178,8 +171,8 @@
                 <i class="bi bi-star-fill text-warning"></i>
                 <i class="bi bi-star-fill text-warning"></i>
               </div>
-              <p class="card-text">"The mood analytics feature is incredible! I can see how my emotional state changes over time and what factors influence it."</p>
-              <footer class="blockquote-footer">James R., Software Engineer</footer>
+              <p class="card-text">Reviewing your own entries can make recurring moods, situations, and habits easier to notice without treating a chart as a diagnosis.</p>
+              <footer class="blockquote-footer">A pattern-noticing routine</footer>
             </div>
           </div>
         </div>
@@ -193,8 +186,8 @@
                 <i class="bi bi-star-fill text-warning"></i>
                 <i class="bi bi-star-fill text-warning"></i>
               </div>
-              <p class="card-text">"As someone who struggles with consistency, the daily reminders and intuitive interface make journaling a habit I actually enjoy."</p>
-              <footer class="blockquote-footer">Emily T., Marketing Manager</footer>
+              <p class="card-text">When time is short, write three sentences: what happened, how you felt, and what support or action would help next.</p>
+              <footer class="blockquote-footer">A low-pressure routine</footer>
             </div>
           </div>
         </div>
@@ -206,7 +199,7 @@
   <section class="cta-section py-5 text-center">
     <div class="container">
       <h2 class="mb-4">Start Your Journaling Journey Today</h2>
-      <p class="lead mb-4">Join thousands of users who have discovered the transformative power of journaling</p>
+      <p class="lead mb-4">Try a short entry, or look through the examples first.</p>
       <div class="d-flex gap-3 justify-content-center">
         <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5 py-3 primary-btn">
           <i class="bi bi-person-plus"></i> Get Started Free
@@ -225,38 +218,25 @@
       <div class="row g-4">
         <div class="col-md-6">
           <div class="research-card">
-            <h4><i class="bi bi-journal-medical text-primary"></i> Scientific Research</h4>
-            <p>Our platform is built on extensive psychological research demonstrating the effectiveness of journaling for mental health and personal growth.</p>
+            <h4><i class="bi bi-journal-medical text-primary"></i> Further reading</h4>
+            <p>Research on expressive writing and gratitude exercises reports varied results. These papers are starting points for understanding the evidence, not proof that journaling treats a condition or works for everyone.</p>
             <ul>
-              <li><strong>University of Texas Study:</strong> Expressive writing participants showed 43% fewer doctor visits</li>
-              <li><strong>Cambridge University Research:</strong> Journaling improves working memory and cognitive function</li>
-              <li><strong>Journal of Clinical Psychology:</strong> Regular journaling reduces anxiety symptoms by up to 40%</li>
-              <li><strong>Psychosomatic Medicine:</strong> Writing about trauma strengthens immune system response</li>
+                <li><a href="https://pubmed.ncbi.nlm.nih.gov/9622468/" rel="noopener noreferrer" target="_blank">Smyth (1998): a meta-analysis of expressive-writing studies.</a></li>
+                <li><a href="https://pubmed.ncbi.nlm.nih.gov/12585811/" rel="noopener noreferrer" target="_blank">Emmons &amp; McCullough (2003): experiments on gratitude and well-being.</a></li>
+                <li>Journaling is an optional reflective practice, not professional or medical care.</li>
+                <li>Stop an exercise if it increases distress and seek qualified support when needed.</li>
             </ul>
           </div>
         </div>
         <div class="col-md-6">
           <div class="research-card">
-            <h4><i class="bi bi-people text-success"></i> Community Impact</h4>
-            <p>Our growing community of journalers spans across the globe, united by the shared commitment to personal growth and mental wellness.</p>
-            <div class="impact-stats">
-              <div class="stat-item">
-                <span class="stat-number">50,000+</span>
-                <span class="stat-label">Active Users Worldwide</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">2.5M+</span>
-                <span class="stat-label">Journal Entries Created</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">120+</span>
-                <span class="stat-label">Countries Represented</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">94%</span>
-                <span class="stat-label">Report Improved Mental Health</span>
-              </div>
-            </div>
+            <h4><i class="bi bi-journal-text text-success"></i> What you can do here</h4>
+            <p>Use the journal to write entries, add a mood or tags, and return to your saved writing. You can export your entries from your account.</p>
+            <ul>
+              <li>Write and organize personal entries.</li>
+              <li>Review saved entries and recorded moods over time.</li>
+              <li>Export your writing in supported formats.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -286,7 +266,7 @@
           <div class="step-card text-center">
             <div class="step-number">3</div>
             <h4>Get Insights</h4>
-            <p>Our AI analyzes your entries to provide personalized insights and recommendations.</p>
+            <p>Optional AI-generated suggestions may help you get started. Check their relevance for yourself; they are not professional advice.</p>
           </div>
         </div>
         <div class="col-md-3">
@@ -317,7 +297,7 @@
           <div class="content-card">
             <i class="bi bi-book-half display-4 text-success mb-3"></i>
             <h4>Step-by-Step Guides</h4>
-            <p>Comprehensive tutorials for beginners, advanced techniques, and specialized journaling practices.</p>
+            <p>Simple exercises for starting a routine, choosing prompts, and reflecting at your own pace.</p>
             <a href="{{ url_for('main.guides') }}" class="btn btn-outline-primary btn-sm">View Guides</a>
           </div>
         </div>
@@ -325,7 +305,7 @@
           <div class="content-card">
             <i class="bi bi-trophy display-4 text-warning mb-3"></i>
             <h4>Success Stories</h4>
-            <p>Inspiring real stories from users who transformed their lives through journaling.</p>
+            <p>Practice examples show ways to use prompts without presenting fictional stories as real testimonials.</p>
             <a href="{{ url_for('main.success_stories') }}" class="btn btn-outline-primary btn-sm">Read Stories</a>
           </div>
         </div>

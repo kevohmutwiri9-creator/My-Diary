@@ -1,491 +1,78 @@
 {% extends 'base.html' %}
-{% block title %}Sample Entries - See How My Diary Works{% endblock %}
+{% block title %}Sample Journal Entries - My Diary{% endblock %}
+{% block meta_description %}See three fictional examples of journal entries with moods, categories, and tags, plus prompts for adapting each format to your own writing.{% endblock %}
+
 {% block content %}
 <div class="container">
   <div class="row">
     <div class="col-lg-10 mx-auto">
       <div class="card">
         <div class="card-header">
-          <h1><i class="bi bi-journal-text"></i> Sample Diary Entries</h1>
-          <p class="mb-0 text-muted">Explore these examples to see how My Diary helps you capture life's moments and gain valuable insights</p>
+          <h1><i class="bi bi-journal-text"></i> Sample Journal Entries</h1>
+          <p class="mb-0 text-muted">Examples of different ways to use a journal entry</p>
         </div>
         <div class="card-body">
-          
-          <!-- Sample Entry 1 -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Morning Reflections on Career Growth</h3>
-              <div class="text-end">
-                <span class="badge bg-info">Professional</span>
-                <span class="badge bg-success ms-1">Happy</span>
-                <span class="badge bg-warning text-dark ms-1">
-                  <i class="bi bi-star-fill"></i> Favorite
-                </span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 15, 2024 - 8:30 AM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p>Today started with an incredible sense of clarity. After months of feeling stuck in my current role, I finally had that breakthrough moment during my morning meditation. The realization that I've been waiting for permission to pursue my dreams - when in reality, I'm the only one who can give myself that permission.</p>
-              
-              <p>I've been researching advanced certification programs in data science, and while the thought of going back to school feels overwhelming, I'm also genuinely excited. The idea of combining my analytical skills with machine learning and AI feels like the perfect next step in my career journey.</p>
-              
-              <p>What's holding me back? Fear of failure? The time commitment? Financial concerns? All valid concerns, but none of them are insurmountable. I have savings, I have support from my family, and most importantly, I have the determination to make this work.</p>
-              
-              <p>Today I'm taking the first step: I've scheduled a call with an admissions advisor. Small steps lead to big changes.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Positive - Shows high motivation and proactive mindset</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Career development, self-reflection, goal setting</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Consider setting SMART goals for your educational journey and track progress weekly</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#career</span>
-              <span class="badge bg-secondary me-1">#growth</span>
-              <span class="badge bg-secondary me-1">#education</span>
-              <span class="badge bg-secondary me-1">#goals</span>
-            </div>
+          <div class="alert alert-light border" role="note">
+            <p class="mb-0"><strong>These are fictional examples created to demonstrate entry fields and writing formats.</strong> They are not real user stories, testimonials, or AI-generated analysis, and they do not promise any outcome.</p>
           </div>
 
-          <!-- Sample Entry 2 -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Dealing with Anxiety and Finding Peace</h3>
-              <div class="text-end">
-                <span class="badge bg-warning">Health</span>
-                <span class="badge bg-secondary ms-1">Anxious</span>
-              </div>
+          <article class="entry-sample my-5">
+            <h2 class="h3">A brief daily note</h2>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge bg-info">Personal</span>
+              <span class="badge bg-success">Calm</span>
+              <span class="badge bg-secondary">#routine</span>
+              <span class="badge bg-secondary">#walk</span>
             </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 14, 2024 - 10:45 PM
+            <p>After lunch I took the longer route back to my desk. I noticed the new trees along the path and felt less rushed when I returned. Tomorrow I could leave a few minutes between meetings for another short walk.</p>
+            <div class="bg-light rounded p-3">
+              <h3 class="h6">A prompt to adapt</h3>
+              <p class="mb-0">What is one ordinary moment from today that you want to remember?</p>
             </div>
-            
-            <div class="entry-content mb-3">
-              <p>Today was one of those days where anxiety seemed to follow me like a shadow. It started small - a racing heart during my morning presentation - but by afternoon, I was struggling to catch my breath. The familiar tightness in my chest, the racing thoughts, the feeling that everything was spinning out of control.</p>
-              
-              <p>I've learned to recognize these patterns now. Instead of fighting it, I stepped away from my desk and found a quiet spot. Deep breathing exercises helped, but what really made the difference was calling my sister. Just hearing her voice and knowing someone understood made the weight feel lighter.</p>
-              
-              <p>Tomorrow I have an important client meeting, and the what-ifs are already starting to creep in. What if I mess up? What if they don't like my proposal? But I'm trying to reframe these thoughts. I've prepared thoroughly. I know my material. Even if things don't go perfectly, I'll learn from the experience.</p>
-              
-              <p>Gratitude practice tonight: I'm grateful for my support system, for the tools I've learned to manage anxiety, and for the fact that tomorrow is a new day with new opportunities.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Mixed - Acknowledges struggle but shows coping strategies</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Mental health, anxiety management, gratitude</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Your coping strategies are effective. Consider tracking anxiety triggers to better prepare for challenging situations</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#mentalhealth</span>
-              <span class="badge bg-secondary me-1">#anxiety</span>
-              <span class="badge bg-secondary me-1">#gratitude</span>
-              <span class="badge bg-secondary me-1">#coping</span>
-            </div>
-          </div>
+          </article>
 
-          <!-- Sample Entry 3 -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Celebrating Small Victories</h3>
-              <div class="text-end">
-                <span class="badge bg-primary">Personal</span>
-                <span class="badge bg-success ms-1">Excited</span>
-                <span class="badge bg-warning text-dark ms-1">
-                  <i class="bi bi-star-fill"></i> Favorite
-                </span>
-              </div>
+          <article class="entry-sample my-5">
+            <h2 class="h3">A decision with two options</h2>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge bg-primary">Personal</span>
+              <span class="badge bg-warning text-dark">Anxious</span>
+              <span class="badge bg-secondary">#planning</span>
             </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 13, 2024 - 6:15 PM
+            <p>I am deciding whether to take a weekend class. It sounds interesting, but I also want to keep some unscheduled time. I will check the class dates and cost, then decide after I have the details rather than trying to settle it tonight.</p>
+            <div class="bg-light rounded p-3">
+              <h3 class="h6">A prompt to adapt</h3>
+              <p class="mb-0">What information would help you make this decision, and when will you look for it?</p>
             </div>
-            
-            <div class="entry-content mb-3">
-              <p>Today deserves to be celebrated! After three months of consistent effort, I finally ran my first 5K without stopping. The feeling of crossing that finish line - even though it was just me and my running app - was incredible.</p>
-              
-              <p>When I started this journey, I could barely run for 30 seconds without getting winded. There were so many mornings I wanted to give up, when the rain was pouring or my legs felt like lead. But something kept me going - maybe the stubborn determination to prove to myself that I could do it.</p>
-              
-              <p>The best part? This achievement has spilled over into other areas of my life. I feel more confident at work, more patient with my kids, and more optimistic about tackling other challenges. It's amazing how proving your physical strength can strengthen your mental resilience too.</p>
-              
-              <p>Tonight I'm treating myself to a nice dinner and maybe even buying those running shoes I've been eyeing. Life is about celebrating these moments, however small they might seem to others.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Very Positive - High achievement and self-efficacy</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Goal achievement, fitness, self-confidence</p>
-              <p class="mb-0"><strong>Recommendation:</strong> This momentum effect is powerful! Consider setting your next challenging but achievable goal</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#fitness</span>
-              <span class="badge bg-secondary me-1">#achievement</span>
-              <span class="badge bg-secondary me-1">#goals</span>
-              <span class="badge bg-secondary me-1">#celebration</span>
-            </div>
-          </div>
+          </article>
 
-          <!-- Sample Entry 4 -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Family Dinner and Simple Joys</h3>
-              <div class="text-end">
-                <span class="badge bg-info">Family</span>
-                <span class="badge bg-success ms-1">Happy</span>
-              </div>
+          <article class="entry-sample my-5">
+            <h2 class="h3">A small project update</h2>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge bg-info">Hobbies</span>
+              <span class="badge bg-success">Excited</span>
+              <span class="badge bg-secondary">#learning</span>
+              <span class="badge bg-secondary">#nextstep</span>
+              <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Favorite</span>
             </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 12, 2024 - 9:30 PM
+            <p>I spent twenty minutes practicing a new recipe and wrote down what I would change next time: lower heat and a little less salt. The first attempt was useful even though it was not quite what I pictured. I will try it again this weekend.</p>
+            <div class="bg-light rounded p-3">
+              <h3 class="h6">A prompt to adapt</h3>
+              <p class="mb-0">What did you learn from trying something, and what would you change on a second attempt?</p>
             </div>
-            
-            <div class="entry-content mb-3">
-              <p>Tonight's family dinner was everything I needed. We all gathered around the table - Mom, Dad, Sarah, and even my brother who drove in from college. No phones, no distractions, just good food and even better conversation.</p>
-              
-              <p>Dad told his classic story about the time he tried to fix the washing machine and flooded the laundry room. Sarah shared exciting news about her art project being selected for the school exhibition. Even my usually quiet brother opened up about his philosophy class and how it's changing his perspective on life.</p>
-              
-              <p>These moments remind me what's truly important. In the hustle of daily life, it's easy to forget to slow down and just be present with the people you love. Tonight, I wasn't thinking about work deadlines or my endless to-do list. I was just laughing, listening, and feeling grateful.</p>
-              
-              <p>Mom's apple pie was the perfect ending to a perfect evening. Sometimes the simplest moments are the most meaningful.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Very Positive - Strong social connection and gratitude</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Family, gratitude, mindfulness, social connection</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Regular family connections appear to significantly boost your wellbeing. Consider making this a weekly tradition</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#family</span>
-              <span class="badge bg-secondary me-1">#gratitude</span>
-              <span class="badge bg-secondary me-1">#mindfulness</span>
-              <span class="badge bg-secondary me-1">#connection</span>
-            </div>
-          </div>
+          </article>
 
-          <!-- Sample Entry 5 -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Late Night Thoughts and Future Dreams</h3>
-              <div class="text-end">
-                <span class="badge bg-primary">Reflection</span>
-                <span class="badge bg-info ms-1">Calm</span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 11, 2024 - 11:45 PM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p>The house is quiet, and I'm sitting here with a cup of tea, thinking about where I am versus where I want to be. There's something about the stillness of late night that brings such clarity.</p>
-              
-              <p>I've been so focused on the day-to-day grind that I haven't given myself permission to dream bigger. What if I actually wrote that book I've been talking about for years? What if I took that solo trip to Italy I've been fantasizing about? What if I finally learned to play the guitar that's been gathering dust in the corner?</p>
-              
-              <p>Fear has been my constant companion - fear of failure, fear of judgment, fear of the unknown. But tonight, I'm wondering what would happen if I let curiosity lead instead of fear. What if I tried new things just for the joy of trying them, without worrying about being perfect?</p>
-              
-              <p>I'm turning 35 this year. That feels significant somehow. Not old, but old enough to know that time passes quickly. I don't want to look back in another decade and regret the chances I didn't take.</p>
-              
-              <p>Tonight's promise to myself: I'm going to do one thing that scares me every month. Starting small, but starting nonetheless.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Reflective - Shows introspection and growth mindset</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Self-discovery, future planning, overcoming fear</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Your monthly challenge idea is excellent for building confidence. Consider documenting each experience to track your growth</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#reflection</span>
-              <span class="badge bg-secondary me-1">#dreams</span>
-              <span class="badge bg-secondary me-1">#growth</span>
-              <span class="badge bg-secondary me-1">#courage</span>
-            </div>
-          </div>
-
-          <!-- Sample Entry 6 - Dream Journaling -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Vivid Dreams and Subconscious Messages</h3>
-              <div class="text-end">
-                <span class="badge bg-warning">Dreams</span>
-                <span class="badge bg-info ms-1">Curious</span>
-                <span class="badge bg-warning text-dark ms-1">
-                  <i class="bi bi-star-fill"></i> Favorite
-                </span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 10, 2024 - 6:30 AM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p>I woke up from the most vivid dream and had to write it down immediately. In the dream, I was walking through a forest that felt familiar yet strange. The trees were enormous, their canopies forming a natural cathedral overhead. Sunlight filtered through in golden beams, illuminating a path that seemed to beckon me forward.</p>
-              
-              <p>As I walked, I encountered different versions of myself at various ages. The child version was playing with leaves, completely present and joyful. The teenage version was sitting on a rock, writing in a journal with intense focus. The adult version - current me - was standing at a fork in the path, looking both ways with uncertainty.</p>
-              
-              <p>An older version of me appeared, silver-haired and radiant. She didn't speak, but simply pointed toward the left path. When I looked where she pointed, I saw that the path led to a clearing where people were gathered, talking and laughing. It felt like community, connection, belonging.</p>
-              
-              <p>The right path led to a solitary mountain peak - impressive, achievement-oriented, but lonely. I think my subconscious is telling me something about my current priorities. I've been so focused on career success that I've neglected the human connections that truly matter.</p>
-              
-              <p>This dream feels like a wake-up call. Success isn't just about climbing mountains alone - it's about building communities and walking together.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Introspective - Rich symbolic content with self-reflection</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Self-discovery, values alignment, life priorities</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Dreams often reveal subconscious values. Consider whether your current life choices align with the path your inner self chose</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#dreams</span>
-              <span class="badge bg-secondary me-1">#subconscious</span>
-              <span class="badge bg-secondary me-1">#values</span>
-              <span class="badge bg-secondary me-1">#priorities</span>
-            </div>
-          </div>
-
-          <!-- Sample Entry 7 - Gratitude Practice -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Morning Gratitude: Small Joys</h3>
-              <div class="text-end">
-                <span class="badge bg-success">Gratitude</span>
-                <span class="badge bg-primary ms-1">Happy</span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 9, 2024 - 7:15 AM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p>Today I'm practicing intentional gratitude, focusing on the small moments that often go unnoticed.</p>
-              
-              <p><strong>First:</strong> The way the morning light hit my kitchen table today. It created this beautiful pattern on the wood that made me stop and just appreciate the simple beauty of everyday moments. I usually rush through my morning routine, but today I took two minutes to just be present with that light.</p>
-              
-              <p><strong>Second:</strong> The barista at my coffee shop remembered my name and order. It's such a small thing, but being recognized and remembered made me feel seen in a world that often feels anonymous. Human connection, even brief moments, matters so much.</p>
-              
-              <p><strong>Third:</strong> I found a parking spot right in front of the office. I know it sounds silly, but it started my day with a small win instead of the usual frustration of circling the block. Sometimes the universe gives us these tiny gifts.</p>
-              
-              <p><strong>Fourth:</strong> My coworker Sarah asked how my weekend was and actually listened to the answer. Not the polite nod-and-smile, but genuine curiosity and engagement. It reminded me that people do care if we give them the chance.</p>
-              
-              <p><strong>Fifth:</strong> The perfect temperature of my shower this morning. Not too hot, not too cold, just exactly right. These moments of physical comfort are easy to take for granted, but they're worth acknowledging.</p>
-              
-              <p>Focusing on gratitude doesn't make problems disappear, but it shifts my perspective enough to handle them with more grace.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Very Positive - Strong gratitude practice with mindful awareness</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Gratitude, mindfulness, appreciation, presence</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Your detailed gratitude practice is excellent for building resilience. Consider making this a daily morning ritual</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#gratitude</span>
-              <span class="badge bg-secondary me-1">#mindfulness</span>
-              <span class="badge bg-secondary me-1">#presence</span>
-              <span class="badge bg-secondary me-1">#joy</span>
-            </div>
-          </div>
-
-          <!-- Sample Entry 8 - Creative Writing -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Creative Writing Exercise: Stream of Consciousness</h3>
-              <div class="text-end">
-                <span class="badge bg-info">Creative</span>
-                <span class="badge bg-warning ms-1">Excited</span>
-                <span class="badge bg-warning text-dark ms-1">
-                  <i class="bi bi-star-fill"></i> Favorite
-                </span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 8, 2024 - 9:00 PM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p><em>[Stream of consciousness writing exercise - 10 minutes, no stopping]</em></p>
-              
-              <p>The cursor blinks at me like a heartbeat, steady and persistent. I wonder why we measure time in heartbeats when they're so irregular. My heart races when I'm nervous, slows when I'm calm, skips beats when I see someone I love. Time should be measured in moments that make us feel alive.</p>
-              
-              <p>The coffee on my desk has gone cold again. I do this every day - make coffee with intention, drink it with distraction. It's a metaphor for how I live my life. Full of good intentions, easily distracted. Maybe that's not a flaw. Maybe the distraction is where the real life happens.</p>
-              
-              <p>I remember being six and watching dust motes dance in a sunbeam. I could have watched them for hours. Now I can barely sit through a five-minute meeting without checking my phone. What happened to that capacity for wonder? Did I lose it or did I bury it under responsibilities and expectations?</p>
-              
-              <p>The cat just jumped on my desk, walked across the keyboard, and is now staring at me with judgment. Maybe she knows something I don't. Animals live entirely in the present. They don't worry about five years from now or regret five years ago. They just are. Being present. What a concept.</p>
-              
-              <p>I want to write something profound but all that comes out is this rambling. Maybe that's the point. Profundity isn't in the grand statements but in the honest ones. The truth is, I'm tired but hopeful. Confused but moving forward. Scared but brave enough to keep going.</p>
-              
-              <p>The timer went off. I didn't write a masterpiece, but I wrote something true. That counts.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Reflective - Honest self-exploration with creative expression</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Creativity, authenticity, presence, self-acceptance</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Stream of consciousness exercises reveal authentic thoughts. Consider regular practice to access deeper self-awareness</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#creative</span>
-              <span class="badge bg-secondary me-1">#streamofconsciousness</span>
-              <span class="badge bg-secondary me-1">#authenticity</span>
-              <span class="badge bg-secondary me-1">#writing</span>
-            </div>
-          </div>
-
-          <!-- Sample Entry 9 - Problem Solving -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Working Through a Difficult Decision</h3>
-              <div class="text-end">
-                <span class="badge bg-primary">Work</span>
-                <span class="badge bg-warning ms-1">Uncertain</span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 7, 2024 - 8:00 PM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p>I've been wrestling with a career decision for weeks, and writing through it is finally bringing clarity. Here's what I've unpacked:</p>
-              
-              <p><strong>The Situation:</strong> I've been offered a promotion that would mean a significant salary increase and more responsibility, but it would also require longer hours and more travel. I'm torn between the financial security and the impact on my personal life.</p>
-              
-              <p><strong>My Fears:</strong> If I take it, I'll burn out again like I did two years ago. If I don't take it, I'll regret missing the opportunity and wonder if I'm playing it too safe. The fear of making the wrong choice is paralyzing.</p>
-              
-              <p><strong>Writing Through the Options:</strong></p>
-              <p>Option A: Take the promotion. Pros: More money, recognition, career advancement. Cons: Less time for family, hobbies, self-care. Higher stress. Risk of burnout.</p>
-              <p>Option B: Decline the promotion. Pros: Maintain work-life balance, time for what matters. Cons: Stagnation, less money, might regret not seizing opportunity.</p>
-              
-              <p><strong>What My Journal Revealed:</strong> Looking back at my entries from two years ago when I was burned out, I can see the patterns clearly. I wasn't just tired - I was spiritually empty. I had stopped doing the things that made me feel alive. The money wasn't worth it then, and it probably won't be worth it now.</p>
-              
-              <p><strong>The Decision:</strong> I'm going to decline the promotion. Instead, I'll negotiate for a raise in my current role and use the extra time to pursue the creative projects I've been neglecting. Financial security matters, but not at the cost of my soul.</p>
-              
-              <p>Writing this out made the choice obvious. Sometimes we just need to see our thoughts on paper to recognize what we already know.</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Decisive - Moved from uncertainty to clarity through analysis</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Decision-making, values alignment, self-reflection</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Your structured approach to decision-making is excellent. Consider creating a decision framework for future complex choices</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#decision</span>
-              <span class="badge bg-secondary me-1">#career</span>
-              <span class="badge bg-secondary me-1">#values</span>
-              <span class="badge bg-secondary me-1">#clarity</span>
-            </div>
-          </div>
-
-          <!-- Sample Entry 10 - Learning and Growth -->
-          <div class="entry-sample mb-5">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <h3>Learning Something New: The Beginner's Mind</h3>
-              <div class="text-end">
-                <span class="badge bg-info">Learning</span>
-                <span class="badge bg-success ms-1">Excited</span>
-              </div>
-            </div>
-            
-            <div class="text-muted mb-3">
-              <i class="bi bi-calendar"></i> March 6, 2024 - 3:30 PM
-            </div>
-            
-            <div class="entry-content mb-3">
-              <p>I started learning Spanish today, and it's humbling to be a complete beginner again. At work, I'm the expert people come to for answers. In my Spanish class, I can barely pronounce "hola" correctly.</p>
-              
-              <p>But there's something liberating about being a beginner. The pressure to be perfect is gone because perfection isn't expected. I can make mistakes, ask "stupid" questions, and be completely awkward without it affecting my professional reputation.</p>
-              
-              <p>Today I learned that Spanish has two ways to say "to be" - ser and estar - and they're used in completely different contexts. My brain struggled to grasp this concept that seems so natural to native speakers. I felt frustrated, then embarrassed, then just laughed at myself.</p>
-              
-              <p>It's been years since I was truly bad at something I cared about learning. I think I've been avoiding this feeling - choosing to stay in my comfort zone where I'm competent and confident. But growth only happens at the edges of comfort.</p>
-              
-              <p>My teacher said something that stuck with me: "In Spanish, we don't say 'I made a mistake.' We say 'I learned.'" What a beautiful reframing. Mistakes aren't failures - they're data points in the learning process.</p>
-              
-              <p>I'm going to embrace being a beginner. It's uncomfortable, yes, but it's also where the magic happens. Who knows what else I might discover about myself when I'm willing to be bad at something new?</p>
-            </div>
-            
-            <div class="entry-insights bg-light p-3 rounded">
-              <h6><i class="bi bi-lightbulb"></i> AI Insights</h6>
-              <p class="mb-2"><strong>Sentiment:</strong> Growth-oriented - Embraces discomfort as part of learning</p>
-              <p class="mb-2"><strong>Key Themes:</strong> Learning, growth mindset, humility, stepping outside comfort zone</p>
-              <p class="mb-0"><strong>Recommendation:</strong> Your willingness to embrace beginner's mind is a strength. Consider documenting your learning journey to track progress</p>
-            </div>
-            
-            <div class="entry-tags mt-3">
-              <span class="badge bg-secondary me-1">#learning</span>
-              <span class="badge bg-secondary me-1">#growth</span>
-              <span class="badge bg-secondary me-1">#beginnermind</span>
-              <span class="badge bg-secondary me-1">#spanish</span>
-            </div>
-          </div>
-
-          <!-- Features Highlight -->
-          <div class="features-highlight mt-5 p-4 bg-light rounded">
-            <h3><i class="bi bi-stars"></i> Features Demonstrated</h3>
-            <div class="row mt-3">
-              <div class="col-md-6">
-                <h5><i class="bi bi-tag"></i> Organization</h5>
-                <ul>
-                  <li>Categories and tags for easy organization</li>
-                  <li>Mood tracking with visual indicators</li>
-                  <li>Favorite entries for quick access</li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <h5><i class="bi bi-robot"></i> AI Insights</h5>
-                <ul>
-                  <li>Sentiment analysis for emotional awareness</li>
-                  <li>Pattern recognition and recommendations</li>
-                  <li>Personalized growth suggestions</li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <h5><i class="bi bi-search"></i> Search & Filter</h5>
-                <ul>
-                  <li>Full-text search across all entries</li>
-                  <li>Filter by mood, category, or tags</li>
-                  <li>Date-based navigation</li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <h5><i class="bi bi-shield-check"></i> Privacy</h5>
-                <ul>
-                  <li>Secure, private journaling space</li>
-                  <li>End-to-end encryption</li>
-                  <li>Complete control over your data</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <section class="mt-5">
+            <h2 class="h3">What these examples demonstrate</h2>
+            <p>Entries in My Diary can have a title and written text, with optional mood, category, tags, and a favorite marker. You can search and filter your saved entries and export them. Optional AI features are separate from these examples; any AI output can be inaccurate and should be reviewed critically.</p>
+          </section>
 
           <div class="text-center mt-5">
+            <p>For more optional exercises, browse the <a href="{{ url_for('main.guides') }}">journaling guides</a>.</p>
             <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
               <i class="bi bi-person-plus"></i> Start Your Own Journal
             </a>
             <a href="{{ url_for('main.features') }}" class="btn btn-outline-secondary btn-lg ms-2">
-              <i class="bi bi-info-circle"></i> Explore All Features
+              <i class="bi bi-info-circle"></i> Explore Features
             </a>
           </div>
         </div>
@@ -500,16 +87,8 @@
   padding-left: 1rem;
 }
 
-.entry-insights {
-  border-left: 3px solid #28a745;
-}
-
 body.theme-dark .entry-sample {
   border-left-color: #764ba2;
-}
-
-body.theme-dark .features-highlight {
-  background: rgba(30, 41, 82, 0.5);
 }
 </style>
 {% endblock %}
