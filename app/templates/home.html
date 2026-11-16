@@ -141,53 +141,32 @@
     </div>
   </section>
 
-  <!-- Testimonials Section -->
-  <section class="testimonials-section py-5 mb-5">
+  <section class="py-5 mb-5" aria-labelledby="entry-ideas-heading">
     <div class="container">
-      <h2 class="text-center mb-5">Ways a journal can help</h2>
+      <h2 id="entry-ideas-heading" class="text-center mb-3">Three ways to structure an entry</h2>
+      <p class="text-center text-muted mb-5">These are writing formats, not user testimonials or claims about results.</p>
       <div class="row g-4">
         <div class="col-md-4">
           <div class="card h-100">
             <div class="card-body">
-              <div class="mb-3">
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-              </div>
-              <p class="card-text">Use a short evening entry to capture what happened, name the feeling it brought up, and choose one small next step.</p>
-              <footer class="blockquote-footer">A simple reflection routine</footer>
+              <h3 class="h5">A daily note</h3>
+              <p class="card-text mb-0">Write one thing that happened, one detail you noticed, and anything you want to remember.</p>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card h-100">
             <div class="card-body">
-              <div class="mb-3">
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-              </div>
-              <p class="card-text">Reviewing your own entries can make recurring moods, situations, and habits easier to notice without treating a chart as a diagnosis.</p>
-              <footer class="blockquote-footer">A pattern-noticing routine</footer>
+              <h3 class="h5">A decision note</h3>
+              <p class="card-text mb-0">List the options, what you know so far, what remains uncertain, and one next step for gathering information.</p>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card h-100">
             <div class="card-body">
-              <div class="mb-3">
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-                <i class="bi bi-star-fill text-warning"></i>
-              </div>
-              <p class="card-text">When time is short, write three sentences: what happened, how you felt, and what support or action would help next.</p>
-              <footer class="blockquote-footer">A low-pressure routine</footer>
+              <h3 class="h5">A project note</h3>
+              <p class="card-text mb-0">Record what you tried, what you learned, and what you might change the next time.</p>
             </div>
           </div>
         </div>
@@ -214,7 +193,7 @@
   <!-- Research Section -->
   <section class="research-section py-5 mb-5">
     <div class="container">
-      <h2 class="text-center mb-5">Backed by Science, Trusted by Users</h2>
+      <h2 class="text-center mb-5">Further reading and evidence limits</h2>
       <div class="row g-4">
         <div class="col-md-6">
           <div class="research-card">
@@ -289,7 +268,7 @@
           <div class="content-card">
             <i class="bi bi-newspaper display-4 text-primary mb-3"></i>
             <h4>Blog Articles</h4>
-            <p>In-depth articles about journaling techniques, mental health research, and personal growth strategies.</p>
+            <p>Articles with practical journaling exercises, summaries of selected writing studies, and notes on what the research does not establish.</p>
             <a href="{{ url_for('main.blog') }}" class="btn btn-outline-primary btn-sm">Read Blog</a>
           </div>
         </div>
@@ -303,17 +282,17 @@
         </div>
         <div class="col-md-3">
           <div class="content-card">
-            <i class="bi bi-trophy display-4 text-warning mb-3"></i>
-            <h4>Success Stories</h4>
-            <p>Practice examples show ways to use prompts without presenting fictional stories as real testimonials.</p>
-            <a href="{{ url_for('main.success_stories') }}" class="btn btn-outline-primary btn-sm">Read Stories</a>
+            <i class="bi bi-journal-check display-4 text-warning mb-3"></i>
+            <h4>Practice Examples</h4>
+            <p>Fictional exercises show ways to use prompts; they are not user testimonials or promises of results.</p>
+            <a href="{{ url_for('main.success_stories') }}" class="btn btn-outline-primary btn-sm">Explore Examples</a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="content-card">
             <i class="bi bi-book display-4 text-info mb-3"></i>
             <h4>Resources</h4>
-            <p>Expert tips, writing prompts, and mental health resources to enhance your practice.</p>
+            <p>Writing prompts, flexible journaling formats, and links to research references for further reading.</p>
             <a href="{{ url_for('main.resources') }}" class="btn btn-outline-primary btn-sm">Explore Resources</a>
           </div>
         </div>
